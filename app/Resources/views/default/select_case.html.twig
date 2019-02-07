@@ -1,0 +1,84 @@
+{#
+   // AM-System
+   // Copyright (C) 2019 Robert Krasowski
+   // This program was created during an internship at DigiTrace GmbH
+   // Read LIZENZ.txt for full notice
+
+   // This program is free software: you can redistribute it and/or modify
+   // it under the terms of the GNU General Public License as published by
+   // the Free Software Foundation, either version 3 of the License, or
+   // (at your option) any later version.
+
+   // This program is distributed in the hope that it will be useful,
+   // but WITHOUT ANY WARRANTY; without even the implied warranty of
+   // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   // GNU General Public License for more details.
+
+   // You should have received a copy of the GNU General Public License
+   // along with this program.  If not, see <http://www.gnu.org/licenses/>.
+   
+#}
+
+{% extends 'base.html.twig' %}
+{% form_theme searchform 'bootstrap_3_layout.html.twig' %} 
+{% block content1 %}
+    {% if letztefaelle is not empty %}
+   
+        
+    <h2>{% trans %}currently_interacted_cases_today{% endtrans %}</h2>
+    <div class="alert alert-info">
+        {% trans %}desc_select_case_action{% endtrans %}
+    </div>
+    <table class="table">
+        <thead>
+          <tr>
+            <th>{% trans %}case_id{% endtrans %}</th>
+            <th>{% trans %}case_desc{% endtrans %}</th>
+            <th>{% trans %}desc_timestamp{% endtrans %}</th>
+          </tr>
+        </thead>
+        <tbody>
+            {% for fall in letztefaelle %}
+            <tr style="cursor:pointer" onclick="window.location.href='{{ path('add_to_case', {'caseid': fall.getCaseId,'objectid': objektid}) }}'">
+                <td>{{ fall.getCaseId }}</td>
+                <td>{{ fall.getBeschreibung }}</td>
+                <td>{{ fall.getZeitstempel|date('d.m.y H:i') }}</td>
+            </tr>
+            {% endfor %}
+
+        </tbody>
+    </table> 
+    {% endif %}
+     <div class="row">
+        <div class="col-sm-4"> <h2>{% trans %}list_of_current_cases{% endtrans %}</h2> </div>
+        <div class="col-sm-8" style="margin-top:7px">
+    
+            {{ form_start(searchform) }}
+            {{ form_row(searchform.suchwort) }}
+            {{ form_end(searchform) }}
+        </div>
+        </div>
+    
+    <table class="table">
+        <thead>
+          <tr>
+            <th>{% trans %}case_id{% endtrans %}</th>
+            <th>{% trans %}case_desc{% endtrans %}</th>
+            <th>{% trans %}desc_timestamp{% endtrans %}</th>
+          </tr>
+        </thead>
+        <tbody>
+            {% for fall in faelle %}
+            <tr style="cursor:pointer" onclick="window.location.href='{{ path('add_to_case', {'caseid': fall.getCaseId,'objectid': objektid}) }}'">
+                <td>{{ fall.getCaseId }}</td>
+                <td>{{ fall.getBeschreibung }}</td>
+                <td>{{ fall.getZeitstempel|date('d.m.y H:i') }}</td>
+            </tr>
+            {% endfor %}
+
+        </tbody>
+    </table>           
+{% endblock %}
+
+{% block context %}
+ {% endblock %}

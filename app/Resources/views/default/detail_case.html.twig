@@ -1,0 +1,115 @@
+{#
+   // AM-System
+   // Copyright (C) 2019 Robert Krasowski
+   // This program was created during an internship at DigiTrace GmbH
+   // Read LIZENZ.txt for full notice
+
+   // This program is free software: you can redistribute it and/or modify
+   // it under the terms of the GNU General Public License as published by
+   // the Free Software Foundation, either version 3 of the License, or
+   // (at your option) any later version.
+
+   // This program is distributed in the hope that it will be useful,
+   // but WITHOUT ANY WARRANTY; without even the implied warranty of
+   // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   // GNU General Public License for more details.
+
+   // You should have received a copy of the GNU General Public License
+   // along with this program.  If not, see <http://www.gnu.org/licenses/>.
+   
+#}
+{% extends 'base.html.twig' %}
+
+{% block content1 %}
+    
+    {% for label, messages in app.flashes %}
+         {% for message in messages %}
+             <div class="alert alert-{{ label }}">
+                 {{ message | trans | nl2br}}
+             </div>
+         {% endfor %}
+     {% endfor %}
+    
+    <h2>{% trans with {'%context%': fall.getCaseId} %}case_details %context%{% endtrans %}</h2>
+
+        <h3>{% trans %}case_current_state{% endtrans %}</h3>
+         <table class="table">
+             <tr>
+                 <td>{% trans %}case_id{% endtrans %}</td>
+                 <td>{{ fall.getCaseId }}</td>
+             </tr>
+
+             <tr>
+               <td>{% trans %}case_desc{% endtrans %}</td>
+               <td>{{  fall.getBeschreibung }}</td>
+             </tr>
+             <tr>
+               <td>{% trans %}case_isactiv{% endtrans %}</td>
+               <td>
+                   {% if fall.istAktiv == true%}
+                    Ja
+                   {% else %}
+                    nein
+                    {% endif %}
+               </td>
+             </tr>
+             <tr>
+                 <td>{% trans %}case_timestamp{% endtrans %}</td>
+                 <td>{{ fall.getZeitstempel|date('d.m.y H:i') }}</td>
+             </tr>
+         </table>
+            
+ {% endblock %}
+ {% block content2 %}
+       
+    <h3>{% trans %}container_listed_objects{% endtrans %}</h3>
+    <table class="table">
+     <thead>
+       <tr>
+         <th>{% trans %}desc.oid{% endtrans %}</th>
+         <th>{% trans %}desc.name{% endtrans %}</th>
+         <th>{% trans %}desc.lstatus{% endtrans %}</th>
+         <th>{% trans %}desc.last.action.done{% endtrans %}</th>
+         <th>{% trans %}desc.container{% endtrans %}</th>
+       </tr>
+     </thead>
+     <tbody>
+
+         {% for object in fall.getObjekte %}
+
+         <tr style="cursor:pointer" onclick="window.location.href='{{ path('detail_object', {'id': object.getBarcode}) }}'">
+            <td style='font-family: courier;font-size: large'>
+                <a href="{{ path('detail_object', {'id': object.getBarcode}) }}">
+                {{ object.getBarcode }}
+                </a>
+            </td>
+            <td>
+                <a href="{{ path('detail_object', {'id': object.getBarcode}) }}">
+                    {{ object.getName }}
+                </a>
+            </td>
+            <td>{{ statustemp[object.getStatus] | trans }}</td>
+            <td>{{ object.getZeitstempelumsetzung|date('d.m.y H:i') }}</td>
+            <td>
+                {% if object.getStandort == false %}
+                /
+                {% else %}
+                <a href='{{ path('detail_object', {'id': object.getStandort.getBarcode}) }}' >{{ object.getStandort.getBarcode }} | {{ object.getStandort.getName }} </a></td>
+                {% endif %}
+            </td>
+       </tr>
+       {% endfor %}
+     </tbody>
+  </table>
+       
+              {% trans with {'%cdate%': "now"|date('d.m.y'),'%ctime%':"now"| date('H:i')  } %}report has been made at %cdate% %ctime%{% endtrans %}
+{% endblock %}
+
+{% block stylesheets %}
+{% endblock %}
+
+
+{% block context %}
+    <a onclick="window.print()"> <span class="glyphicon glyphicon-print"></span> {% trans %}action.print{% endtrans %}</a><br>
+    <a href='{{ path("update_case",{id:fall.getCaseId})}}'> <span class="glyphicon glyphicon-pencil"></span> {% trans %}action.update.case{% endtrans %}</a><br>
+{% endblock %}

@@ -1,0 +1,61 @@
+{#
+   // AM-System
+   // Copyright (C) 2019 Robert Krasowski
+   // This program was created during an internship at DigiTrace GmbH
+   // Read LIZENZ.txt for full notice
+
+   // This program is free software: you can redistribute it and/or modify
+   // it under the terms of the GNU General Public License as published by
+   // the Free Software Foundation, either version 3 of the License, or
+   // (at your option) any later version.
+
+   // This program is distributed in the hope that it will be useful,
+   // but WITHOUT ANY WARRANTY; without even the implied warranty of
+   // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   // GNU General Public License for more details.
+
+   // You should have received a copy of the GNU General Public License
+   // along with this program.  If not, see <http://www.gnu.org/licenses/>.
+   
+#}
+
+{% extends 'base.html.twig' %}
+{% form_theme suche 'bootstrap_3_layout.html.twig' %} 
+{% block content2 %}
+
+            {% for label, messages in app.flashes %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ label }}">
+                        {{ message |trans }}
+                    </div>
+                {% endfor %}
+            {% endfor %}
+           <h2>{% trans %} object_search_via_barcode {% endtrans %}</h2>
+         
+                    
+                    {{ form_start(suche) }}
+                    {{ form_widget(suche) }}
+                    {{ form_end(suche) }}
+              
+             <div class="alert alert-info">
+                 <strong>Info!</strong> {% trans %}object_search_via_barcode_info{% endtrans %} 
+             </div>
+              
+                
+ <script>
+     document.getElementById("form_suchwort").value = "";
+     function barcodesubmit(){
+         max = 9;
+         //anz = document.find.barcodefeld.value.length;
+         anz = document.getElementById("form_suchwort").value.length;
+         if(anz >= max)
+             document.form.submit();
+     }
+     
+     setInterval(barcodesubmit,1000);
+     
+</script>
+{% endblock %}
+
+{% block stylesheets %}
+{% endblock %}

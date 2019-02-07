@@ -1,0 +1,130 @@
+{#
+   // AM-System
+   // Copyright (C) 2019 Robert Krasowski
+   // This program was created during an internship at DigiTrace GmbH
+   // Read LIZENZ.txt for full notice
+
+   // This program is free software: you can redistribute it and/or modify
+   // it under the terms of the GNU General Public License as published by
+   // the Free Software Foundation, either version 3 of the License, or
+   // (at your option) any later version.
+
+   // This program is distributed in the hope that it will be useful,
+   // but WITHOUT ANY WARRANTY; without even the implied warranty of
+   // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   // GNU General Public License for more details.
+
+   // You should have received a copy of the GNU General Public License
+   // along with this program.  If not, see <http://www.gnu.org/licenses/>.
+   
+#}
+
+{% extends 'variable.html.twig' %}
+
+{% block wrapper %}
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta charset="UTF-8" />
+        <title>{% trans %}amsystem{% endtrans %}</title>
+        {% block stylesheets %}{% endblock %}
+        <link rel="stylesheet" href="{{asset('public/css/bootstrap.min.css')}}" >
+        <link rel="stylesheet"  href="{{asset('public/css/custom.css')}}">
+       <script src="{{asset('public/js/jquery-3.2.1.min.js')}}" ></script>
+        <script src="{{asset('public/js/bootstrap.min.js')}}" ></script>
+        <link rel="icon" type="image/x-icon" href="{{ asset('favicon.ico') }}" />
+        
+        
+    </head>
+    <body > 
+        
+        <nav class="navbar navbar-inverse navbar-static-top">
+            <div class="container-fluid">
+              <div class="navbar-header">
+                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#myNavbar">
+                  <span class="icon-bar"></span>
+                  <span class="icon-bar"></span> 
+                  <span class="icon-bar"></span> 
+                </button>
+                    <a class="navbar-brand" style="margin-top: -15px;" href="{{ path('homepage') }}">
+                        <img src="{{asset('public/img/AM-System-Logo.png')}}" height="50px" alt="AM-System" >
+                    </a>
+              </div>
+                
+              <div class="collapse navbar-collapse" id="myNavbar">
+                
+                <ul class="nav navbar-nav">
+                    <li><a class="navbar-brand" href='{{ path('search_case') }}'>{% trans %}cases{% endtrans %} <span class="glyphicon glyphicon-search"></span></a></li>
+                    <li><a class="navbar-brand" href='{{ path('search_objects') }}'>{% trans %}objects{% endtrans %} <span class="glyphicon glyphicon-search"></span></a></li>
+                    <li><a class="navbar-brand" href='{{ path('search_objects_scanner') }}'>{% trans %}objects{% endtrans %} <span class="glyphicon glyphicon-qrcode"></span></a></li>
+                </ul>
+                
+                <ul class="nav navbar-nav navbar-right">
+                  {% if app.user is not null%}
+                  <li><a href='{{ path('logout') }}'><span class="glyphicon glyphicon-log-out"></span> {% trans %}action.logout{% endtrans %}</a></li>
+                  {% endif %}
+                </ul>
+                <ul class="nav navbar-nav navbar-right">
+                     {% if app.user is null %}
+                        <li class="navbar-brand">Anonym</li>
+                    {% else %}
+                    <li class="navbar-brand" onclick="window.location.href='{{ path('fos_user_profile_show') }}'">{{ app.user.username }}</li>
+                    {% endif %}
+                </ul>
+                
+                {% block searchbar %}{% endblock %}
+                
+              </div>
+            </div>
+        </nav>
+  
+        <div class="container-fluid text-right">    
+          <div class="row content">
+            <div class="col-print-12 col-sm-10  text-left">
+                
+               {% block content1 %}{% endblock %}
+              
+               <hr>
+               
+                {% block content2 %}{% endblock %}
+               
+            </div>
+            
+            {% set _block = block('context') %}
+            {% if _block is not empty %}
+            <div class="col-sm-2 sidenav text-left hidden-print " >
+               
+                <h3>{% trans %}contextmenu{% endtrans %}:</h3>
+                <div class="well well-sm" style="min-height:200px;">
+
+                 {% block context %}{% endblock %}
+              </div>
+             
+            </div>
+            {% endif %}
+          </div>
+        </div>
+
+        <footer class="container-fluid text-center well well-sm hidden-print" style="margin-top:100px">
+          <p>             
+              {% trans %}applicationof{% endtrans %} <img src="{{asset('public/img/DigiTrace_Logo.png')}}" width="100px" alt="Digitrace GmbH" >, Made by Robert Krasowski
+          </p>
+          <p><a href="{{ path('changelog') }}" >Changelog </a>, Version R1.00</p>
+        </footer>
+       {% block javascripts %}{% endblock %}
+       <script>
+                
+                function alertbeforesubmit(){
+                    return confirm("{% trans %}alertbeforesubmit{% endtrans %}");
+                }
+                
+        </script>
+    </body> 
+</html>
+
+
+{% endblock wrapper %}
+
+
+

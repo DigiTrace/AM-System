@@ -1,0 +1,1005 @@
+<?xml version="1.0"?>
+<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">
+    <file source-language="en" target-language="en" datatype="plaintext" original="file.ext">
+        <body>
+            <trans-unit id="status_added">
+                <source>status.added</source>
+                <target>Add to system</target>
+            </trans-unit>
+            <trans-unit id="status_cleaned">
+                <source>status.cleaned</source>
+                <target>Zeroed</target>
+            </trans-unit>
+            <trans-unit id="status_taken_to_customer">
+                <source>status.taken.to.customer</source>
+                <target>Taken to customer</target>
+            </trans-unit>
+            <trans-unit id="status_destroyed">
+                <source>status.destroyed</source>
+                <target>Destroyed</target>
+            </trans-unit>
+            <trans-unit id="status_handover_person">
+                <source>status.handover.person</source>
+                <target>Handed over to a person</target>
+            </trans-unit>
+            <trans-unit id="status_reserved">
+                <source>status.reserved</source>
+                <target>Reserved</target>
+            </trans-unit>
+            <trans-unit id="status_lost">
+                <source>status.lost</source>
+                <target>Lost</target>
+            </trans-unit>
+            <trans-unit id="status_stored_in_container">
+                <source>status.stored.in.container</source>
+                <target>Added to a container</target>
+            </trans-unit>
+            <trans-unit id="status_pulled_out_of_container">
+                <source>status.pulled.out.of.container</source>
+                <target>Pulled out of container</target>
+            </trans-unit>
+            <trans-unit id="status_added_to_case">
+                <source>status.added.to.case</source>
+                <target>Added to Case</target>
+            </trans-unit>
+            <trans-unit id="status_removed_from_case">
+                <source>status.removed.from.case</source>
+                <target>Removed from case</target>
+            </trans-unit>
+            <trans-unit id="status_unbind_reservation">
+                <source>status.unbind.reservation</source>
+                <target>Reservation revoked</target>
+            </trans-unit>
+            <trans-unit id="status_used">
+                <source>status.used</source>
+                <target>In use</target>
+            </trans-unit>
+            <trans-unit id="status_edited">
+                <source>status.edited</source>
+                <target>Edited</target>
+            </trans-unit>
+            <trans-unit id="status_saved_image">
+                <source>status.saved.image</source>
+                <target>Image of evidence object</target>
+            </trans-unit>
+            <trans-unit id="category_exhibit">
+                <source>category.exhibit</source>
+                <target>Evidence object</target>
+            </trans-unit>
+            <trans-unit id="category_exhibit_hdd">
+                <source>category.exhibit.hdd</source>
+                <target>HDD evidence object</target>
+            </trans-unit>
+            <trans-unit id="category_equipment">
+                <source>category.equipment</source>
+                <target>Equipment</target>
+            </trans-unit>
+            <trans-unit id="category_container">
+                <source>category.container</source>
+                <target>Container</target>
+            </trans-unit>
+            <trans-unit id="category_hdd">
+                <source>category.hdd</source>
+                <target>HDD</target>
+            </trans-unit>
+            <trans-unit id="category_record">
+                <source>category.record</source>
+                <target>Record</target>
+            </trans-unit>
+            <trans-unit id="25">
+                <source>25</source>
+                <target>25</target>
+            </trans-unit>
+            <trans-unit id="50">
+                <source>50</source>
+                <target>50</target>
+            </trans-unit>
+            <trans-unit id="100">
+                <source>100</source>
+                <target>100</target>
+            </trans-unit>
+            <trans-unit id="1000">
+                <source>1000</source>
+                <target>1000</target>
+            </trans-unit>
+            <trans-unit id="action_print">
+                <source>action.print</source>
+                <target>Print</target>
+            </trans-unit>
+            <trans-unit id="action_cleaned">
+                <source>action.cleaned</source>
+                <target>Was zeroed</target>
+            </trans-unit>
+            <trans-unit id="action_neutralise">
+                <source>action.neutralise</source>
+                <target>Was neutralized</target>
+            </trans-unit>
+            <trans-unit id="action_destroyed">
+                <source>action.destroyed</source>
+                <target>Was destroyed</target>
+            </trans-unit>
+            <trans-unit id="action_handover_person">
+                <source>action.handover.person</source>
+                <target>Handover to person</target>
+            </trans-unit>
+            <trans-unit id="action_lost">
+                <source>action.lost</source>
+                <target>Was lost</target>
+            </trans-unit>
+            <trans-unit id="action_used">
+                <source>action.used</source>
+                <target>In use</target>
+            </trans-unit>
+            <trans-unit id="action_add_image">
+                <source>action.add.image</source>
+                <target>Create image from disk</target>
+            </trans-unit>
+            <trans-unit id="action_reserved">
+                <source>action.reserved</source>
+                <target>Reserve Object</target>
+            </trans-unit>
+            <trans-unit id="action_stored_in_container">
+                <source>action.stored.in.container</source>
+                <target>Put in Container</target>
+            </trans-unit>
+            <trans-unit id="action_stored_in_container_alternativ">
+                <source>action.stored.in.container.alternativ</source>
+                <target>Put in different Container</target>
+            </trans-unit>
+            <trans-unit id="action_pulled_out_of_container">
+                <source>action.pulled.out.of.container</source>
+                <target>Pull out of Container</target>
+            </trans-unit>
+            <trans-unit id="action_added_to_case">
+                <source>action.added.to.case</source>
+                <target>Add to Case</target>
+            </trans-unit>
+            <trans-unit id="action_removed_from_case">
+                <source>action.removed.from.case</source>
+                <target>Remove from case</target>
+            </trans-unit>
+            <trans-unit id="action_unbind_reservation">
+                <source>action.unbind.reserved</source>
+                <target>unbind reservation</target>
+            </trans-unit>
+            <trans-unit id="action_edit">
+                <source>action.edit</source>
+                <target>Edit Object</target>
+            </trans-unit>
+            <trans-unit id="desc_oid">
+                <source>desc.oid</source>
+                <target>Barcode:</target>
+            </trans-unit>
+            <trans-unit id="desc_name">
+                <source>desc.name</source>
+                <target>Object description</target>
+            </trans-unit>
+            <trans-unit id="desc_category">
+                <source>desc.category</source>
+                <target>Category:</target>
+            </trans-unit>
+            <trans-unit id="desc_lstatus">
+                <source>desc.lstatus</source>
+                <target>Current Status:</target>
+            </trans-unit>
+            <trans-unit id="desc_status">
+                <source>desc.status</source>
+                <target>Status:</target>
+            </trans-unit>
+            <trans-unit id="desc_usage">
+                <source>desc.usage</source>
+                <target>More detailed description of the use:</target>
+            </trans-unit>
+            <trans-unit id="desc_additional_usage">
+                <source>desc.additional.usage</source>
+                <target>Additional usage of the object:</target>
+            </trans-unit>
+            <trans-unit id="desc_ousage">
+                <source>desc.ousage</source>
+                <target>More detailed description of the use (optional):</target>
+            </trans-unit>
+            <trans-unit id="desc_notice">
+                <source>desc.notice</source>
+                <target>Notice for this Object:</target>
+            </trans-unit>
+            <trans-unit id="desc_case">
+                <source>desc.case</source>
+                <target>Involved in project:</target>
+            </trans-unit>
+            <trans-unit id="desc_container">
+                <source>desc.container</source>
+                <target>Located in:</target>
+            </trans-unit>
+            <trans-unit id="desc_reserved">
+                <source>desc.reserved</source>
+                <target>Reserved by:</target>
+            </trans-unit>
+            <trans-unit id="desc_user">
+                <source>desc.user</source>
+                <target>Action performed by:</target>
+            </trans-unit>
+            <trans-unit id="desc_luser">
+                <source>desc.luser</source>
+                <target>Last action performed by:</target>
+            </trans-unit>
+            <trans-unit id="desc_imaged">
+                <source>desc.imaged</source>
+                <target>Has Image of:</target>
+            </trans-unit>
+            <trans-unit id="desc_last_action_done">
+                <source>desc.last.action.done</source>
+                <target>Last action performed on:</target>
+            </trans-unit>
+            <trans-unit id="desc_last_action_registered">
+                <source>desc.last.action.registered</source>
+                <target>Last action registered on:</target>
+            </trans-unit>
+            <trans-unit id="desc_last_action_done_registered">
+                <source>desc.last.action.done.registered</source>
+                <target> Last action performed/registered on:</target>
+            </trans-unit>
+            <trans-unit id="desc_action_done">
+                <source>desc.action.done</source>
+                <target>Action performed on:</target>
+            </trans-unit>
+            <trans-unit id="desc_action_registered">
+                <source>desc.action.registered</source>
+                <target>Action registered on:</target>
+            </trans-unit>
+            <trans-unit id="desc_type">
+                <source>desc.type</source>
+                <target>Type:</target>
+            </trans-unit>
+            <trans-unit id="desc_formfactor">
+                <source>desc.formfactor</source>
+                <target>form factor:</target>
+            </trans-unit>
+            <trans-unit id="desc_size">
+                <source>desc.size</source>
+                <target>Size:</target>
+            </trans-unit>
+            <trans-unit id="desc_bsize">
+                <source>desc.bsize</source>
+                <target>Special size</target>
+            </trans-unit>
+            <trans-unit id="desc_producer">
+                <source>desc.producer</source>
+                <target>Producer:</target>
+            </trans-unit>
+            <trans-unit id="desc_connection">
+                <source>desc.connection</source>
+                <target>Connection:</target>
+            </trans-unit>
+            <trans-unit id="desc_modell">
+                <source>desc.modell</source>
+                <target>Modell:</target>
+            </trans-unit>
+            <trans-unit id="desc_sn">
+                <source>desc.sn</source>
+                <target>Serialnumber:</target>
+            </trans-unit>
+            <trans-unit id="desc_pn">
+                <source>desc.pn</source>
+                <target>Productnumber:</target>
+            </trans-unit>
+            <trans-unit id="action_show_profile">
+                <source>action.show.profile</source>
+                <target>Show profile</target>
+            </trans-unit>
+            <trans-unit id="action_edit_profile">
+                <source>action.edit.profile</source>
+                <target>Edit profile</target>
+            </trans-unit>
+            <trans-unit id="action_add_user">
+                <source>action.add.user</source>
+                <target>Add new user</target>
+            </trans-unit>
+            <trans-unit id="action_change_password">
+                <source>action.change.password</source>
+                <target>Change password</target>
+            </trans-unit>
+            <trans-unit id="start_page">
+                <source>start.page</source>
+                <target>Start page</target>
+            </trans-unit>
+            <trans-unit id="amsystem">
+                <source>amsystem</source>
+                <target>Evidence object management system</target>
+            </trans-unit>
+            <trans-unit id="cases">
+                <source>cases</source>
+                <target>Cases</target>
+            </trans-unit>
+            <trans-unit id="objects">
+                <source>objects</source>
+                <target>Objects</target>
+            </trans-unit>
+            <trans-unit id="action_logout">
+                <source>action.logout</source>
+                <target>Logout</target>
+            </trans-unit>
+            <trans-unit id="contextmenu">
+                <source>contextmenu</source>
+                <target>Contextmenu</target>
+            </trans-unit>
+            <trans-unit id="applicationof">
+                <source>applicationof</source>
+                <target>Application by </target>
+            </trans-unit>
+            <trans-unit id="detailsto">
+                <source>detailsto</source>
+                <target>Details to</target>
+            </trans-unit>
+            <trans-unit id="currentstatus">
+                <source>currentstatus</source>
+                <target>Current Status</target>
+            </trans-unit>
+            <trans-unit id="history">
+                <source>history</source>
+                <target>History</target>
+            </trans-unit>
+            <trans-unit id="currentinventory">
+                <source>currentinventory</source>
+                <target>Current content</target>
+            </trans-unit>
+            <trans-unit id="message_no_objects_in_container">
+                <source>message.no.objects.in.container</source>
+                <target>There are currently no objects in the container</target>
+            </trans-unit>
+            <trans-unit id="message_no_history_available">
+                <source>message.no.history.available</source>
+                <target>Object has no history</target>
+            </trans-unit>            
+            <trans-unit id="report_timestamp">
+                <source>report has been made at %cdate% %ctime%</source>
+                <target>This report has been made on %cdate% at %ctime%.</target>
+            </trans-unit>
+            
+            <trans-unit id="objectsummary">
+                <source>objectsummary</source>
+                <target>Objectsummary</target>
+            </trans-unit>
+            <trans-unit id="availability">
+                <source>availability</source>
+                <target>Availability</target>
+            </trans-unit>
+            <trans-unit id="reserved_from">
+                <source>reserved from %user%</source>
+                <target>Reserved by %user% </target>
+            </trans-unit>
+            <trans-unit id="entrys_found">
+                <source>entrys.found</source>
+                <target>Entrys Found</target>
+            </trans-unit>
+            <trans-unit id="action_filter_exhibit">
+                <source>action.filter.exhibit</source>
+                <target>Filter for evidence objects</target>
+            </trans-unit>
+            <trans-unit id="action_filter_hdd">
+                <source>action.filter.hdd</source>
+                <target>Filter for HDDs</target>
+            </trans-unit>
+            <trans-unit id="action_filter_record">
+                <source>action.filter.record</source>
+                <target>Filter for Records</target>
+            </trans-unit>
+            <trans-unit id="action_filter_equipment">
+                <source>action.filter.equipment</source>
+                <target>Filter for Equipment</target>
+            </trans-unit>
+            <trans-unit id="action_filter_container">
+                <source>action.filter.container</source>
+                <target>Filter for Containers</target>
+            </trans-unit>
+            <trans-unit id="action_add_object">
+                <source>action.add.object</source>
+                <target>Add Object</target>
+            </trans-unit>
+            <trans-unit id="action_faq_search">
+                <source>action.faq.search</source>
+                <target>FAQ for the search function</target>
+            </trans-unit>
+            <trans-unit id="action_upload_image">
+                <source>action.upload.image</source>
+                <target>Upload picture</target>
+            </trans-unit>
+            <trans-unit id="when_object_arrived">
+                <source>when.object.arrived</source>
+                <target>Date of arrival:</target>
+            </trans-unit>
+            <trans-unit id="add_object">
+                <source>add.object</source>
+                <target>Add Object</target>
+            </trans-unit>
+            <trans-unit id="hddinfos">
+                <source>hddinfos</source>
+                <target>Specific informations for disk medium</target>
+            </trans-unit>
+            <trans-unit id="label.do.action">
+                <source>label.do.action</source>
+                <target>Perform action</target>
+            </trans-unit>
+            <trans-unit id="label.upload.pic">
+                <source>label.upload.pic</source>
+                <target>Select Picture</target>
+            </trans-unit>
+            <trans-unit id="label.pic.to.public">
+                <source>label.pic.to.public</source>
+                <target>Share Picture for another Objects</target>
+            </trans-unit>
+            <trans-unit id="Selectpubpic">
+                <source>Selectpubpic</source>
+                <target>Use already existing Picture</target>
+            </trans-unit>
+            <trans-unit id="uploaded_pic_private">
+                <source>uploaded.pic.private</source>
+                <target>Add private Picture</target>
+            </trans-unit>
+            <trans-unit id="uploaded_pic_for_other">
+                <source>uploaded.pic.for.other</source>
+                <target>Add Picture as Template</target>
+            </trans-unit>
+            <trans-unit id="uploaded_pic_from_other">
+                <source>uploaded.pic.from.other</source>
+                <target>Use Template Picture</target>
+            </trans-unit>
+            <trans-unit id="must_be_an_integer">
+                <source>must.be.an.integer</source>
+                <target>Has to be a number</target>
+            </trans-unit>
+            <trans-unit id="not_valid_object_infos">
+                <source>not.valid.object.infos</source>
+                <target>Invalid object information</target>
+            </trans-unit>
+            <trans-unit id="object_successfully_saved">
+                <source>object.successfully.saved %object%</source>
+                <target>Object %object% was successfully saved</target>
+            </trans-unit>
+            <trans-unit id="barcode_already_exists_in_database">
+                <source>barcode.already.exists.in.database</source>
+                <target>Barcode already exists</target>
+            </trans-unit>
+            <trans-unit id="barcode_not_valid">
+                <source>barcode.not.valid</source>
+                <target>Given Barcode is invalid</target>
+            </trans-unit>
+            <trans-unit id="object_is_not_saved">
+                <source>object.is.not.saved</source>
+                <target>object was not saved</target>
+            </trans-unit>
+            <trans-unit id="add_object_and_add_new_object">
+                <source>add.object.and.add.new.object</source>
+                <target>Add Object and add another one</target>
+            </trans-unit>
+            <trans-unit id="add_object_and_add_similar_object">
+                <source>add.object.and.add.similar.object</source>
+                <target>Add Object und add similar one</target>
+            </trans-unit>
+            <trans-unit id="action_description_edit_object">
+                <source>action.description.edit.object</source>
+                <target>The change of the object will be logged in the history. The last actions date of execution will be used due to technical reasons. 
+                    If the object is involved in a case or something similar, the current status will not be altered.</target>
+            </trans-unit>
+            <trans-unit id="action_description_delivery_object">
+                <source>action.description.delivery.object</source>
+                <target> Please state, which person or authority recieved the object</target>
+            </trans-unit>
+            <trans-unit id="action_description_lost_object">
+                <source>action.description.lost.object</source>
+                <target>This isnt suppose to happen, we are professionals!!</target>
+            </trans-unit>
+            <trans-unit id="action_description_pull_out_object">
+                <source>action.description.pull.out.object</source>
+                <target>Please state, why you want to pull the object out of the container</target>
+            </trans-unit>
+            <trans-unit id="action_description_remove_from_case_object">
+                <source>action.description.remove.from.case.object</source>
+                <target>Please state, why you want to remove the object of the Case</target>
+            </trans-unit>
+            <trans-unit id="action_description_neutralize_object">
+                <source>action.description.neutralize.object</source>
+                <target>During this action, the object will be zeroed, pulled out of a container and removed from case.
+                    Only required actions will be used.</target>
+            </trans-unit>
+            <trans-unit id="action_description_save_image_on_hdd">
+                <source>action.description.save.image.on.hdd %objectname% %exhibit_hdd_name%</source>
+                <target>You are about to add a image from [%exhibit_hdd_name%] to the HDD [%objectname%]!!</target>
+            </trans-unit>
+            <trans-unit id="action_description_store_object">
+                <source>action.description.store.object %category% %objectname% %containername%</source>
+                <target>You are about to store [%category%] [%objectname%] to container [%containername%]!!</target>
+            </trans-unit>
+            <trans-unit id="action_description_add_to_case">
+                <source>action.description.add.to.case %category% %objectname% %casename%</source>
+                <target>You are about to add [%category%] [%objectname%] to case [%casename%]!!</target>
+            </trans-unit>
+            <trans-unit id="action_upload_pic">
+                <source>action.upload.pic</source>
+                <target>Choose a Picture or upload ones. Please consider while uploading a picture, that the maximum size of the Picture has to be 10MB. Also the format has to be JPEG.</target>
+            </trans-unit>
+            <trans-unit id="criteria_was_not_found">
+                <source>criteria.was.not.found %criteria%</source>
+                <target>Following criteria could not be interpreted: %criteria%</target>
+            </trans-unit>
+            <trans-unit id="size_value_not_valid">
+                <source>size.value.not.valid</source>
+                <target>Giving size is invalid</target>
+            </trans-unit>
+            <trans-unit id="timestamp_value_not_valid">
+                <source>timestamp.value.not.valid</source>
+                <target>Giving timestamp is not valid</target>
+            </trans-unit>
+            <trans-unit id="usersummary">
+                <source>usersummary</source>
+                <target>Usersummary</target>
+            </trans-unit>
+            <trans-unit id="hddsummary">
+                <source>hddsummary</source>
+                <target>Summary of HDDs</target>
+            </trans-unit>
+            <trans-unit id="exhibithddsummary">
+                <source>exhibithddsummary</source>
+                <target>Summary of HDD evidence objects</target>
+            </trans-unit>
+            <trans-unit id="containersummary">
+                <source>containersummary</source>
+                <target>Summary of Containers</target>
+            </trans-unit>
+            <trans-unit id="user">
+                <source>user</source>
+                <target>User</target>
+            </trans-unit>
+            <trans-unit id="useremail">
+                <source>useremail</source>
+                <target>E-Mail</target>
+            </trans-unit>
+            <trans-unit id="useroptions">
+                <source>useroptions</source>
+                <target>Useroptions</target>
+            </trans-unit>
+            <trans-unit id="userlastlogin">
+                <source>userlastlogin</source>
+                <target>Last Login</target>
+            </trans-unit>
+            <trans-unit id="action_deactivate_user">
+                <source>action.deactivate.user</source>
+                <target>Deactivate user(He cant login anymore)</target>
+            </trans-unit>
+            <trans-unit id="action_reactivate_user">
+                <source>action.reactivate.user</source>
+                <target>Reactivate user</target>
+            </trans-unit>
+            <trans-unit id="action_show_users">
+                <source>action.show.users</source>
+                <target>Show usersummary</target>
+            </trans-unit>
+            <trans-unit id="user_not_found">
+                <source>user.not.found</source>
+                <target>User not found</target>
+            </trans-unit>
+            <trans-unit id="error_image_cant_be_saved">
+                <source>error.image.cant.be.saved</source>
+                <target>Picture could not be processed</target>
+            </trans-unit>
+            
+            <trans-unit id="count_objects_are_changed">
+                <source>count.objects.are.changed %counts%</source>
+                <target>counts objects were changed</target>
+            </trans-unit>
+            <trans-unit id="objects_action_not_correkt">
+                <source>objects.action.not.correkt %counts%</source>
+                <target>The chosen action cant be made by following objects:
+                    counts
+                </target>
+            </trans-unit>
+            <trans-unit id="objects_not_found">
+                <source>objects.not.found %counts%</source>
+                <target>Following objects could not be found:
+                    counts
+                </target>
+            </trans-unit>
+            <trans-unit id="searchbox">
+                <source>Searchbox</source>
+                <target>Keyword:
+                </target>
+            </trans-unit>
+            <trans-unit id="Submit">
+                <source>Submit</source>
+                <target>Submit
+                </target>
+            </trans-unit>
+            <trans-unit id="newdescription">
+                <source>Newdescription</source>
+                <target>Description of the change:
+                </target>
+            </trans-unit>
+            <trans-unit id="contextthings">
+                <source>contextthings</source>
+                <target>Context things:
+                </target>
+            </trans-unit>
+            <trans-unit id="add_new_object">
+                <source>add_new_object</source>
+                <target>Add another object</target>
+            </trans-unit>
+            <trans-unit id="update_chosen_objects">
+                <source>update_chosen_objects</source>
+                <target>Update chosen objects</target>
+            </trans-unit>
+            <trans-unit id="action_chosen_object_change">
+                <source>action.chosen.object.change</source>
+                <target>Alter multiple objects</target>
+            </trans-unit>
+            <trans-unit id="action_description_mass_update_part1">
+                <source>action_description_mass_update_part1</source>
+                <target>Step 1: Choose an appropriate status, which all objects will have after the process. Depending on the action, a context information is required, as an example, which container is meant to store objects.</target>
+            </trans-unit>
+            <trans-unit id="action_description_mass_update_part2">
+                <source>action_description_mass_update_part2 %newstatus%</source>
+                <target>Step 2: Choose the objects, which has to be altered in the status [newstatus]. Fields are automatically added und empty fields will be ignored.</target>
+            </trans-unit>
+            <trans-unit id="select_objects">
+                <source>Select objects</source>
+                <target>Select objects</target>
+            </trans-unit>
+            <trans-unit id="object_already_in_this_status">
+                <source>object_already_in_this_status</source>
+                <target>The object is already in this status</target>
+            </trans-unit>
+            <trans-unit id="object_is_not_a_hdd">
+                <source>object_is_not_a_hdd</source>
+                <target>Object is not a HDD</target>
+            </trans-unit>
+            <trans-unit id="object_is_destroyed_or_lost">
+                <source>object_is_destroyed_or_lost</source>
+                <target>The object is already destroyed or lost</target>
+            </trans-unit>
+            <trans-unit id="object_is_not_stored">
+                <source>object_is_not_stored</source>
+                <target>The object is not in a Container</target>
+            </trans-unit>
+            <trans-unit id="object_is_not_reserved">
+                <source>object_is_not_reserved</source>
+                <target>The object isnt reserved</target>
+            </trans-unit>
+            <trans-unit id="object_is_already_reserved">
+                <source>object_is_already_reserved</source>
+                <target>The object is already reserved</target>
+            </trans-unit>
+            <trans-unit id="object_is_not_in_a_case">
+                <source>object_is_not_in_a_case</source>
+                <target>The object is not involved in a case</target>
+            </trans-unit>
+            <trans-unit id="object_has_relationship_with_stored_object">
+                <source>object_has_relationship_with_stored_object</source>
+                <target>The object is already related to the container</target>
+            </trans-unit>
+            <trans-unit id="object_is_stored_in_another_object">
+                <source>object_is_stored_in_another_object %context%</source>
+                <target>The object is already stored in container [context]</target>
+            </trans-unit>
+            <trans-unit id="object_is_already_in_a_other_case">
+                <source>object_is_already_in_a_other_case %context%</source>
+                <target>The object is already added to case [context]</target>
+            </trans-unit>
+            <trans-unit id="selected_action_needs_contextthings">
+                <source>selected_action_needs_contextthings</source>
+                <target>The chosen action require a context information. Please select an appropriate Item via keyword</target>
+            </trans-unit>
+            <trans-unit id="update_case">
+                <source>update_case</source>
+                <target>Update case information</target>
+            </trans-unit>
+            <trans-unit id="add_new_case">
+                <source>add_new_case</source>
+                <target>Add new case</target>
+            </trans-unit>
+            <trans-unit id="case_id">
+                <source>case_id</source>
+                <target>Case id:</target>
+            </trans-unit>
+            <trans-unit id="case_description">
+                <source>case_description</source>
+                <target>Case description:</target>
+            </trans-unit>
+            <trans-unit id="button_update_case">
+                <source>button_update_case</source>
+                <target>Update case</target>
+            </trans-unit>
+            <trans-unit id="action.update.case">
+                <source>action.update.case</source>
+                <target>Update description</target>
+            </trans-unit>
+            <trans-unit id="automatically_added_to_the_case">
+                <source>automatically_added_to_the_case</source>
+                <target>The object was automatically added to case due to the Barcode</target>
+            </trans-unit>
+            <trans-unit id="record_was_added_to_suitable_case">
+                <source>record_was_added_to_suitable_case</source>
+                <target>The record was automatically added to case due to the case id</target>
+            </trans-unit>
+            <trans-unit id="container_be_used_for_mass_update">
+                <source>container_be_used_for_mass_update</source>
+                <target>For this action, container cannot be altered due to the risk altering unintended related objects.</target>
+            </trans-unit>
+            <trans-unit id="records_cant_be_removed_from_case">
+                <source>records_cant_be_removed_from_case</source>
+                <target>Records cant be removed from case</target>
+            </trans-unit>
+            <trans-unit id="scan_object_with_scanner">
+                <source>scan_object_with_scanner</source>
+                <target>Please scan the barcode of the object with a barcode scanner </target>
+            </trans-unit>
+            <trans-unit id="container_listed_objects">
+                <source>container_listed_objects</source>
+                <target>Currently listed objects:</target>
+            </trans-unit>
+            
+            <trans-unit id="case_desc">
+                <source>case_desc</source>
+                <target>Case Description:</target>
+            </trans-unit>
+            <trans-unit id="case_timestamp">
+                <source>case_timestamp</source>
+                <target>registered on:</target>
+            </trans-unit>
+            <trans-unit id="case_current_state">
+                <source>case_current_state</source>
+                <target>Current State:</target>
+            </trans-unit>
+            <trans-unit id="case_details">
+                <source>case_details %context%</source>
+                <target>Details about case %context%:</target>
+            </trans-unit>
+            <trans-unit id="casesummary">
+                <source>casesummary</source>
+                <target>Casesummary:</target>
+            </trans-unit>
+            <trans-unit id="desc_timestamp">
+                <source>desc_timestamp</source>
+                <target>Timestamp:</target>
+            </trans-unit>
+            <trans-unit id="supported_languages">
+                <source>supported_languages</source>
+                <target>Supported languages:</target>
+            </trans-unit>
+            
+            <trans-unit id="language_eng">
+                <source>language_eng</source>
+                <target>English</target>
+            </trans-unit>
+            <trans-unit id="language_de">
+                <source>language_de</source>
+                <target>German</target>
+            </trans-unit>
+            <trans-unit id="alter_object">
+                <source>alter_object</source>
+                <target>Alter object:</target>
+            </trans-unit>
+            <trans-unit id="action_change_language">
+                <source>action.change.language</source>
+                <target>Change language</target>
+            </trans-unit>
+            
+            <trans-unit id="object_search_via_barcode">
+                <source>object_search_via_barcode</source>
+                <target>Search object via barcode:</target>
+            </trans-unit>
+            <trans-unit id="object_search_via_barcode_info">
+                <source>object_search_via_barcode_info</source>
+                <target>After typing the barcode, you will be redirected to the detail page.</target>
+            </trans-unit>
+           
+            
+            <trans-unit id="error_flash_bag">
+                <source>error_flash_bag</source>
+                <target>Error</target>
+            </trans-unit>
+            
+            <trans-unit id="case_id_already_used">
+                <source>case_id_already_used</source>
+                <target>Case id already used</target>
+            </trans-unit>
+            
+            <trans-unit id="case_not_found">
+                <source>case_not_found</source>
+                <target>Case not found</target>
+            </trans-unit>
+            
+            <trans-unit id="action_can_not_be_done_by_object">
+                <source>action_can_not_be_done_by_object</source>
+                <target>Action not usable for targeted objekt</target>
+            </trans-unit>
+            
+            <trans-unit id="object_was__not_found">
+                <source>object_was_not_found</source>
+                <target>Object was not found</target>
+            </trans-unit>
+            
+            <trans-unit id="exhibit_object_was_not_found">
+                <source>exhibit_object_was_not_found</source>
+                <target>Exhibit object was not found</target>
+            </trans-unit>
+            
+            <trans-unit id="container_was__not_found">
+                <source>container_was_not_found</source>
+                <target>Container was not found</target>
+            </trans-unit>
+            
+            <trans-unit id="to_be_added_container_is_destroyed_or_lost">
+                <source>to_be_added_container_is_destroyed_or_lost</source>
+                <target>Chosen container is destroyed or lost.</target>
+            </trans-unit>
+            
+            <trans-unit id="add_object_headline">
+                <source>add_object_headline</source>
+                <target>Add object:</target>
+            </trans-unit>
+            
+            <trans-unit id="add_case_headline">
+                <source>add_case_headline</source>
+                <target>Add case:</target>
+            </trans-unit>
+            
+            <trans-unit id="edit_object_headline">
+                <source>edit_object_headline</source>
+                <target>Edit object:</target>
+            </trans-unit>
+            
+            <trans-unit id="add_object_help_box_barcode">
+                <source>add_object_help_box_barcode</source>
+                <target>Syntax will be checked, no database validation</target>
+            </trans-unit>
+            
+            <trans-unit id="add_object_help_box_bauart">
+                <source>add_object_help_box_bauart</source>
+                <target> interior/exterior</target>
+            </trans-unit>
+            
+            <trans-unit id="add_object_help_box_formfaktor">
+                <source>add_object_help_box_formfaktor</source>
+                <target>2,5/3,5/...</target>
+            </trans-unit>
+            
+            <trans-unit id="add_object_help_box_groesse">
+                <source>add_object_help_box_groesse</source>
+                <target>in GB</target>
+            </trans-unit>
+            <trans-unit id="add_object_help_box_groessealt">
+                <source>add_object_help_box_groessealt</source>
+                <target>in GB, will be preferred</target>
+            </trans-unit>
+            
+            <trans-unit id="add_object_help_box_anschluss">
+                <source>add_object_help_box_anschluss</source>
+                <target>USB/ATA/SATA</target>
+            </trans-unit>
+            
+            <trans-unit id="alertbeforesubmit">
+                <source>alertbeforesubmit</source>
+                <target>Do you really want to perform this action. This cant be undone.</target>
+            </trans-unit>
+            
+            <trans-unit id="list_of_current_cases">
+                <source>list_of_current_cases</source>
+                <target>List of current cases</target>
+            </trans-unit>
+            
+            <trans-unit id="currently_interacted_cases_today">
+                <source>currently_interacted_cases_today</source>
+                <target>Recently interacted cases</target>
+            </trans-unit>
+            
+            <trans-unit id="upload_picture_headline">
+                <source>upload_picture_headline</source>
+                <target>Upload picture:</target>
+            </trans-unit>
+            
+            <trans-unit id="additional.informations">
+                <source>additional.informations</source>
+                <target>Additional informations</target>
+            </trans-unit>
+            
+            <trans-unit id="currentsavedexhibithdd">
+                <source>currentsavedexhibithdd</source>
+                <target>Current saved exhibit HDD</target>
+            </trans-unit>
+
+
+            <trans-unit id="message.hdd.objekt.has.no.saved.exhibit.hdd.objects">
+                <source>message.hdd.objekt.has.no.saved.exhibit.hdd.objects</source>
+                <target>No images are saved on this HDD</target>
+            </trans-unit>
+            
+            <trans-unit id="currentimagelocations">
+                <source>currentimagelocations</source>
+                <target>Current image locations</target>
+            </trans-unit>
+          
+            <trans-unit id="message.exhibit.objekt.has.no.other.images">
+                <source>message.exhibit.objekt.has.no.other.images</source>
+                <target>No Images exists for this exhibit HDD</target>
+            </trans-unit>
+            
+            <trans-unit id="object_is_no_container">
+                <source>object_is_no_container</source>
+                <target>This objekt is not an container</target>
+            </trans-unit>
+            
+            <trans-unit id="object_is_no_exhibit_hdd">
+                <source>object_is_no_exhibit_hdd</source>
+                <target>Target object is not an exihibit HDD</target>
+            </trans-unit>
+            
+            <trans-unit id="image_is_already_in_hdd">
+                <source>image_is_already_in_hdd %context%</source>
+                <target>There is already an Image on the HDD [context]</target>
+            </trans-unit>
+            
+            <trans-unit id="exhibit_hdd_is_destroyed_or_lost">
+                <source>exhibit_hdd_is_destroyed_or_lost</source>
+                <target>Targeted object is already destroyed or lost</target>
+            </trans-unit>
+            
+            <trans-unit id="desc.imaged.by">
+                <source>desc.imaged.by</source>
+                <target>Is imaged on:</target>
+            </trans-unit>
+            
+            <trans-unit id="status.neutralize">
+                <source>status.neutralize</source>
+                <target>Neutralized</target>
+            </trans-unit>
+            
+            <trans-unit id="desc_select_case_action">
+                <source>desc_select_case_action</source>
+                <target>Choose the case, which object will be put there</target>
+            </trans-unit>
+            
+            <trans-unit id="warning.object.cant.be.used.anymore">
+                <source>warning.object.cant.be.used.anymore</source>
+                <target>When a object has been declared as destroyed or lost, it cant be altered afterwards.</target>
+            </trans-unit>
+            
+            <trans-unit id="email_case_was_created_subject">
+                <source>email_case_was_created_subject</source>
+                <target>A new case was added into the AM-System</target>
+            </trans-unit>
+            
+            <trans-unit id="email_case_was_created_body">
+                <source>email_case_was_created_body %name% %caseid% %calleduser%</source>
+                <target>Dear User %name%,
+A Case with the ID %caseid% was created by User %calleduser%.
+
+Kind rewards
+AM-System
+                </target>
+            </trans-unit>
+            
+            
+            <trans-unit id="case_isactiv">
+                <source>case_isactiv</source>
+                <target>Is active:</target>
+            </trans-unit>
+            
+             <trans-unit id="action.subscribe_case_creation.user">
+                <source>action.subscribe_case_creation.user</source>
+                <target>Notify user on case creation</target>
+            </trans-unit>
+            
+            <trans-unit id="action.unsubscribe_case_creation.user">
+                <source>action.unsubscribe_case_creation.user</source>
+                <target>Do not notify user on case creation</target>
+            </trans-unit>
+            
+           
+            <trans-unit id="desc.enable.relate.to.case">
+                <source>desc.enable.relate.to.case</source>
+                <target>relate to case</target>
+            </trans-unit>
+            
+            
+            
+        </body>
+    </file>
+</xliff>

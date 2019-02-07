@@ -1,0 +1,128 @@
+{#
+   // AM-System
+   // Copyright (C) 2019 Robert Krasowski
+   // This program was created during an internship at DigiTrace GmbH
+   // Read LIZENZ.txt for full notice
+
+   // This program is free software: you can redistribute it and/or modify
+   // it under the terms of the GNU General Public License as published by
+   // the Free Software Foundation, either version 3 of the License, or
+   // (at your option) any later version.
+
+   // This program is distributed in the hope that it will be useful,
+   // but WITHOUT ANY WARRANTY; without even the implied warranty of
+   // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   // GNU General Public License for more details.
+
+   // You should have received a copy of the GNU General Public License
+   // along with this program.  If not, see <http://www.gnu.org/licenses/>.
+   
+#}
+
+
+{% extends 'base.html.twig' %}
+{% form_theme searchform 'bootstrap_3_layout.html.twig' %} 
+{% block content1 %}
+  
+   
+    <div class="row">
+        <div class="col-sm-4"> <h2>{% trans %}objectsummary{% endtrans %}:</h2> </div>
+        <div class="col-sm-8" style="margin-top:7px">
+    
+            {{ form_start(searchform) }}
+            {{ form_row(searchform.suchwort) }}
+            {{ form_row(searchform.anzahleintraege) }}
+            {{ form_end(searchform) }}
+        </div>
+    </div>
+    {% for label, messages in app.flashes %}
+        {% for message in messages %}
+            <div class="alert alert-{{ label }}">
+                {{ message |trans }}
+            </div>
+        {% endfor %}
+    {% endfor %}
+    <table class="table">
+        
+    {% if pagination.getDirection == "desc" %} {% set arrow = '<span class="glyphicon glyphicon-arrow-down"></span>' %} 
+        {% elseif pagination.getDirection == "asc" %}  {% set arrow = '<span class="glyphicon glyphicon-arrow-up"></span>' %}  
+    {% endif %}
+        
+    <thead>
+      <tr>
+        <th class="col-md-2 col-sm-2">{{ knp_pagination_sortable(pagination,'desc.oid'|trans , 'o.Barcode_id') }}
+                                                                                                {% if pagination.isSorted('o.Barcode_id') %}
+                                                                                                {{ arrow | raw}}
+                                                                                                {% endif %}
+        </th>
+        <!--<th class="col-md-2 col-sm-2">{% trans %}desc.category{% endtrans %}</th>-->
+        <th class="col-md-2 col-sm-2" >{{ knp_pagination_sortable(pagination, 'desc.category'|trans, 'o.Kategorie_id') }} 
+                                                                                                {% if pagination.isSorted('o.Kategorie_id') %}
+                                                                                                {{ arrow | raw}}
+                                                                                                {% endif %}
+                                                                                                                                                                                           </th>
+        <th class="col-md-7 col-sm-7">{{ knp_pagination_sortable(pagination, 'desc.name'|trans, 'o.Name') }} 
+                                                                                                {% if pagination.isSorted('o.Name') %}
+                                                                                                {{ arrow | raw}}
+                                                                                                {% endif %}
+        </th>
+        <th class="col-md-1 col-sm-1">{% trans %}availability{% endtrans %}</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for objekt in pagination %}
+        
+        {% if objekt.isUsable == false %}
+        <tr class="active">
+            <td  style='font-family: courier;font-size: large'><s>{{ objekt.getBarcode }}</s></td>
+        {% else %}
+        <tr>
+            <td  style='font-family: courier;font-size: large'>{{ objekt.getBarcode }}</td>
+        {% endif %}
+            
+            <td  >{{ categorytemp[objekt.getKategorie]|trans }}</td>
+        
+            <td><a href="{{ path('detail_object', {'id': objekt.getBarcode}) }}">{{ objekt.getName }} <a/></td>
+              
+        
+        {% if objekt.getreserviertVon != null %}
+            <td> <span class="glyphicon glyphicon-alert"></span> {% trans with {'%user%':objekt.getreserviertVon.getUsername} %}reserved from %user%{% endtrans %}</td>
+        {% elseif objekt.isUsable == false %}
+            <td> <span class="glyphicon glyphicon-remove"></span> </td>
+        {% else %}
+            <td> <span class="glyphicon glyphicon-ok"></span> </td>
+        {% endif %}
+      </tr>
+      {% endfor %}
+   </tbody>
+</table>
+   
+   
+   
+   
+   {# total items count #}
+<div class="count">
+    {{ pagination.getTotalItemCount }} {% trans %}entrys.found{% endtrans %}
+</div>
+
+{# display navigation #}
+<div class="navigation">
+    {{ knp_pagination_render(pagination) }}
+</div>
+
+{% endblock %}
+
+
+
+{% block context %}
+    <a href="{{ path("add_object") }}"><span class="glyphicon glyphicon-pencil"></span> {% trans %}action.add.object{% endtrans %}</a><br>
+    <a href="{{ path("search_objects") }}?suche=c:{{ categorytemp[0] |trans }}"><span class="glyphicon glyphicon-search"></span> {% trans %}action.filter.exhibit{% endtrans %}</a> <br>
+    <a href="{{ path("search_objects") }}?suche=c:{{ categorytemp[3] |trans }}"><span class="glyphicon glyphicon-search"></span> {% trans %}action.filter.hdd{% endtrans %}</a> <br>
+    <a href="{{ path("search_objects") }}?suche=c:{{ categorytemp[4] |trans }}"><span class="glyphicon glyphicon-search"></span> {% trans %}action.filter.record{% endtrans %}</a> <br>
+    <a href="{{ path("search_objects") }}?suche=c:{{ categorytemp[1] |trans }}"><span class="glyphicon glyphicon-search"></span> {% trans %}action.filter.equipment{% endtrans %}</a> <br>
+    <a href="{{ path("search_objects") }}?suche=c:{{ categorytemp[2] |trans }}"><span class="glyphicon glyphicon-search"></span> {% trans %}action.filter.container{% endtrans %}</a> <br>
+    {#<a href="{{ path("search_objects") }}?suche=c:{{ categorytemp[1] |trans }}"><span class="glyphicon glyphicon-search"></span> {% trans %}action.filter.equipment{% endtrans %} {{ date("-2days") |date("d-m-Y")  }}</a> <br>#}
+    <a href="{{ path("search_objects_faq") }}"><span class="glyphicon glyphicon-question-sign"></span> {% trans %}action.faq.search{% endtrans %}</a> <br>
+    <a href='{{ path("select_new_status_for_multiple_objects")}}'> <span class="glyphicon glyphicon-pencil"></span> {% trans %}action.chosen.object.change{% endtrans %}</a><br>
+      
+{% endblock %}

@@ -1,0 +1,157 @@
+{#
+   // AM-System
+   // Copyright (C) 2019 Robert Krasowski
+   // This program was created during an internship at DigiTrace GmbH
+   // Read LIZENZ.txt for full notice
+
+   // This program is free software: you can redistribute it and/or modify
+   // it under the terms of the GNU General Public License as published by
+   // the Free Software Foundation, either version 3 of the License, or
+   // (at your option) any later version.
+
+   // This program is distributed in the hope that it will be useful,
+   // but WITHOUT ANY WARRANTY; without even the implied warranty of
+   // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   // GNU General Public License for more details.
+
+   // You should have received a copy of the GNU General Public License
+   // along with this program.  If not, see <http://www.gnu.org/licenses/>.
+   
+#}
+
+{% extends 'base.html.twig' %}
+{% form_theme chooseform 'bootstrap_3_layout.html.twig' %} 
+{% block content1 %}
+    <h2>{{ title | trans}}:</h2>
+    
+    {% for flash_message in app.session.flashBag.get('danger') %}
+                <div class="alert alert-danger">
+                    {{ flash_message | trans | nl2br}}
+                </div>
+            {% endfor %}
+            
+            {% for flash_message in app.session.flashBag.get('info') %}
+                <div class="alert alert-info">
+                    {{ flash_message | trans | nl2br}}
+                </div>
+            {% endfor %}
+            
+            {% for flash_message in app.session.flashBag.get('success') %}
+                <div class="alert alert-success">
+                    {{ flash_message | trans | nl2br}}
+                </div>
+            {% endfor %}
+            
+            {% for flash_message in app.session.flashBag.get('warning') %}
+                <div class="alert alert-warning">
+                    {{ flash_message | trans | nl2br}}
+                </div>
+            {% endfor %}    
+    
+            
+    {{ form_start(chooseform) }}
+    {{ form_widget(chooseform) }}
+    {{ form_end(chooseform) }}
+    
+    
+    
+    
+    <script>
+        var target = "";
+        var $collectionHolder;
+        // Get the div that holds the collection of Text
+        $collectionHolder = $('#form_objects');
+        
+        // setup an "add a tag" link
+        var $addTagLink = $('<a href="#" class="add_tag_link">{% trans %}add_new_object{% endtrans %}</a>');
+        var $newLinkLi = $('<div></div>').append($addTagLink);
+
+        jQuery(document).ready(function() {
+            
+            // add the "add a tag" anchor
+            $collectionHolder.append($newLinkLi);
+
+            // count the current form inputs we have (e.g. 2), use that as the new
+            // index when inserting a new item (e.g. 2)
+            $collectionHolder.data('index', $collectionHolder.find(':input').length);
+            if($collectionHolder.find(':input').length == 0){
+                addTextForm($collectionHolder, $newLinkLi);
+            }
+            
+            $addTagLink.on('click', function(e) {
+                // prevent the link from creating a "#" on the URL
+                e.preventDefault();
+
+                // add a new tag form (see next code block)
+                addTextForm($collectionHolder, $newLinkLi);
+            });
+        });
+        
+        function checklength(input){
+            if(input.value.length >= 9){
+                
+                if($("#form_objects input")[$("#form_objects input").length - 1].value != ""){
+                    addTextForm($collectionHolder, $newLinkLi);
+                }
+            }
+            
+        }
+        
+        function checkIfSearchIsRequired(newstatus){
+            
+            if(newstatus == 7){ // Stored in container
+                target = "object";
+            }
+            else if(newstatus == 9){
+                target = "object";
+            }
+            else{
+                target = "";
+            }
+            
+            if(target != ""){
+                document.getElementById("searchwindow").style.display = "inline";
+            }else{
+                document.getElementById("searchwindow").style.display = "none";
+            }
+            
+            
+        }
+        
+        
+        function addTextForm($collectionHolder, $newLinkLi) {
+            // Get the data-prototype explained earlier
+            var prototype = $collectionHolder.data('prototype');
+
+            // get the new index
+            var index = $collectionHolder.data('index');
+
+            var newForm = prototype;
+            
+            
+            // Replace '__name__' in the prototype's HTML to
+            // instead be a number based on how many items we have
+            newForm = newForm.replace(/__name__/g, index);
+
+            // increase the index with one for the next item
+            $collectionHolder.data('index', index + 1);
+
+            // Display the form in the page in an div, before the "Add a tag" link li
+            var $newFormLi = $('<div></div>').append(newForm);
+            $newLinkLi.before($newFormLi);
+            $('input[type="text"]').get(index).focus(); 
+        }
+    </script>
+    
+    
+{% endblock %}
+
+
+
+{% block context %}
+    
+{% endblock %}
+
+{% block searchbar %}
+    
+{% endblock %}

@@ -1,0 +1,30 @@
+imports:
+    - { resource: config_dev.yml }
+
+framework:
+    translator:  { enabled: false }  
+    test: ~
+    session:
+        storage_id: session.storage.mock_file
+    profiler:
+        collect: false
+
+web_profiler:
+    toolbar: false
+    intercept_redirects: false
+
+swiftmailer:
+    disable_delivery: true
+
+
+        
+
+#knp_paginator:
+#    default_options:
+#       sort_field_name: ~ # Disable sorting
+
+#doctrine:
+#    dbal: 
+#        driver: pdo_sqlite 
+#        path: %kernel.cache_dir%/test.db 
+#        charset: UTF8

@@ -1,0 +1,121 @@
+{#
+   // AM-System
+   // Copyright (C) 2019 Robert Krasowski
+   // This program was created during an internship at DigiTrace GmbH
+   // Read LIZENZ.txt for full notice
+
+   // This program is free software: you can redistribute it and/or modify
+   // it under the terms of the GNU General Public License as published by
+   // the Free Software Foundation, either version 3 of the License, or
+   // (at your option) any later version.
+
+   // This program is distributed in the hope that it will be useful,
+   // but WITHOUT ANY WARRANTY; without even the implied warranty of
+   // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   // GNU General Public License for more details.
+
+   // You should have received a copy of the GNU General Public License
+   // along with this program.  If not, see <http://www.gnu.org/licenses/>.
+   
+#}
+{% extends 'base.html.twig' %}
+{% form_theme changeform 'bootstrap_3_layout.html.twig' _self %} 
+
+{% block checkbox_radio_label %}
+    {# Do not display the label if widget is not defined in order to prevent double label rendering #}
+    {% if widget is defined %}
+        {% if required %}
+            {% set label_attr = label_attr|merge({class: (label_attr.class|default('') ~ ' required')|trim}) %}
+        {% endif %}
+        {% if parent_label_class is defined %}
+            {% set label_attr = label_attr|merge({class: (label_attr.class|default('') ~ ' ' ~ parent_label_class)|trim}) %}
+        {% endif %}
+        {% if label is not same as(false) and label is empty %}
+            {%- if label_format is not empty -%}
+                {% set label = label_format|replace({
+                    '%name%': name,
+                    '%id%': id,
+                }) %}
+            {%- else -%}
+                {% set label = name|humanize %}
+            {%- endif -%}
+        {% endif %}
+        <label{% for attrname, attrvalue in label_attr %} {{ attrname }}="{{ attrvalue }}"{% endfor %}>
+            {% if '.jpeg' in label or '.png' in label  or '.jpg' in label  %}
+                {{- widget|raw }} <img style="max-height: 100px;max-width:200px" src="/uploads/pic/{{ label }}">
+            {% else %}
+                {{- widget|raw }} {{ label is not same as(false) ? (translation_domain is same as(false) ? label : label|trans({}, translation_domain)) -}}
+            {% endif %}
+        </label>
+    {% endif %}
+{% endblock checkbox_radio_label %}
+
+{% block content1 %}
+    <div class="wrapper">
+        <div class="container" >
+           <h2>{% trans %}upload_picture_headline{% endtrans %}</h2>
+           
+             {% for flash_message in app.session.flashBag.get('danger') %}
+                <div class="alert alert-danger">
+                    {{ flash_message | trans | nl2br}}
+                </div>
+            {% endfor %}
+            
+            {% for flash_message in app.session.flashBag.get('info') %}
+                <div class="alert alert-info">
+                    {{ flash_message | trans | nl2br}}
+                </div>
+            {% endfor %}
+            
+            {% for flash_message in app.session.flashBag.get('success') %}
+                <div class="alert alert-success">
+                    {{ flash_message | trans | nl2br}}
+                </div>
+            {% endfor %}
+            
+            {% for flash_message in app.session.flashBag.get('warning') %}
+                <div class="alert alert-warning">
+                    {{ flash_message | trans | nl2br}}
+                </div>
+            {% endfor %}
+           
+            
+            {{ form_start(changeform)  }}
+            {{ form_row(changeform.pic) }}
+            {{ form_row(changeform.picpublic) }}
+            
+            {{ form_label(changeform.selectpubpic) }}<br>
+            {{ form_errors(changeform.selectpubpic) }}
+            {{ form_widget(changeform.selectpubpic) }}
+            {{ form_end(changeform) }}
+            
+        </div>
+    </div>
+            
+            <script>
+                
+                
+                
+                // nicht mehr in Benutzung
+                function addimage(){
+                    var options = document.getElementsByName("form[selectpubpic]");
+                    
+                    for(i = 1; i < options.length; i++){
+                        var temppic = document.createElement("img");
+                        options[i].checked = true;
+                        
+                        temppic.src = "/uploads/pic/"+options[i].value;
+                        temppic.style="max-height:100px;max-width:200px";
+                        
+                        options[i].parentNode.parentNode.className = "radio-inline";
+                        
+                        options[i].parentNode.appendChild(temppic);
+                    }
+                    
+                }
+                //addimage();
+            </script>
+{% endblock %}
+
+{% block stylesheets %}
+{% endblock %}

@@ -1,0 +1,138 @@
+{#
+   // AM-System
+   // Copyright (C) 2019 Robert Krasowski
+   // This program was created during an internship at DigiTrace GmbH
+   // Read LIZENZ.txt for full notice
+
+   // This program is free software: you can redistribute it and/or modify
+   // it under the terms of the GNU General Public License as published by
+   // the Free Software Foundation, either version 3 of the License, or
+   // (at your option) any later version.
+
+   // This program is distributed in the hope that it will be useful,
+   // but WITHOUT ANY WARRANTY; without even the implied warranty of
+   // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   // GNU General Public License for more details.
+
+   // You should have received a copy of the GNU General Public License
+   // along with this program.  If not, see <http://www.gnu.org/licenses/>.
+   
+#}
+
+{% extends 'base.html.twig' %}
+{% form_theme chooseform 'bootstrap_3_layout.html.twig' %} 
+{% block content1 %}
+    <h2>{% trans %}update_chosen_objects{% endtrans %}:</h2>
+    
+    {% for label, messages in app.flashes %}
+         {% for message in messages %}
+             <div class="alert alert-{{ label }}">
+                 {{ message | trans | nl2br}}
+             </div>
+         {% endfor %}
+    {% endfor %}
+            
+    {{ form_start(chooseform) }}
+     <div class="row">
+        <div class='col-xs-5'>
+            {{ form_row(chooseform.newstatus) }}
+            <span class="help-block"></span>
+        </div>
+        <div class='col-xs-3'>
+            {{ form_row(chooseform.dueDate) }}
+            <span class="help-block"></span>
+        </div>
+        <div class='col-xs-4' style="margin-top:25px">
+            
+            {{ form_row(chooseform.select_objects) }}
+            <span class="help-block"></span>
+        </div>
+    </div>
+            
+    <div class="row">
+        <div class='col-xs-6'>
+            {{ form_row(chooseform.searchbox) }}
+            <span class="help-block"></span>
+        </div>
+        <div class='col-xs-6' >
+            {{ form_row(chooseform.contextthings) }}
+            <span class="help-block"></span>
+        </div>
+    </div>
+{{ form_end(chooseform) }}
+
+<script>
+var $searchbox = $('#action_choose_searchbox');
+var $newstatus = $('#action_choose_newstatus');
+var $storedobjects = $('#action_choose_contextthings');
+// Fade out select Box, until an important status is selected
+
+if($newstatus.val() != 7 &&
+   $newstatus.val() != 9){
+    $storedobjects.parent().parent().parent().css("display","none");
+}
+var $olddatalength = 0;
+
+$searchbox.keyup(function() {
+  var $form = $(this).closest('form');
+  
+  var data = {};
+  data[$searchbox.attr('name')] = $searchbox.val();
+  data[$newstatus.attr('name')] = $newstatus.val();
+    
+  // Sends only request, when the searchbox is actually correctly changed
+  if($searchbox.val().length % 2 == 0 && 
+     $searchbox.val().length > 0 &&
+     $searchbox.val().length != $olddatalength){
+    $olddatalength = $searchbox.val().length;
+
+    $.ajax({
+      url : $form.attr('action'),
+      type: $form.attr('method'),
+      data : data,
+      success: function(html) {
+        $('#action_choose_contextthings').replaceWith(
+          $(html).find('#action_choose_contextthings')
+        );
+        // Has to be set again due overwriting
+        $searchbox = $('#action_choose_searchbox');
+        $newstatus = $('#action_choose_newstatus');
+        $storedobjects = $('#action_choose_contextthings');
+      }
+    });
+  }
+  
+});
+
+$newstatus.change(function() {
+  {# Stored in container and Added to Case #}
+  var importantstatus = [7,9];
+  
+  $searchbox.val("");
+  $storedobjects.val("");
+  $storedobjects.empty();
+  
+  if(importantstatus.includes(parseInt($newstatus.val()))){
+      $storedobjects.parent().parent().parent().css("display","block");
+  }
+  else{
+      $storedobjects.parent().parent().parent().css("display","none");
+  }
+  
+});
+
+
+</script>
+    
+    
+{% endblock %}
+
+
+
+{% block context %}
+    
+{% endblock %}
+
+{% block searchbar %}
+    
+{% endblock %}

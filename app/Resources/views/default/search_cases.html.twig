@@ -1,0 +1,113 @@
+{#
+   // AM-System
+   // Copyright (C) 2019 Robert Krasowski
+   // This program was created during an internship at DigiTrace GmbH
+   // Read LIZENZ.txt for full notice
+
+   // This program is free software: you can redistribute it and/or modify
+   // it under the terms of the GNU General Public License as published by
+   // the Free Software Foundation, either version 3 of the License, or
+   // (at your option) any later version.
+
+   // This program is distributed in the hope that it will be useful,
+   // but WITHOUT ANY WARRANTY; without even the implied warranty of
+   // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   // GNU General Public License for more details.
+
+   // You should have received a copy of the GNU General Public License
+   // along with this program.  If not, see <http://www.gnu.org/licenses/>.
+   
+#}
+
+{% extends 'base.html.twig' %}
+{% form_theme searchform 'bootstrap_3_layout.html.twig' %} 
+{% block content1 %}
+    {% for label, messages in app.flashes %}
+         {% for message in messages %}
+             <div class="alert alert-{{ label }}">
+                 {{ message | trans | nl2br}}
+             </div>
+         {% endfor %}
+     {% endfor %}
+    <div class="row">
+        <div class="col-sm-4"> <h2>{% trans %}casesummary{% endtrans %}</h2> </div>
+        <div class="col-sm-8" style="margin-top:7px">
+    
+            {{ form_start(searchform) }}
+            {{ form_row(searchform.suchwort) }}
+            {{ form_row(searchform.anzahleintraege) }}
+            {{ form_end(searchform) }}
+        </div>
+    </div>
+    <table class="table">
+        
+        {% if pagination.getDirection == "desc" %} {% set arrow = '<span class="glyphicon glyphicon-arrow-down"></span>' %} 
+        {% elseif pagination.getDirection == "asc" %}  {% set arrow = '<span class="glyphicon glyphicon-arrow-up"></span>' %}  
+    {% endif %}
+    
+        <thead>
+          <tr>
+            <th class="col-md-2 col-sm-2">{{ knp_pagination_sortable(pagination, 'case_id'|trans, 'f.case_id') }}
+                {% if pagination.isSorted('f.case_id') %}
+                {{ arrow | raw}}
+                {% endif %}
+            </th>
+            <th class="col-md-8 col-sm-8">{{ knp_pagination_sortable(pagination, 'case_desc'|trans, 'f.Beschreibung') }}
+                {% if pagination.isSorted('f.Beschreibung') %}
+                {{ arrow | raw}}
+                {% endif %}
+            </th>
+            <th class="col-md-2 col-sm-2">{{ knp_pagination_sortable(pagination, 'desc_timestamp'|trans, 'f.Zeitstempel') }}
+                {% if pagination.isSorted('f.Zeitstempel') %}
+                {{ arrow | raw}}
+                {% endif %}
+            </th>
+            
+          </tr>
+        </thead>
+        <tbody>
+            {% for fall in pagination %}
+            {#<tr style="cursor:pointer" oncontextmenu="javascript:window.open('{{ path('detail_case', {'id': fall.getDigitraceId}) }}');" onclick="window.location.href='{{ path('detail_case', {'id': fall.getDigitraceId}) }}'">
+                <td>{{ fall.getDigitraceId }}</td>
+                <td>{{ fall.getBeschreibung }}</td>
+                <td>{{ fall.getZeitstempel|date('d.m.y H:i') }}</td>
+            </tr>#}
+            {% if fall.istAktiv == false %}
+            <tr class="active">
+                <td><s>{{ fall.getCaseId }}</s></td>
+            {% else %}
+            <tr>
+                <td>{{ fall.getCaseId }}</td>
+            {% endif %}
+                
+                <td><a href="{{ path('detail_case', {'id': fall.getCaseId}) }}">{{ fall.getBeschreibung }}</a></td>
+                <td>{{ fall.getZeitstempel|date('d.m.y H:i') }}</td>
+            </tr>
+            
+            {% endfor %}
+
+        </tbody>
+    </table>  
+            
+            
+            
+{# total items count #}
+<div class="count">
+    {{ pagination.getTotalItemCount }} {% trans %}entrys.found{% endtrans %}
+</div>
+
+{# display navigation #}
+<div class="navigation">
+    {{ knp_pagination_render(pagination) }}
+</div>
+
+{% endblock %}
+
+{% block context %}
+    <a href="{{ path("add_case") }}"><span class="glyphicon glyphicon-pencil"></span> {% trans %}add_new_case{% endtrans %} </a>
+{% endblock %}
+
+
+{% block searchbar %}
+  
+{% endblock %}

@@ -1,0 +1,152 @@
+{#
+   // AM-System
+   // Copyright (C) 2019 Robert Krasowski
+   // This program was created during an internship at DigiTrace GmbH
+   // Read LIZENZ.txt for full notice
+
+   // This program is free software: you can redistribute it and/or modify
+   // it under the terms of the GNU General Public License as published by
+   // the Free Software Foundation, either version 3 of the License, or
+   // (at your option) any later version.
+
+   // This program is distributed in the hope that it will be useful,
+   // but WITHOUT ANY WARRANTY; without even the implied warranty of
+   // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   // GNU General Public License for more details.
+
+   // You should have received a copy of the GNU General Public License
+   // along with this program.  If not, see <http://www.gnu.org/licenses/>.
+   
+#}
+
+{% extends 'base.html.twig' %}
+{% form_theme changeform 'bootstrap_3_layout.html.twig' %} 
+{% block content1 %}
+            
+           
+    <h2>{% trans %}edit_object_headline{% endtrans %}</h2>
+    {% for flash_message in app.session.flashBag.get('danger') %}
+         <div class="alert alert-danger">
+             {{ flash_message | trans | nl2br}}
+         </div>
+     {% endfor %}
+
+     {% for flash_message in app.session.flashBag.get('info') %}
+         <div class="alert alert-info">
+             {{ flash_message | trans | nl2br}}
+         </div>
+     {% endfor %}
+
+     {% for flash_message in app.session.flashBag.get('success') %}
+         <div class="alert alert-success">
+             {{ flash_message | trans | nl2br}}
+         </div>
+     {% endfor %}
+
+     {% for flash_message in app.session.flashBag.get('warning') %}
+         <div class="alert alert-warning">
+             {{ flash_message | trans | nl2br}}
+         </div>
+     {% endfor %}
+
+     {{ form_start(changeform) }}
+     {#{ form_widget(changeform) }#}
+
+
+     <div class="container-fluid" >
+         <div class="row">
+
+             <div class='col-xs-12'>
+                 {{ form_label(changeform.name) }}
+                 {{ form_errors(changeform.name) }}
+                 {{ form_widget(changeform.name) }}
+             </div>
+         </div>
+         <div class="row">
+             <div class='col-xs-12'>
+                 {{ form_label(changeform.verwendung) }}
+                 {{ form_errors(changeform.verwendung) }}
+                 {{ form_widget(changeform.verwendung) }}
+             </div>
+         </div>
+         <div class="row">
+             <div class='col-xs-12'>
+                 {{ form_label(changeform.notiz) }}
+                 {{ form_errors(changeform.notiz) }}
+                 {{ form_widget(changeform.notiz) }}
+             </div>
+         </div>
+         <div class="row">
+
+             {% if changeform.bauart is defined%}
+             <div class='col-xs-3'>
+                 {{ form_label(changeform.bauart) }}
+                 {{ form_errors(changeform.bauart) }}
+                 {{ form_widget(changeform.bauart) }}
+                 <span class="help-block">{% trans %}add_object_help_box_bauart{% endtrans %}</span>
+             </div>
+
+             <div class='col-xs-3'>
+                 {{ form_label(changeform.formfaktor) }}
+                 {{ form_errors(changeform.formfaktor) }}
+                 {{ form_widget(changeform.formfaktor) }}
+                 <span class="help-block">{% trans %}add_object_help_box_formfaktor{% endtrans %}</span>
+             </div>
+
+             <div class='col-xs-3'>
+                 {{ form_label(changeform.groesse) }}
+                 {{ form_errors(changeform.groesse) }}
+                 {{ form_widget(changeform.groesse) }}
+                 <span class="help-block">{% trans %}add_object_help_box_groesse{% endtrans %}</span>
+             </div>
+
+
+             <div class='col-xs-3'>
+                 {{ form_label(changeform.anschluss) }}
+                 {{ form_errors(changeform.anschluss) }}
+                 {{ form_widget(changeform.anschluss) }}
+                 <span class="help-block">{% trans %}add_object_help_box_anschluss{% endtrans %}</span>
+             </div>
+         </div>
+         <div class="row">
+             <div class='col-xs-3'>
+                 {{ form_label(changeform.hersteller) }}
+                 {{ form_errors(changeform.hersteller) }}
+                 {{ form_widget(changeform.hersteller) }}
+                 <span class="help-block"></span>
+             </div>
+             <div class='col-xs-3'>
+                 {{ form_label(changeform.modell) }}
+                 {{ form_errors(changeform.modell) }}
+                 {{ form_widget(changeform.modell) }}
+                 <span class="help-block"></span>
+             </div>
+
+             <div class='col-xs-3'>
+                 {{ form_label(changeform.sn) }}
+                 {{ form_errors(changeform.sn) }}
+                 {{ form_widget(changeform.sn) }}
+                 <span class="help-block"></span>
+             </div>
+
+             <div class='col-xs-3'>
+                 {{ form_label(changeform.pn) }}
+                 {{ form_errors(changeform.pn) }}
+                 {{ form_widget(changeform.pn) }}
+                 <span class="help-block"></span>
+             </div>
+         </div>
+         <div class="row">
+         {% endif %}
+
+         <div class='col-xs-3'>
+            {{ form_end(changeform) }}
+         </div>
+         </div>
+     </div>
+            
+
+{% endblock %}
+
+{% block stylesheets %}
+{% endblock %}

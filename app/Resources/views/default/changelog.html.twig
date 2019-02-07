@@ -1,0 +1,174 @@
+{#
+   // AM-System
+   // Copyright (C) 2019 Robert Krasowski
+   // This program was created during an internship at DigiTrace GmbH
+   // Read LIZENZ.txt for full notice
+
+   // This program is free software: you can redistribute it and/or modify
+   // it under the terms of the GNU General Public License as published by
+   // the Free Software Foundation, either version 3 of the License, or
+   // (at your option) any later version.
+
+   // This program is distributed in the hope that it will be useful,
+   // but WITHOUT ANY WARRANTY; without even the implied warranty of
+   // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   // GNU General Public License for more details.
+
+   // You should have received a copy of the GNU General Public License
+   // along with this program.  If not, see <http://www.gnu.org/licenses/>.
+   
+#}
+{{ 'Version 1.01
+----------------------------------------------------------------------------------------------
+- Such Seite links angepasst, sodass mehrere Seiten nacheinander geoeffnet werden koennen
+- Objektsuche mit Historie
+- URL Konvention in den Faellen angepasst
+- Kategorieauswahl bei der Eintragung eines Objektes per Javascript vereinfacht
+
+
+Version 1.02
+----------------------------------------------------------------------------------------------
+- Uebergebene Objekte werden vorher aus den Behaeltern entfernt
+- Pageination in Objekt und Falluebersicht eingebunden
+- Dynamische Auswahl von der Anzahl der Eintraegen pro Seite
+
+
+Version 1.03
+----------------------------------------------------------------------------------------------
+- Verbesserte Benutzerverwaltung integriert
+- Fuer Account-Erstellung und Passwortwechsel Email Benachrichtigung eingerichet
+- Datenbankschemata ent-Digitraced
+- Code-Refactoring der Entity Klassen druchgefuehrt
+- BUG-FIX: Objektuebersicht nun standardmaeßig aufsteigend sortiert
+
+
+Version 1.04
+----------------------------------------------------------------------------------------------
+- BUG-FIX: parameter.yml.dst weitere Parameter hinzugefuegt, da composer update Fehler generiert hat
+- BUG-FIX: Anzahl der anzuzeigenden Eintraegen werden nun in der Session verwaltet
+- Moeglichkeit zur Editierung von Objekten hinzugefuegt(bisher beschraenkt auf Name und Verwendung)
+- BUG-FIX: Objekte koennen wieder eingetragen werden, aufgrund fehlerhafter URL-Konvention
+- Anzahl der Eintraege in den Fall- und Objektuebersicht durch Sessions erweitert 
+- Kombieintrag "neutralisiert" hinzugefuegt, Datentraeger wird hierdurch genullt, 
+  von behaelter geloest und vom Fall ausgeschrieben
+- Profilseite ueber den Nutzernamenflaeche erreichbar
+- Datentraegerinfo codiert
+- Eintragen von Objekten verbessert
+- Bugfix: Zeilenumbrueche werden in Verwendung umgesetzt
+- Editierung von Datentraegerspezifischen Informationen moeglich
+
+Version 1.04a
+----------------------------------------------------------------------------------------------
+- BUG-FIX: Eintragung von Nicht-Datentraeger wieder moeglich
+- BUG-FIX: Bei fehlerhafter Eintragung Formular optimiert
+- Alternative Groessenangaben im Eintrageformular hinzugefuegt
+
+
+Version 1.05
+----------------------------------------------------------------------------------------------
+- Anpassung der Testsuit, um Software nach Änderungen testen zu koennen.
+- BUG-FIX: Eintragung von Objekten mit falschem Barcodepraefix behoben
+- BUG-FIX: Fehler beim hinzufuegen von doppelten Faellen
+- BUG-FIX: Fehler in der Druckansicht eines Falles behoben
+- BUG-FIX: Fehler bei verlorenen oder zerstoerten Objekten behoben
+- BUG-FIX: Fehler bei der Einlagerung von Objekten behoben
+- BUG-FIX: Fehler beim Hinzufuegen von Objekten in Faellen behoben
+- BUG-FIX: Fehler bei der Reservierung von Objekten behoben
+- BUG-FIX: Beim editieren von Objekten wird bei Fehlereingaben die Felder nicht zurueckgesetzt
+- Erweiterung der Objektsuche, es koennen spezifische Werte abgefragt werden
+
+Version 1.05a
+----------------------------------------------------------------------------------------------
+Fehler mit den Historieneintraegen geloest
+
+Version 1.06
+----------------------------------------------------------------------------------------------
+- Druckansicht vereinfacht
+- Nicht mehr verwendbare Objekte in der Uebersicht deutlich gekenntzeichnet
+- Es koennen Objektbilder hochgeladen werden, wobei aus Vorlagen oder Spezifisch
+  gewaehlt werden kann
+- BUG-FIX: Nach dem Eintragen eines Objektes wird man auf die Detailansicht
+           des erstellten Objektes verwiesen
+- Nach der Eintragung eines Objektes kann per Button bestimmt werden, ob man
+  entweder ein neues Objekt anlegen moechte, oder eins, mit ausgewaehlten Daten
+  des vorher erstellten Objektes
+- BUG-FIX: Bei Objekterstellung muss ein Nutzer nun explizit angeben, um welche
+           Kategorie es sich bei dem Objekt handelt, wenn dies nicht eindeutig
+           ist.
+- Fehlerbenachrichtigung bei Erstellung neuer Objekte verbessert
+- Symfony Version von 3.0.2 auf 3.3.6 aktualisiert
+- Layout der Detailuebersicht ueberarbeitet
+- Datumsangabe vereinfacht
+- Es koennen nun spezialisierte Asservate angelegt werden, welche Datentraeger
+  informationen enthalten.
+- Datentraeger koennen nun Images von Festplattenasservaten innehalten
+- BUG-FIX: Objektscanner stellt nun korrekt zum Objekt durch
+
+Version 1.07
+----------------------------------------------------------------------------------------------
+ - BUG-FIX: Bild in der Detailansicht in der Hoehe limitiert
+ - Zur bessereren Uebersicht wurde in der Detailansicht der Status zur 
+   Verwendung geschoben
+ - BUG-FIX: Fehler in der Suche von Personen mit Sonderzeichen behoben
+ - BUG-FIX: Auch hinzugefuegte Faelle gelten als heute interagiert
+ - BUG-FIX: Bilderuploadsgrenze von 2 auf 10MB erhoeht
+ - BUG-FIX: Bilder wurden falsch verarbeitet
+ - Massenupdate eingefuegt
+ - Fallbeschreibungen koennen editiert werden
+ - Akten werden beim Eintragen direkt im entsprechenden Fall hinzugefuegt, wenn
+   der Barcode mit der Fall Id uebereinstimmt
+ - Symfony auf LTS Version 3.4 aktualisiert
+ - Bei Aenderungen von Objekten wird nun die Verwendung der vorherigen Aktion 
+   vorgeschlagen
+
+Version 1.08
+----------------------------------------------------------------------------------------------
+ - Rekursive Aenderung von Objekten durch einen Behälter entfernt
+ - Lokalisierung hinzugefuegt
+ - Objekt um ein Notizfeld erweitert, um Aktionsuebergreifend Informationen zu
+   hinterlegen
+ - In der Falluebersicht werden nun der Status, letzte Veraenderung sowie der 
+   Standort dargestellt
+ - BUG-FIX: In der Druckansicht wurden Links mitausgedruckt
+ - Fälle werden nun nach dem Zeitpunkt der Erstellung sortiert
+ - BUG-FIX: In der Nutzeransicht werden nun Nutzer, welche sich bisher nicht 
+            angemeldet haben, korrekt mit fehlenden Zeitstempel dargestellt
+ - BUG-FIX: Fehler behoben, welcher die Integrität der Daten beim Hinzufuegen 
+            von Behaeltern via URL Manipulation stoert.
+ - Faelle koennen als Aktiv/Inaktiv deklariert werden, was auch in der Suche 
+   entsprechend dargestellt wird. Hat keine Einwirkung auf Objekte und 
+   dient organisatorischen Zwecken
+ - Zusaetzliche Hinweise bei der Vernichtung/Verlorenen Aktion sowie hinzufuegen
+   eines Objektes in einen Fall
+ - Nennung von Objekten in Form von Barcodes werden als Verlinkung interpretiert
+   (aktuelle Verwendung, Historie sowie Notiz)
+ - Admins kann nun Benutzer bestimmen, welche via Mail ueber die Erstellung eines
+   Falles benachrichtigt werden
+ - BUG-FIX: Beim Scannen eines Barcodes wird nun ein Fehler ausgegeben, wenn das
+            Zugehoerige Objekt nicht exisitiert
+
+Version 1.08a
+----------------------------------------------------------------------------------------------
+ - Verschiedene Bugfixes
+
+Version 1.08b
+----------------------------------------------------------------------------------------------
+ - Bereits gelagerte Objekte können direkt neu verweisen werden. Sie werden dann
+   automatisiert aus den Behaeltern entfernt
+ - Detailaufrufe von nicht vorhandenen Objekten werden nun in der URL betrachet
+
+Version 1.08c
+----------------------------------------------------------------------------------------------
+ - Neu eingetragene Objekte koennen nun ebenfalls in einen Fall eingetragen
+   werden
+ - Javascript bei der Erstellung eines Objektes erneuert
+
+Version 1.08d
+----------------------------------------------------------------------------------------------
+ - BUG-FIX: Fehler in der Darstellung von Links behoben
+ - Notizfeld beim hinzufuegen von Objekten implementiert
+ - In der Detailansicht werden nun bei den gelisteten Objekten auch die Fallids 
+   angezeigt
+
+
+'| nl2br}}

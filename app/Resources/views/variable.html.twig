@@ -1,0 +1,54 @@
+{#
+   // AM-System
+   // Copyright (C) 2019 Robert Krasowski
+   // This program was created during an internship at DigiTrace GmbH
+   // Read LIZENZ.txt for full notice
+
+   // This program is free software: you can redistribute it and/or modify
+   // it under the terms of the GNU General Public License as published by
+   // the Free Software Foundation, either version 3 of the License, or
+   // (at your option) any later version.
+
+   // This program is distributed in the hope that it will be useful,
+   // but WITHOUT ANY WARRANTY; without even the implied warranty of
+   // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   // GNU General Public License for more details.
+
+   // You should have received a copy of the GNU General Public License
+   // along with this program.  If not, see <http://www.gnu.org/licenses/>.
+   
+#}
+{#
+    // Important Note: Edit also helper.php
+#}
+{%
+   
+    set statustemp = { 0: 'status.added', 
+                1: 'status.cleaned', 
+                2: 'status.taken.to.customer', 
+                3: 'status.destroyed', 
+                4: 'status.handover.person', 
+                5: 'status.reserved', 
+                6: 'status.lost', 
+                7: 'status.stored.in.container', 
+                8: 'status.pulled.out.of.container', 
+                9: 'status.added.to.case', 
+                10: 'status.removed.from.case', 
+                11: 'status.unbind.reservation', 
+                12: 'status.used', 
+                13: 'status.edited', 
+                14: 'status.saved.image', 
+                15: 'NOT IN USE', 
+                16: 'NOT IN USE' }
+%}
+{%
+
+    set categorytemp = { 0: 'category.exhibit',
+                         1: 'category.equipment',
+                         2: 'category.container',
+                         3: 'category.hdd',
+                         4: 'category.record',
+                         5: 'category.exhibit.hdd'}
+
+%}
+{% block wrapper %}{% endblock wrapper %}

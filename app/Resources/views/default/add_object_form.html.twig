@@ -1,0 +1,352 @@
+{#
+   // AM-System
+   // Copyright (C) 2019 Robert Krasowski
+   // This program was created during an internship at DigiTrace GmbH
+   // Read LIZENZ.txt for full notice
+
+   // This program is free software: you can redistribute it and/or modify
+   // it under the terms of the GNU General Public License as published by
+   // the Free Software Foundation, either version 3 of the License, or
+   // (at your option) any later version.
+
+   // This program is distributed in the hope that it will be useful,
+   // but WITHOUT ANY WARRANTY; without even the implied warranty of
+   // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   // GNU General Public License for more details.
+
+   // You should have received a copy of the GNU General Public License
+   // along with this program.  If not, see <http://www.gnu.org/licenses/>.
+   
+#}
+
+{% extends 'base.html.twig' %}
+{% form_theme addform 'bootstrap_3_layout.html.twig' %} 
+{% block content1 %}
+    <h2>{% trans %}add_object_headline{% endtrans %}</h2>
+
+    <div id="message-list">
+     {% for label, messages in app.flashes %}
+         {% for message in messages %}
+             <div class="alert alert-{{ label }}">
+                 {{ message | trans | nl2br}}
+             </div>
+         {% endfor %}
+     {% endfor %}
+    </div>
+
+
+     {{ form_start(addform) }}
+     {#{ form_widget(addform) }#}
+     <div class="row">
+         
+         <div class='col-xs-7'>
+             <div class="row">
+                 <div class='col-xs-6'>
+                     <div id="barcode_field">
+                    {{ form_label(addform.barcode_id) }}
+                    {{ form_widget(addform.barcode_id) }}
+                    {{ form_errors(addform.barcode_id) }}
+                    <span class="help-block"></span>
+                     </div>
+                </div>
+
+                <div class='col-xs-6'>
+                    {{ form_label(addform.kategorie_id) }}
+                    {{ form_errors(addform.kategorie_id) }}
+                    {{ form_widget(addform.kategorie_id) }}
+                </div>
+                 
+             </div>
+             <div class="row">
+                 <div class='col-xs-6'>
+                     {{ form_label(addform.name) }}
+                    {{ form_errors(addform.name) }}
+                    {{ form_widget(addform.name) }}
+                 </div>
+                 
+                 
+                 <div class='col-xs-6'>
+                   {{ form_label(addform.dueDate) }}
+                    {{ form_errors(addform.dueDate) }}
+                    {{ form_widget(addform.dueDate) }}
+                 </div>
+                 
+             </div>
+             
+         </div>
+         
+         
+         
+         
+
+         <div class='col-xs-5'>
+             {{ form_label(addform.enablecase) }}
+             {{ form_widget(addform.enablecase) }}
+             
+             {{ form_label(addform.searchbox) }}
+             {{ form_errors(addform.searchbox) }}
+             {{ form_widget(addform.searchbox) }}
+             
+            
+             {{ form_errors(addform.case) }}
+             {{ form_widget(addform.case) }}
+         </div>
+
+
+
+     </div>
+
+     <div class="row">
+         <div class='col-xs-12'>
+             {{ form_label(addform.verwendung) }}
+             {{ form_errors(addform.verwendung) }}
+             {{ form_widget(addform.verwendung) }}
+         </div>
+     </div>
+         
+    <div class="row">
+         <div class='col-xs-12'>
+             {{ form_label(addform.notiz) }}
+             {{ form_errors(addform.notiz) }}
+             {{ form_widget(addform.notiz) }}
+         </div>
+    </div>
+
+     <div id="add_object_extra_fields">
+        <div class="row">
+            <div class='col-xs-3'>
+                {{ form_label(addform.bauart) }}
+                {{ form_errors(addform.bauart) }}
+                {{ form_widget(addform.bauart) }}
+                <span class="help-block">{% trans %}add_object_help_box_bauart{% endtrans %}</span>
+            </div>
+
+            <div class='col-xs-3'>
+                {{ form_label(addform.formfaktor) }}
+                {{ form_errors(addform.formfaktor) }}
+                {{ form_widget(addform.formfaktor) }}
+                <span class="help-block">{% trans %}add_object_help_box_formfaktor{% endtrans %}</span>
+            </div>
+
+            <div class='col-xs-1'>
+                {{ form_label(addform.groesse) }}
+                {{ form_errors(addform.groesse) }}
+                {{ form_widget(addform.groesse)  }}
+                <span class="help-block">{% trans %}add_object_help_box_groesse{% endtrans %}</span>
+            </div>
+
+            <div class='col-xs-2'>
+                {{ form_label(addform.groessealt) }}
+                {{ form_errors(addform.groessealt) }}
+                {{ form_widget(addform.groessealt) }}
+                <span class="help-block">{% trans %}add_object_help_box_groessealt{% endtrans %}</span>
+            </div>
+
+            <div class='col-xs-3'>
+                {{ form_label(addform.anschluss) }}
+                {{ form_errors(addform.anschluss) }}
+                {{ form_widget(addform.anschluss) }}
+                <span class="help-block">{% trans %}add_object_help_box_anschluss{% endtrans %}</span>
+            </div>
+        </div>
+        <div class="row">
+            <div class='col-xs-3'>
+                {{ form_label(addform.hersteller) }}
+                {{ form_errors(addform.hersteller) }}
+                {{ form_widget(addform.hersteller) }}
+                <span class="help-block"></span>
+            </div>
+            <div class='col-xs-3'>
+                {{ form_label(addform.modell) }}
+                {{ form_errors(addform.modell) }}
+                {{ form_widget(addform.modell) }}
+                <span class="help-block"></span>
+            </div>
+
+            <div class='col-xs-3'>
+                {{ form_label(addform.sn) }}
+                {{ form_errors(addform.sn) }}
+                {{ form_widget(addform.sn) }}
+                <span class="help-block"></span>
+            </div>
+
+            <div class='col-xs-3'>
+                {{ form_label(addform.pn) }}
+                {{ form_errors(addform.pn) }}
+                {{ form_widget(addform.pn) }}
+                <span class="help-block"></span>
+            </div>
+        </div>
+     </div>
+     <div class="row">
+         <div class='col-sm-4'>
+             {{ form_widget(addform.save) }}
+             <span class="help-block"></span>
+         </div>
+        <div class='col-sm-4'>
+             {{ form_widget(addform.saveandnew) }}
+             <span class="help-block"></span>
+         </div>
+             <div class='col-sm-4'>
+             {{ form_widget(addform.saveandaddsimilar) }}
+             <span class="help-block"></span>
+         </div>
+             {{ form_end(addform) }}
+     </div>
+
+
+     <script>
+        
+        $(document).ready(function(){
+            var searchboxname='#add_object_searchbox';
+            var storedobjectname='#add_object_case';
+            var enablecasename='#add_object_enablecase';
+            var barcode_idname='#add_object_barcode_id';
+            var kategorie_idname='#add_object_kategorie_id';
+            var barcode_fieldname="#barcode_field";
+            var extra_field_name="#add_object_extra_fields";
+                
+            var $searchbox = $(searchboxname);
+            var $storedobjects = $(storedobjectname);
+            var $barcode = $(barcode_idname);
+            var $barcode_field=$(barcode_fieldname);
+            var $kategorie= $(kategorie_idname);
+            var $enablecase= $(enablecasename);
+            var $extra_field=$(extra_field_name);
+            // Fade out select Box, until an important status is selected
+
+            var $olddatalength = 0;
+            var $olddatalength2 = 0;
+
+
+            $searchbox.keyup(function() {
+              var $form = $(this).closest('form');
+
+              var data = {};
+              data[$searchbox.attr('name')] = $searchbox.val();
+
+              // Sends only request, when the searchbox is actually correctly changed
+              if($searchbox.val().length % 2 == 1 && 
+                 $searchbox.val().length > 0 &&
+                 $searchbox.val().length != $olddatalength){
+                $olddatalength = $searchbox.val().length;
+
+                $.ajax({
+                  url : $form.attr('action'),
+                  type: $form.attr('method'),
+                  data : data,
+                  success: function(html) {
+                    $(storedobjectname).replaceWith(
+                      $(html).find(storedobjectname)
+                    );
+                    // Has to be set again due overwriting
+                    $searchbox = $(searchboxname);
+                    $storedobjects = $(storedobjectname);
+                  }
+                });
+              }
+
+            });
+
+
+            $(document).on("change","#add_object_kategorie_id",function (){
+                
+                if($kategorie.val() == 3 || $kategorie.val() == 5 ){
+                    $extra_field.find(".form-control").attr("disabled", false);
+                }else{
+                    $extra_field.find(".form-control").attr("disabled",true);
+                }
+            });
+
+            $barcode.keyup(function() {
+              var $form = $(this).closest('form');
+
+              var data = {};
+              data[$(this).attr('name')] = $(this).val();
+
+              // Sends only request, when the searchbox is actually correctly changed
+              if(($(this).val().length % 2 == 0 && 
+                 $(this).val().length > 3 &&
+                 $(this).val().length != $olddatalength2) || $barcode.val().length == 9){
+                $olddatalength2 = $searchbox.val().length;
+                
+                var selVal = $kategorie.val();
+                sessionStorage.setItem("SelItem", selVal);
+                    
+                $.ajax({
+                  url : $form.attr('action'),
+                  type: $form.attr('method'),
+                  data : data,
+                  success: function(html) {
+                    $(kategorie_idname).replaceWith(
+                      $(html).find(kategorie_idname)
+                    );
+                    
+                    $("#barcode_field").find(".help-block").replaceWith(
+                      $(html).find(barcode_fieldname).find(".help-block")[0]
+                    );
+            
+                    // Has to be set again due overwriting
+                    //$barcode_field = $(barcode_fieldname);
+                    //$barcode = $(barcode_idname);
+                    $kategorie = $(kategorie_idname);
+                    
+                    $kategorie.val(sessionStorage.getItem("SelItem"));
+                  }
+                });
+              }
+
+            });
+
+            
+
+
+            $enablecase.change(function (){
+               if($enablecase.prop("checked") == true){
+                    $storedobjects.prop('disabled', false);
+                    $searchbox.prop('disabled', false);
+               }
+               else{
+                   $storedobjects.prop('disabled', true);
+                   $searchbox.prop('disabled', true);
+               }
+
+            });
+
+            
+            if($(enablecasename).prop("checked") == false){
+               $(storedobjectname).prop('disabled', true);
+               $(searchboxname).prop('disabled', true);
+            }
+            
+            
+           /* $("#add_object_saveandaddsimilar").click(function(event){
+                event.preventDefault();
+                var $form = $(this).closest('form');
+                
+                 $.ajax({
+                  url : $form.attr('action'),
+                  type: $form.attr('method'),
+                  data : $form.serialize(),
+                  success: function(html) {
+                    $(kategorie_idname).replaceWith(
+                      $(html).find(kategorie_idname)
+                    );
+                    
+                    $("#message-list").replaceWith(
+                      $(html).find("#message-list"));
+            
+                   
+                    $kategorie = $(kategorie_idname);
+                    
+                    $kategorie.val(sessionStorage.getItem("SelItem"));
+                  }
+                });
+            })*/
+            
+        });
+     </script>
+{% endblock %}
+
+{% block stylesheets %}
+{% endblock %}

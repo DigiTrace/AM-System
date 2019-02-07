@@ -1,0 +1,590 @@
+{#
+   // AM-System
+   // Copyright (C) 2019 Robert Krasowski
+   // This program was created during an internship at DigiTrace GmbH
+   // Read LIZENZ.txt for full notice
+
+   // This program is free software: you can redistribute it and/or modify
+   // it under the terms of the GNU General Public License as published by
+   // the Free Software Foundation, either version 3 of the License, or
+   // (at your option) any later version.
+
+   // This program is distributed in the hope that it will be useful,
+   // but WITHOUT ANY WARRANTY; without even the implied warranty of
+   // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   // GNU General Public License for more details.
+
+   // You should have received a copy of the GNU General Public License
+   // along with this program.  If not, see <http://www.gnu.org/licenses/>.
+   
+#}
+{% extends 'base.html.twig' %}
+
+{% block content1 %}
+ 
+    <h2>{% trans %}detailsto{% endtrans %} {{ categorytemp[objekt.getKategorie] |trans }}: {{ id }} </h2>
+    {% for label, messages in app.flashes %}
+        {% for message in messages %}
+            <div class="alert alert-{{ label }}">
+                {{ message |trans }}
+            </div>
+        {% endfor %}
+    {% endfor %}
+    
+    <div class="container-fluid" >
+        <div class="row">
+            
+            <div class="col-sm-5 col-xs-8 col-xs-offset-2 col-sm-offset-0" style="align:center" >
+                {% if objekt.getPic is not null %}
+                <img  src="data:image/jpg;base64,{{ objekt.getPic }}"  class="img-thumbnail" style="max-height: 400px;display:block;margin-left: auto;margin-right:auto;" >
+                {% elseif objekt.getPicpath is not null  %}
+                    <img  src="/uploads/pic/{{ objekt.getPicpath }}"  class="img-thumbnail" style="max-height: 400px;display:block;margin-left: auto;margin-right:auto;" >
+                {% else %}
+                <img  src="{{asset('public/img/no_image.jpeg')}}"  class="img-thumbnail" style="max-height: 400px;display:block;margin-left: auto;margin-right:auto;" >
+                {% endif %}
+            </div>
+            <div class="col-sm-7 col-xs-12" id="currentstatus" >
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        {% trans %}currentstatus{% endtrans %}:
+                    </div>
+                    <div class="panel-body">
+                        <div class="row">
+                            <div class="col-xs-12">
+                                <dl>
+                                   <dt>{% trans %}desc.name{% endtrans %}</dt>
+                                    <dd>{{ objekt.getName }}</dd>
+                                </dl>
+
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-xs-4">
+                                <dl>
+                                   <dt>{% trans %}desc.category{% endtrans %}</dt>
+                                   <dd>{{ categorytemp[objekt.getKategorie]|trans  }}</dd>
+                                </dl>
+                            </div>
+                            <div class="col-xs-7">
+                                <dl>
+                                   <dt>{% trans %}desc.container{% endtrans %}</dt>
+                                   <dd>
+                                        {% if objekt.getStandort == false %}
+                                        /
+                                        {% else %}
+                                        <a href='{{ path('detail_object', {'id': objekt.getStandort.getBarcode}) }}' >{{ objekt.getStandort.getBarcode }} | {{ objekt.getStandort.getName }} </a></td>
+                                        {% endif %}
+                                   </dd>
+                                </dl>
+                             </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-xs-4">
+                                <dl>
+                                   <dt>{% trans %}desc.reserved{% endtrans %}</dt>
+                                   <dd>
+                                        {% if objekt.getReserviertVon == false %}
+                                           /
+                                        {% else %}
+                                            {{ objekt.getReserviertVon.getUsername }}
+                                        {% endif %}
+                                   </dd>
+                                </dl>
+                            </div>
+                            <div class="col-xs-6">
+                                <dl>
+                                   <dt>{% trans %}desc.case{% endtrans %}</dt>
+                                   <dd> 
+                                       {% if objekt.getFall == false %}
+                                       /
+                                       {% else %}
+
+                                       <a href="{{ path('detail_case', {'id': objekt.getFall.getCaseId }) }}">
+                                            {{ objekt.getFall.getCaseId }} | {{ objekt.getFall.getBeschreibung | slice(0,40) }}... 
+                                       </a>
+                                       {% endif %}
+                                   </dd>
+                                </dl>
+                             </div>
+                        </div>
+                        <div class="row">
+                            {% if objekt.getKategorie == constant('KATEGORIE_DATENTRAEGER',objekt) %}
+                            <div class="col-xs-4">
+                                <dl>
+                                   <dt>{% trans %}desc.imaged{% endtrans %}</dt>
+                                   <dd>
+                                       
+                                       
+                                       {% if objekt.getImages is empty %}
+                                           /
+                                        {% else %}
+                                            {% for image in objekt.getImages %}
+                                                <a href='{{ path("detail_object",{id:image.getBarcode})}}'>{{image.getBarcode}} | {{image.getName | truncate(10)}}</a><br>
+                                            {% endfor %}
+                                        {% endif %}
+                                   </dd>
+                                </dl>
+                            </div>
+                            {% endif %}
+                            {% if objekt.getKategorie == constant('KATEGORIE_ASSERVAT_DATENTRAEGER',objekt) %}
+                            <div class="col-xs-4">
+                                <dl>
+                                   <dt>{% trans %}desc.imaged.by{% endtrans %}</dt>
+                                   <dd>
+                                       
+                                       
+                                       {% if objekt.getHDDs is empty %}
+                                           /
+                                        {% else %}
+                                            {% for image in objekt.getHDDs %}
+                                                <a href='{{ path("detail_object",{id:image.getBarcode})}}'>{{image.getBarcode}} | {{image.getName | truncate(10)}}</a><br>
+                                            {% endfor %}
+                                        {% endif %}
+                                   </dd>
+                                </dl>
+                            </div>
+                            {% endif %}
+                            <div class="col-xs-6">
+                                <dl>
+                                   <dt>{% trans %}desc.luser{% endtrans %}</dt>
+                                   <dd> 
+                                        {{ objekt.getNutzer.getUsername }}
+                                   </dd>
+                                </dl>
+                            </div>
+                        </div>
+                        <div class="row">
+
+                        </div>
+                        <div class="row">
+                             <div class="col-xs-12">
+                                <dl>
+                                   <dt>{% trans %}desc.last.action.done.registered{% endtrans %}</dt>
+                                   <dd>
+                                        {{ objekt.getZeitstempelumsetzung|date('d.m.y H:i')}} / {{ objekt.getZeitstempel|date('d.m.y H:i')}}
+                                   </dd>
+                                </dl>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-sm-12">
+                                 <dl>
+                                   <dt>{% trans %}desc.status{% endtrans %}</dt>
+                                   <dd>{{ statustemp[objekt.getStatus] | trans }}</dd>
+                                </dl>
+
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-sm-6">
+                                <dl>
+                                    <dt>{% trans %}desc.usage{% endtrans %}</dt>
+                                    <dd> 
+                                        {% if objekt.getVerwendung == false %}
+                                          /
+                                        {% else %}
+                                            {{ objekt.getVerwendung | nl2br | barcodelinker | raw }}
+                                        {% endif %}
+                                    </dd>
+                                 </dl>
+                            </div>
+                            <div class="col-sm-6">
+                                <dl>
+                                    <dt>{% trans %}desc.additional.usage{% endtrans %}</dt>
+                                    <dd> 
+                                        {% if objekt.getNotiz == false %}
+                                          /
+                                        {% else %}
+                                            {{ objekt.getNotiz | nl2br | barcodelinker | raw}}
+                                        {% endif %}
+                                    </dd>
+                                 </dl>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>  
+        </div>
+           
+                                    
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                {% trans %}additional.informations{% endtrans %}:
+                <a href="#additionalinformation" data-toggle="collapse" class="btn btn-xs pull-right hidden-print">
+                    <span class="glyphicon glyphicon-menu-hamburger "></span>
+                </a>
+
+            </div>
+            <div id="additionalinformation" class="panel-body panel-collapse collapse " >
+              
+               
+                {% if datentraeger != null %}
+                    
+                    <div  class="panel panel-default">
+                        <div class="panel-heading">
+                            {% trans %}hddinfos{% endtrans %}:
+                        </div>
+                        <div class="panel-body" id="hddinfo">
+                            <div class="row" >
+                                <div class="col-sm-3 col-xs-6">
+                                    <dl>
+                                       <dt>{% trans %}desc.type{% endtrans %}</dt>
+                                       <dd>{{ datentraeger.getBauart}}</dd>
+                                    </dl>
+                                </div>
+                                <div class="col-sm-3 col-xs-6">
+                                    <dl>
+                                       <dt>{% trans %}desc.formfactor{% endtrans %}</dt>
+                                       <dd>{{ datentraeger.getFormfaktor }}</dd>
+                                    </dl>
+                                </div>
+                                <div class="col-sm-3 col-xs-6">
+                                    <dl>
+                                       <dt>{% trans %}desc.size{% endtrans %}</dt>
+                                       <dd>{{ datentraeger.getGroesse }}</dd>
+                                    </dl>
+                                </div>
+                                <div class="col-sm-3 col-xs-6">
+                                    <dl>
+                                       <dt>{% trans %}desc.producer{% endtrans %}</dt>
+                                       <dd>{{ datentraeger.getHersteller}}</dd>
+                                    </dl>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-sm-3 col-xs-6">
+                                    <dl>
+                                       <dt>{% trans %}desc.modell{% endtrans %}</dt>
+                                       <dd>{{ datentraeger.getModell}}</dd>
+                                    </dl>
+                                </div>
+                                <div class="col-sm-3 col-xs-6">
+                                    <dl>
+                                       <dt>{% trans %}desc.sn{% endtrans %}</dt>
+                                       <dd>{{ datentraeger.getSN}}</dd>
+                                    </dl>
+                                </div>
+                                <div class="col-sm-3 col-xs-6">
+                                    <dl>
+                                       <dt>{% trans %}desc.pn{% endtrans %}</dt>
+                                       <dd>{{ datentraeger.getPN}}</dd>
+                                    </dl>
+                                </div>
+                                <div class="col-sm-3 col-xs-6">
+                                    <dl>
+                                       <dt>{% trans %}desc.connection{% endtrans %}</dt>
+                                       <dd>{{ datentraeger.getAnschluss}}</dd>
+                                    </dl>
+                                </div>
+                            </div>         
+                        </div>
+                    </div>  
+                {% endif %}
+        
+                
+                {% if objekt.getKategorie == constant('KATEGORIE_BEHAELTER',objekt) %}
+            
+                    <div class="panel panel-default">
+                        <div class="panel-heading">
+                            {% trans %}currentinventory{% endtrans %}:
+                        </div>
+                        {% if stored_objects == false %}
+                            <div class="panel-body">
+                                   {% trans %}message.no.objects.in.container{% endtrans %}
+                            </div>
+                        {% else %}
+
+                         <table class="table">
+                         <thead>
+                           <tr>
+                             <th>{% trans %}case_id{% endtrans %}</th>
+                             <th>{% trans %}desc.oid{% endtrans %}</th>
+                             <th>{% trans %}desc.name{% endtrans %}</th>
+                           </tr>
+                         </thead>
+                         <tbody>
+
+                             {% for stored_object in stored_objects %}
+
+                             <tr >
+                                <td>
+                                    {% if stored_object.getFall != null %}
+                                        <a href="{{ path('detail_case', {'id': stored_object.getFall.getCaseId}) }}">
+                                        {{ stored_object.getFall.getCaseId }}
+                                        </a>
+                                    {% else %}
+                                        -
+                                    {% endif %}
+                                </td> 
+                                 
+                                <td style='font-family: courier;font-size: large'>
+                                    <a href="{{ path('detail_object', {'id': stored_object.getBarcode}) }}">
+                                    {{ stored_object.getBarcode }}
+                                    </a>
+                                </td>
+                                <td>
+                                    <a href="{{ path('detail_object', {'id': stored_object.getBarcode}) }}">
+                                    {{ stored_object.getName }}
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                         </table> 
+                       
+
+                        {% endif %}
+                    </div>     
+                {% endif %}
+                
+                
+                {% if objekt.getKategorie == constant('KATEGORIE_ASSERVAT_DATENTRAEGER',objekt) %}
+            
+                    <div class="panel panel-default">
+                        <div class="panel-heading">
+                            {% trans %}currentimagelocations{% endtrans %}:
+                        </div>
+                        {% if objekt.getHDDs is empty %}
+                            <div class="panel-body">
+                                    {% trans %}message.exhibit.objekt.has.no.other.images{% endtrans %}
+                            </div>
+                        {% else %}
+
+                         <table class="table">
+                         <thead>
+                           <tr>
+                             <th>{% trans %}desc.oid{% endtrans %}</th>
+                             <th>{% trans %}desc.name{% endtrans %}</th>
+                           </tr>
+                         </thead>
+                         <tbody>
+
+                             {% for hdd in objekt.getHDDs %}
+
+                             <tr >
+                                <td style='font-family: courier;font-size: large'>
+                                    <a href="{{ path('detail_object', {'id': hdd.getBarcode}) }}">
+                                    {{ hdd.getBarcode }}
+                                    </a>
+                                </td>
+                                <td>
+                                    <a href="{{ path('detail_object', {'id': hdd.getBarcode}) }}">
+                                    {{ hdd.getName }}
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                         </table> 
+                       
+
+                        {% endif %}
+                    </div>     
+                {% endif %}
+                
+                
+                {% if objekt.getKategorie == constant('KATEGORIE_DATENTRAEGER',objekt) %}
+            
+                    <div class="panel panel-default">
+                        <div class="panel-heading">
+                            {% trans %}currentsavedexhibithdd{% endtrans %}:
+                        </div>
+                            {% if objekt.getImages is empty %}
+                                <div class="panel-body">
+                                    {% trans %}message.hdd.objekt.has.no.saved.exhibit.hdd.objects{% endtrans %}
+                                </div>
+                        {% else %}
+
+                         <table class="table">
+                         <thead>
+                           <tr>
+                             <th>{% trans %}desc.oid{% endtrans %}</th>
+                             <th>{% trans %}desc.name{% endtrans %}</th>
+                           </tr>
+                         </thead>
+                         <tbody>
+
+                             {% for exhibit in objekt.getImages %}
+
+                             <tr >
+                                <td style='font-family: courier;font-size: large'>
+                                    <a href="{{ path('detail_object', {'id': exhibit.getBarcode}) }}">
+                                    {{ exhibit.getBarcode }}
+                                    </a>
+                                </td>
+                                <td>
+                                    <a href="{{ path('detail_object', {'id': exhibit.getBarcode}) }}">
+                                    {{ exhibit.getName }}
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                         </table> 
+                       
+
+                        {% endif %}
+                    </div>     
+                {% endif %}
+                
+            </div>
+        </div>
+    </div>
+     
+                    
+ {% endblock %}
+ {% block content2 %}
+     <h2>{% trans %}history{% endtrans %}</h2>       
+                           
+             {% if history_entries == false %}
+                 <p>{% trans %}message.no.history.available{% endtrans %}</p>   
+             {% else %}
+                <div class="container-fluid" >
+                    <div class="row"> 
+                        <div class="col-sm-12">
+                        <table class="table">
+                         <thead>
+                           <tr>
+                             <th>{% trans %}desc.action.done{% endtrans %}</th>
+                             <th>{% trans %}desc.action.registered{% endtrans %}</th>
+                             <th>{% trans %}desc.status{% endtrans %}</th>
+                             <th>{% trans %}desc.usage{% endtrans %}</th>
+                             <th>{% trans %}desc.case{% endtrans %}</th>
+                             <th>{% trans %}desc.container{% endtrans %}</th>
+                             <th>{% trans %}desc.reserved{% endtrans %}</th>
+                             {% if objekt.getKategorie == constant('KATEGORIE_DATENTRAEGER',objekt) %}
+                                <th>{% trans %}desc.imaged{% endtrans %}</th>
+                             {% endif %}
+                             <th>{% trans %}desc.user{% endtrans %}</th>
+                           </tr>
+                         </thead>
+                         <tbody>
+
+                             {% for entry in history_entries %}
+
+                             <tr>
+                                <td>{{ entry.getZeitstempelumsetzung|date('d.m.y H:i')}}</td>
+                                <td>{{ entry.getZeitstempel|date('d.m.y H:i')}}</td>
+                                <td>{{ statustemp[entry.getStatusId]|trans  }}</td>
+                                <td>{{ entry.getVerwendung | nl2br | barcodelinker | raw}}</td>
+
+                                {# Ausgabe des zugeteilten Falles #}
+                                {% if entry.getFall != null %}
+                                    <td><a href='{{ path("detail_case",{id:entry.getFall.getCaseId})}}'>{{ entry.getFall.getCaseId }} </a></td>
+                                {% else %}
+                                    <td> / </td>
+                                {% endif %}
+
+                                {# Ausgabe des Standorts #}
+                                {% if entry.getStandort != null %}
+                                    <td> <a href='{{ path("detail_object",{id:entry.getStandort.getBarcode})}}'>{{ entry.getStandort }} | {{ entry.getStandort.getName}} </a></td>
+                                {% else %}
+                                    <td> / </td>
+                                {% endif %}
+
+                                {# Reserviert von Spalte #}
+                                 {% if entry.getReserviertVon != null %}
+                                    <td> {{ entry.getReserviertVon }} </td>
+                                 {% else %}
+                                    <td> / </td>
+                                 {% endif %}
+                                 
+                                 {# Reserviert von Spalte #}
+                                 {% if objekt.getKategorie == constant('KATEGORIE_DATENTRAEGER',objekt) %}
+                                     {% if entry.getImages is not empty %}
+                                        <td>
+                                            {% for image in entry.getImages %}
+                                                <a href='{{ path("detail_object",{id:image.getBarcode})}}'>{{image.getBarcode}}</a><br>
+                                            {% endfor %}
+                                            
+                                        </td>
+                                    {% else %}
+                                        <td> / </td>
+                                    {% endif %}
+                                 {% endif %}
+
+                                <td>{{ entry.getNutzerId }}</td>
+                           </tr>
+                           {% endfor %}
+                         </tbody>
+                        </table>
+                        </div>
+                    </div>
+                </div>
+                 
+             {% endif %}
+             {% set currentdate = "now"|date('d.m.y') %}
+             {% set currenttime = "now"| date('H:i') %}
+             
+             
+              {% trans with {'%cdate%': "now"|date('d.m.y'),'%ctime%':"now"| date('H:i')  } %}report has been made at %cdate% %ctime%{% endtrans %}
+{% endblock %}
+
+{% block stylesheets %}
+{% endblock %}
+
+
+{% block context %}    
+    
+    <a onclick="window.print()"> <span class="glyphicon glyphicon-print"></span> {% trans %}action.print{% endtrans %}</a><br>
+     {# Wenn das Objekt NICHT vernichtet oder verloren worden sind #}
+    {% if objekt.getStatus != 3  and objekt.getStatus != 6 %}
+        
+        {% if objekt.getStatus != 1  and objekt.getKategorie == constant('KATEGORIE_DATENTRAEGER',objekt) %}
+        <a href='{{ path("null_object",{id:id})}}'> <span class="glyphicon glyphicon-erase"></span> {% trans %}action.cleaned{% endtrans %}</a><br>
+        {% endif %}
+        
+        {% if objekt.getKategorie == constant('KATEGORIE_DATENTRAEGER',objekt) %}
+            <a href='{{ path("neutralize_object",{id:id})}}'> <span class="glyphicon glyphicon-erase"></span> {% trans %}action.neutralise{% endtrans %}</a><br>
+            
+        {% endif %}
+        
+        
+        {% if objekt.getKategorie == constant('KATEGORIE_DATENTRAEGER',objekt) or
+              objekt.getKategorie == constant('KATEGORIE_ASSERVAT_DATENTRAEGER',objekt)  %}
+            <a href='{{ path("select_exhibit_hdd_object",{id:id})}}'> <span class="glyphicon glyphicon-import"></span> {% trans %}action.add.image{% endtrans %}</a><br>
+        {% endif %}
+                
+        
+        <a href='{{ path("destroyed_object",{id:id})}}'> <span class="glyphicon glyphicon-fire"></span> {% trans %}action.destroyed{% endtrans %}</a><br>
+
+        <a href='{{ path("delivery_object",{id:id})}}'> <span class="glyphicon glyphicon-send"></span> {% trans %}action.handover.person{% endtrans %}</a><br>
+
+        <a href='{{ path("lost_object",{id:id})}}'> <span class="glyphicon glyphicon-thumbs-down"></span> {% trans %}action.lost{% endtrans %}</a><br>
+
+        <a href='{{ path("use_object",{id:id})}}'> <span class="glyphicon glyphicon-console"></span> {% trans %}action.used{% endtrans %}</a><br>
+
+
+        {# Bei der Reservierung wird nicht auf den Status ueberprueft #}
+        {% if objekt.getReserviertVon == null %}
+            <a href='{{ path("reserve_object",{id:id})}}'> <span class="glyphicon glyphicon-lock"></span> {% trans %}action.reserved{% endtrans %}</a><br>
+        {% else %}
+            <a href='{{ path("unreserve_object",{id:id})}}'> <span class="glyphicon glyphicon-edit"></span> {% trans %}action.unbind.reserved{% endtrans %}</a><br>
+        {% endif %}
+        
+        
+        
+        {% if objekt.getStandort == null %}
+            <a href='{{ path("select_object",{id:id})}}'> <span class="glyphicon glyphicon-briefcase"></span> {% trans %}action.stored.in.container{% endtrans %}</a><br>
+        {% else %}
+            <a href='{{ path("select_object",{id:id})}}'> <span class="glyphicon glyphicon-briefcase"></span> {% trans %}action.stored.in.container.alternativ{% endtrans %}</a><br>
+            <a href='{{ path("pull_out_object",{id:id})}}'> <span class="glyphicon glyphicon-briefcase"></span> {% trans %}action.pulled.out.of.container{% endtrans %}</a><br>
+        {% endif %}
+          
+        
+        {% if objekt.getFall != null %}
+           {% if objekt.getKategorie !=  constant('KATEGORIE_AKTE',objekt) %} 
+                <a href='{{ path("remove_from_case_object",{id:id})}}'> <span class="glyphicon glyphicon-export"></span> {% trans %}action.removed.from.case{% endtrans %}</a><br>
+           {% endif %}
+        {% else %}
+          <a href='{{ path("select_case",{id:id})}}'> <span class="glyphicon glyphicon-import"></span> {% trans %}action.added.to.case{% endtrans %}</a><br>
+        {% endif %}
+
+        <a href='{{ path("edit_object",{id:id})}}'> <span class="glyphicon glyphicon-edit"></span> {% trans %}action.edit{% endtrans %}</a><br>
+        {% if objekt.getPic == null and objekt.getPicpath == null %}
+        <a href='{{ path("upload_pic",{id:id})}}'> <span class="glyphicon glyphicon-upload"></span> {% trans %}action.upload.image{% endtrans %}</a><br>
+        {% endif %}
+        
+                
+     {% endif %}
+       
+{% endblock %}
+

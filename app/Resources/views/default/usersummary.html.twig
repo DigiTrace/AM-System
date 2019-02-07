@@ -1,0 +1,140 @@
+{#
+   // AM-System
+   // Copyright (C) 2019 Robert Krasowski
+   // This program was created during an internship at DigiTrace GmbH
+   // Read LIZENZ.txt for full notice
+
+   // This program is free software: you can redistribute it and/or modify
+   // it under the terms of the GNU General Public License as published by
+   // the Free Software Foundation, either version 3 of the License, or
+   // (at your option) any later version.
+
+   // This program is distributed in the hope that it will be useful,
+   // but WITHOUT ANY WARRANTY; without even the implied warranty of
+   // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   // GNU General Public License for more details.
+
+   // You should have received a copy of the GNU General Public License
+   // along with this program.  If not, see <http://www.gnu.org/licenses/>.
+   
+#}
+
+
+{% extends 'base.html.twig' %} 
+{% block content1 %}
+  
+    <h2>{% trans %}usersummary{% endtrans %}:</h2>
+    {% for label, messages in app.flashes %}
+        {% for message in messages %}
+            <div class="alert alert-{{ label }}">
+                {{ message |trans }}
+            </div>
+        {% endfor %}
+    {% endfor %}
+    <table class="table">
+    <thead>
+      <tr>
+        <th style="max-width:100px">{% trans %}user{% endtrans %}</th>
+        <th>{% trans %}useremail{% endtrans %}</th>
+        <th>{% trans %}userlastlogin{% endtrans %}</th>
+        <th>{% trans %}useroptions{% endtrans %}</th>
+      </tr>
+    </thead>
+    <tbody id="usertable">
+      {% for user in users%}
+        
+        <tr>
+            {% if user.isEnabled == true %}
+            <td class="col-md-2">{{ user.getUsername }}</td>
+            {% else %}
+            <td class="col-md-2"><s>{{ user.getUsername }}</s></td>
+            {% endif %}
+            <td class="col-md-2">{{ user.getEmail }}</td>
+            <td class="col-md-2">
+            {% if user.getLastLogin is not null %}
+            {{ user.getLastLogin | date("H:i:s d.m.Y") }}
+            {% else %}
+             /
+            {% endif %}
+            </td>
+             <td class="col-md-5">
+                 {% if user.isEnabled == true and "ROLE_ADMIN" not in user.getRoles%}
+                 
+                 <a onclick="alteruser('{{ path("set_enable_user") }}','{{ user.getUsername }}')" data-toggle="tooltip" title="{% trans %}action.deactivate.user{% endtrans %}">
+                     <span class="glyphicon glyphicon glyphicon-ban-circle"></span>
+                 </a>
+                 {% elseif user.isEnabled == false and "ROLE_ADMIN" not in user.getRoles %}
+                 <a onclick="alteruser('{{ path("set_enable_user") }}','{{ user.getUsername }}')" data-toggle="tooltip" title="{% trans %}action.reactivate.user{% endtrans %}">
+                     <span class="glyphicon glyphicon glyphicon-ok-circle"></span>
+                 </a>
+                 {% endif %}
+                 
+                 
+                 {% if user.getNotifyCaseCreation == false %}
+                 <a  onclick="alteruser('{{ path("set_subscribe_case_creation") }}','{{ user.getUsername }}')"  data-toggle="tooltip" title="{% trans %}action.subscribe_case_creation.user{% endtrans %}">
+                     <span class="glyphicon glyphicon glyphicon-envelope"></span>
+                 </a>
+                 {% elseif user.getNotifyCaseCreation == true %}
+                 <a onclick="alteruser('{{ path("set_subscribe_case_creation") }}','{{ user.getUsername }}')"  data-toggle="tooltip" title="{% trans %}action.unsubscribe_case_creation.user{% endtrans %}">
+                     <span class="glyphicon glyphicon glyphicon-eye-close"></span>
+                 </a>
+                 {% endif %}
+            </td>
+      </tr>
+      {% endfor %}
+   </tbody>
+</table>
+      <div style="display: none">
+        {{ form_start(form) }}
+        {{ form_widget(form) }}
+        {{ form_end(form) }}
+      </div>
+
+<script>
+
+
+function alteruser(action,user){
+     
+    var $user = $("#form_user");
+    var $token = $("#form__token");
+    var $form = $("form[name=form]");//$(this).closest('form');
+    var data = {};
+
+    $user.val(user);    
+
+    data["form[user]"] = $user.val();
+    data["form[_token]"] = $token.val();
+    $.ajax({
+      url : action,
+      type: $form.attr('method'),
+      data : data,
+      success: function(data) {
+        // On success, the table will be reloaded
+        $.ajax({
+          url : "",
+          type: "GET",
+          data : {},
+          success: function(html) {
+              
+              $('#usertable').replaceWith($(html).find("#usertable"));
+              }
+          })
+          
+       }
+    })
+};
+
+    
+$(document).ready(function(){
+    $('[data-toggle="tooltip"]').tooltip();   
+});
+</script>
+
+{% endblock %}
+
+
+
+{% block context %}
+    <a href='{{ path('fos_user_registration_register') }}'>{% trans %} action.add.user {% endtrans %} </a><br>
+{% endblock %}
+

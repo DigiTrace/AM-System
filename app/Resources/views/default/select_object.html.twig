@@ -1,0 +1,67 @@
+{#
+   // AM-System
+   // Copyright (C) 2019 Robert Krasowski
+   // This program was created during an internship at DigiTrace GmbH
+   // Read LIZENZ.txt for full notice
+
+   // This program is free software: you can redistribute it and/or modify
+   // it under the terms of the GNU General Public License as published by
+   // the Free Software Foundation, either version 3 of the License, or
+   // (at your option) any later version.
+
+   // This program is distributed in the hope that it will be useful,
+   // but WITHOUT ANY WARRANTY; without even the implied warranty of
+   // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   // GNU General Public License for more details.
+
+   // You should have received a copy of the GNU General Public License
+   // along with this program.  If not, see <http://www.gnu.org/licenses/>.
+   
+#}
+
+{% extends 'base.html.twig' %}
+{% form_theme searchform 'bootstrap_3_layout.html.twig' %} 
+{% block content1 %}
+    
+    
+   <div class="row">
+        <div class="col-sm-4"> <h2>{{ title | trans}}:</h2></div>
+        <div class="col-sm-8" style="margin-top:7px">
+    
+            {{ form_start(searchform) }}
+            {{ form_row(searchform.suchwort) }}
+            {{ form_end(searchform) }}
+        </div>
+    </div>
+    <table class="table table-hover">
+    <thead>
+      <tr>
+        <th>{% trans %}desc.oid{% endtrans %}</th>
+        <th>{% trans %}desc.name{% endtrans %}</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for objekt in objekte %}
+        {% if isReversed == false %}
+            <tr style="cursor:pointer" onclick="window.location.href='{{ path(forwardaction, {  fromid  : objekt_id, toid: objekt.getBarcode,returnid:"0"}) }}'">
+        {% else %}
+            <tr style="cursor:pointer" onclick="window.location.href='{{ path(forwardaction, {  fromid  : objekt.getBarcode, toid: objekt_id,returnid:"1"}) }}'">
+        {% endif %}
+        <td style='font-family: courier;font-size: large'>{{ objekt.getBarcode }}</td>
+        <td>{{ objekt.getName }}</td>
+      </tr>
+      {% endfor %}
+   </tbody>
+</table>
+                    
+
+{% endblock %}
+
+
+
+{% block context %}
+    
+{% endblock %}
+
+{% block searchbar %}
+{% endblock %}
