@@ -652,7 +652,7 @@ class ObjectDetailController extends Controller{
         $query = $em->createQuery('SELECT o '
                     . 'FROM AppBundle:Historie_Objekt o '
                     . "WHERE o.Barcode_id = :barcode " 
-                    . "ORDER by o.historie_id desc ")
+                    . "ORDER by o.Zeitstempelderumsetzung desc ")
                     ->setParameter("barcode",$object->getBarcode());  
         $history_entrys = $query->getResult();
         
