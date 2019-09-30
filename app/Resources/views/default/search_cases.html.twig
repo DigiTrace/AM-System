@@ -57,8 +57,8 @@
                 {{ arrow | raw}}
                 {% endif %}
             </th>
-            <th class="col-md-2 col-sm-2">{{ knp_pagination_sortable(pagination, 'desc_timestamp'|trans, 'f.Zeitstempel') }}
-                {% if pagination.isSorted('f.Zeitstempel') %}
+            <th class="col-md-2 col-sm-2">{{ knp_pagination_sortable(pagination, 'desc_timestamp'|trans, 'f.Zeitstempel_beginn') }}
+                {% if pagination.isSorted('f.Zeitstempel_beginn') %}
                 {{ arrow | raw}}
                 {% endif %}
             </th>

@@ -66,7 +66,7 @@ class CaseOverviewController extends Controller
             $request->query->getInt('page', 1)/*page number*/,
             $this->get('session')->get('anzahleintraege')/*limit per page*/ ,
             array(
-                'defaultSortFieldName' => 'f.Zeitstempel',
+                'defaultSortFieldName' => 'f.Zeitstempel_beginn',
                 'defaultSortDirection' => 'desc',
             )
         );
@@ -123,7 +123,7 @@ class CaseOverviewController extends Controller
      */
     public function add_case(Request $request, \Swift_Mailer $mailer)
     {
-        
+	
         $error = "";
         $new_case = new Fall();
         $addform = $this->createFormBuilder($new_case,array('attr' => array('onsubmit' => "return alertbeforesubmit()")))
@@ -161,7 +161,7 @@ class CaseOverviewController extends Controller
                 
                 $new_case->setId(strval($newid));
                 $new_case->setNewId($newid);*/
-                
+		
                 $em->persist($new_case);
                 $em->flush();
                 

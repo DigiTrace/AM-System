@@ -92,7 +92,11 @@ class Historie_Objekt
     protected $Zeitstempelderumsetzung;
     
     
-    
+    /**
+     * 
+     * @ORM\Column(type="boolean")
+     */
+    protected $Systemaktion = false;
     
     
     

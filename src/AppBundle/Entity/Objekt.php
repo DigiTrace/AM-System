@@ -96,7 +96,11 @@ class Objekt
      */
     protected $Status_id;
     
-    
+    /**
+     * 
+     * @ORM\Column(type="boolean",nullable=true)
+     */
+    protected $Systemaktion = false;
     
     /**
      * @ORM\ManyToOne(targetEntity="Objekt")
@@ -522,6 +526,8 @@ class Objekt
         return $this->Standort;
     }
     
+
+
     
     
     
