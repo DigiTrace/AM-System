@@ -1724,7 +1724,7 @@ class ObjectDetailController extends Controller{
                     . 'AppBundle:Fall f '
                     . "WHERE (DATE_DIFF(o.Zeitstempel,:time) = 0 and "
                     . "o.Fall_id = f.id and "
-                    . "o.Status_id = ".helper::STATUS_EINEM_FALL_HINZUGEFUEGT .") OR DATE_DIFF(f.Zeitstempel,:time) = 0 and "
+                    . "o.Status_id = ".helper::STATUS_EINEM_FALL_HINZUGEFUEGT .") OR DATE_DIFF(f.Zeitstempel_beginn,:time) = 0 and "
                     . "o.Nutzer_id = :user ")
                     ->setParameter("time", new \DateTime('now'))
                     ->setParameter("user", $this->getNutzer());
