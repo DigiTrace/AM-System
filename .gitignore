@@ -16,7 +16,9 @@
 /vendor/
 /web/bundles/
 /web/uploads/pic/*
+!/web/uploads/pic/.gitkeep
 *~
 phpunit.xml.dist
 stop
 nbproject
+.web-server-pid

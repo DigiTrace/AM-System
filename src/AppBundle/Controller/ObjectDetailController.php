@@ -20,7 +20,8 @@
 
 namespace AppBundle\Controller;
 
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
+//use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
+use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
@@ -652,7 +653,7 @@ class ObjectDetailController extends Controller{
         $query = $em->createQuery('SELECT o '
                     . 'FROM AppBundle:Historie_Objekt o '
                     . "WHERE o.Barcode_id = :barcode " 
-                    . "ORDER by o.Zeitstempelderumsetzung desc ")
+                    . "ORDER by o.historie_id desc ")
                     ->setParameter("barcode",$object->getBarcode());  
         $history_entrys = $query->getResult();
         
@@ -862,10 +863,13 @@ class ObjectDetailController extends Controller{
             if($datentraeger != null){
                 $em->persist($datentraeger);
             }
-            $em->flush();
+            
+	    $this->admiteditedObject($object, $newVerwendung);
+	    
+	    $em->flush();
             
                         
-            $this->admiteditedObject($object, $newVerwendung);
+            
             
             return $this->redirectToRoute('detail_object',array('id' =>$id) );  
         }
@@ -879,10 +883,9 @@ class ObjectDetailController extends Controller{
     }
     // This function make the historyentry for the edit Action
     private function admiteditedObject($object, $newVerwendung){
-        $em = $this->getDoctrine()->getManager(); 
-        $connection = $em->getConnection();
-            
-            $sql = "INSERT INTO ams_Historie_Objekt(barcode_id, "
+        //$em = $this->getDoctrine()->getManager(); 
+        //$connection = $em->getConnection();
+            /*$sql = "INSERT INTO ams_Historie_Objekt(barcode_id, "
                                                 . "zeitstempel, "
                                                 . "zeitstempelderumsetzung, "
                                                 . "status_id, "
@@ -899,31 +902,55 @@ class ObjectDetailController extends Controller{
                                                         . ":nutzer, "
                                                         . ":standort, "
                                                         . ":fall, "
-                                                        . ":reserviert)";
+                                                        . ":reserviert)";*/
         
-            $statement = $connection->prepare($sql);
-            $statement->bindValue('barcode', $object->getBarcode());
+            //$statement = $connection->prepare($sql);
+            //$statement->bindValue('barcode', $object->getBarcode());
             
-            $now = new \DateTime("now");
+            //$now = new \DateTime("now");
             
-            $statement->bindValue('zeit', $now->format('Y-m-d H:i:s'));
+            //$statement->bindValue('zeit', $now->format('Y-m-d H:i:s'));
             
             // Damit der Datensatz vor den aktuellen Status steht
-            $statement->bindValue('zeitumsetzung', $object->getZeitstempelumsetzung()
-                                                          ->format('Y-m-d H:i:s'));
+            //$statement->bindValue('zeitumsetzung', $object->getZeitstempelumsetzung()
+            //                                              ->format('Y-m-d H:i:s'));
             
-            $statement->bindValue('status', helper::STATUS_EDITIERT);
-            $statement->bindValue('verwendung', $newVerwendung);
-            $statement->bindValue('nutzer', $this->getNutzer()->getId());
+            //$statement->bindValue('status', helper::STATUS_EDITIERT);
+            //$statement->bindValue('verwendung', $newVerwendung);
+            //$statement->bindValue('nutzer', $this->getNutzer()->getId());
             
             
             // Werden explizit null gesetzt, da Sinn und Zweck das Anzeigen einer Editierung ist
-            $statement->bindValue('reserviert', null);
-            $statement->bindValue('standort', null);
-            $statement->bindValue('fall', null);
+            //$statement->bindValue('reserviert', null);
+            //$statement->bindValue('standort', null);
+            //$statement->bindValue('fall', null);
        
             
-            $statement->execute();
+            //$statement->execute();
+
+
+	$em = $this->getDoctrine()->getManager();
+	  
+	$hist = new \AppBundle\Entity\Historie_Objekt($object->getBarcode());
+
+	$hist->setFall($object->getFall());
+	$hist->setNutzerId($object->getNutzer());
+	$hist->setReserviertVon($object->getreserviertVon());
+	$hist->setStandort($object->getStandort());
+	$hist->setZeitstempelumsetzung($object->getZeitstempelumsetzung());
+	// Veraenderte Daten
+	$hist->setStatusId(helper::STATUS_EDITIERT);
+	$hist->setVerwendung($newVerwendung);
+	
+	$hist->setZeitstempel(new \DateTime("now"));
+
+	foreach($object->getImages() as $image){
+	    $hist->addImage($image);
+	}
+
+	$em->persist($hist);
+	return 0;
+
     }
 
 
@@ -1883,11 +1910,12 @@ class ObjectDetailController extends Controller{
             return $this->redirectToRoute('detail_object',array('id' =>$id) );
         }
         
+	// TODO: make list another way 
         $pubpics = array();
         $i = 0;
         if ($handle = opendir($this->getParameter("pic_directory"))) {
             while (false !== ($entry = readdir($handle))) {
-                if ($entry != "." && $entry != "..") {
+                if ($entry != "." && $entry != ".." && $entry != ".gitkeep") {
                     $pubpics[$i++] = $entry;
                 }
             }

@@ -233,6 +233,7 @@ class DefaultControllerTest extends WebTestCase
         $this->assertEquals(302, $client->getResponse()->getStatusCode());
         $this->assertTrue($client->getResponse()->isRedirect('http://localhost/login'));
     }
+
     
     
     public function testIncorrectLogin(){
@@ -2143,6 +2144,42 @@ class DefaultControllerTest extends WebTestCase
         
         $this->assertTrue($client->getResponse()->isRedirect("/objekt/".$barcode_id));       
         
+    }
+
+    // Als nicht registrierter Nutzer soll dieser bei jedem Aufruf auf die Login
+    // Seite verwiesen werden
+    public function testNonAnonymousActions(){
+         $client = $this->loginWithCorrectCredentials("user","test");
+        
+        $crawler = $client->request('GET', '/objekt/DTHD00020');
+        $this->assertEquals(200, $client->getResponse()->getStatusCode());
+
+	$crawler = $client->request('GET', '/objekt/DTHD00020/neutralisieren');
+        $this->assertEquals(200, $client->getResponse()->getStatusCode());
+
+	$crawler = $client->request('GET', '/objekt/DTHD00020/Asservatenimage/speichern/');
+        $this->assertEquals(200, $client->getResponse()->getStatusCode());
+       
+	$crawler = $client->request('GET', '/objekt/DTHD00020/vernichtet');
+        $this->assertEquals(200, $client->getResponse()->getStatusCode());
+
+	$crawler = $client->request('GET', '/objekt/DTHD00020/verwenden');
+        $this->assertEquals(200, $client->getResponse()->getStatusCode());
+        
+	$crawler = $client->request('GET', '/objekt/DTHD00020/reservieren');
+        $this->assertEquals(200, $client->getResponse()->getStatusCode());
+
+	$crawler = $client->request('GET', '/objekt/DTHD00020/einlegen/in');
+        $this->assertEquals(200, $client->getResponse()->getStatusCode());
+
+	$crawler = $client->request('GET', '/objekt/DTHD00020/in/fall');
+        $this->assertEquals(200, $client->getResponse()->getStatusCode());
+
+	$crawler = $client->request('GET', '/objekt/DTHD00020/editieren');
+        $this->assertEquals(200, $client->getResponse()->getStatusCode());
+
+	$crawler = $client->request('GET', '/objekt/DTHD00020/upload');
+        $this->assertEquals(200, $client->getResponse()->getStatusCode());
     }
     
     // EDIT reset form ansehen

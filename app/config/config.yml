@@ -122,3 +122,7 @@ fos_user:
         confirmation:
             template:   '@FOSUser/Registration/email.txt.twig'
             enabled: true
+
+sensio_framework_extra:
+    router:
+        annotations: false
