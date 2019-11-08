@@ -240,77 +240,77 @@ class ObjectDetailController extends Controller{
         $contextreason = "";
         //  Die Vererbung der Aktion zu den eingelagerten Objekten
         //  sind zu fehleranfaellig. Funktionalitaet wurde entfernt
-        /* if($object->getKategorie() == helper::KATEGORIE_BEHAELTER){
+        /* if($object->getKategorie() == Objekt::KATEGORIE_BEHAELTER){
             $valid = false;
             $reason = "container_be_used_for_mass_update";
         }*/
         
         if($newstatus == $object->getStatus() &&
-           !($object->getStatus() == helper::STATUS_IN_VERWENDUNG ||
-             $object->getStatus() == helper::STATUS_FESTPLATTENIMAGE_GESPEICHERT || 
-             $object->getStatus() == helper::STATUS_IN_EINEM_BEHAELTER_GELEGT )
+           !($object->getStatus() == Objekt::STATUS_IN_VERWENDUNG ||
+             $object->getStatus() == Objekt::STATUS_FESTPLATTENIMAGE_GESPEICHERT || 
+             $object->getStatus() == Objekt::STATUS_IN_EINEM_BEHAELTER_GELEGT )
           ){
             $valid = false;
             $reason = "object_already_in_this_status";
         }
         
         
-        if($newstatus == helper::STATUS_GENULLT && 
-            $object->getKategorie() != helper::KATEGORIE_DATENTRAEGER ){
+        if($newstatus == Objekt::STATUS_GENULLT && 
+            $object->getKategorie() != Objekt::KATEGORIE_DATENTRAEGER ){
                 $valid = false;
                 $reason = "object_is_not_a_hdd";
         }
         
-        if($newstatus == helper::STATUS_FESTPLATTENIMAGE_GESPEICHERT && 
-            $object->getKategorie() != helper::KATEGORIE_DATENTRAEGER){
+        if($newstatus == Objekt::STATUS_FESTPLATTENIMAGE_GESPEICHERT && 
+            $object->getKategorie() != Objekt::KATEGORIE_DATENTRAEGER){
             
             
-            if($object->getKategorie() != helper::KATEGORIE_ASSERVAT_DATENTRAEGER){
+            if($object->getKategorie() != Objekt::KATEGORIE_ASSERVAT_DATENTRAEGER){
                 $valid = false;
                 $reason = "object_is_not_a_hdd";
             }
         }
 
-        if($object->getStatus() == helper::STATUS_VERLOREN ||
-           $object->getStatus() == helper::STATUS_VERNICHTET){
+        if($object->getStatus() == Objekt::STATUS_VERLOREN ||
+           $object->getStatus() == Objekt::STATUS_VERNICHTET){
             $valid = false;
             $reason = "object_is_destroyed_or_lost";
         }
 
-        if($newstatus == helper::STATUS_AUS_DEM_BEHAELTER_ENTFERNT &&
+        if($newstatus == Objekt::STATUS_AUS_DEM_BEHAELTER_ENTFERNT &&
                 $object->getStandort() == null){
             $valid = false;
             $reason = "object_is_not_stored";
         }
         
-        if($newstatus == helper::STATUS_RESERVIERUNG_AUFGEHOBEN &&
+        if($newstatus == Objekt::STATUS_RESERVIERUNG_AUFGEHOBEN &&
                 $object->getreserviertVon() == null){
             $valid = false;
             $reason = "object_is_not_reserved";
         }
         
-        if($newstatus == helper::STATUS_RESERVIERT &&
+        if($newstatus == Objekt::STATUS_RESERVIERT &&
                 $object->getreserviertVon() != null){
             $valid = false;
             $reason = "object_is_already_reserved";
         }
         
 
-        if($newstatus == helper::STATUS_AUS_DEM_FALL_ENTFERNT){
+        if($newstatus == Objekt::STATUS_AUS_DEM_FALL_ENTFERNT){
             
             if($object->getFall() == null){
                 $valid = false;
                 $reason = "object_is_not_in_a_case";
             }
             
-            if( $object->getKategorie() == helper::KATEGORIE_AKTE){
+            if( $object->getKategorie() == Objekt::KATEGORIE_AKTE){
                 $valid = false;
                 $reason = "records_cant_be_removed_from_case";
             }
         }
         
-        if($newstatus == helper::VSTATUS_NEUTRALISIERT &&
-                $object->getKategorie() != helper::KATEGORIE_DATENTRAEGER){
+        if($newstatus == Objekt::VSTATUS_NEUTRALISIERT &&
+                $object->getKategorie() != Objekt::KATEGORIE_DATENTRAEGER){
            
             
                 $valid = false;
@@ -336,7 +336,7 @@ class ObjectDetailController extends Controller{
         if($contextparameter != null){
             // when a Object has to be stored
             if($contextparameter instanceof \AppBundle\Entity\Objekt &&
-                  $newstatus == helper::STATUS_IN_EINEM_BEHAELTER_GELEGT){
+                  $newstatus == Objekt::STATUS_IN_EINEM_BEHAELTER_GELEGT){
                 
                 
                 if($contextparameter->getKategorie() != Objekt::KATEGORIE_BEHAELTER){
@@ -359,8 +359,8 @@ class ObjectDetailController extends Controller{
                 
                 // Container has to be also valid
                 
-                if($contextparameter->getStatus() == helper::STATUS_VERNICHTET ||
-                   $contextparameter->getStatus() == helper::STATUS_VERLOREN){
+                if($contextparameter->getStatus() == Objekt::STATUS_VERNICHTET ||
+                   $contextparameter->getStatus() == Objekt::STATUS_VERLOREN){
                     $valid = false;
                     $reason = "to_be_added_container_is_destroyed_or_lost";
                 }
@@ -371,7 +371,7 @@ class ObjectDetailController extends Controller{
             
             // when a image has to stored in HDD
             if($contextparameter instanceof \AppBundle\Entity\Objekt &&
-                  $newstatus == helper::STATUS_FESTPLATTENIMAGE_GESPEICHERT){
+                  $newstatus == Objekt::STATUS_FESTPLATTENIMAGE_GESPEICHERT){
                 
                 
                 if($contextparameter->getKategorie() != Objekt::KATEGORIE_ASSERVAT_DATENTRAEGER){
@@ -389,8 +389,8 @@ class ObjectDetailController extends Controller{
                 
                 // Container has to be also valid
                 
-                if($contextparameter->getStatus() == helper::STATUS_VERNICHTET ||
-                   $contextparameter->getStatus() == helper::STATUS_VERLOREN){
+                if($contextparameter->getStatus() == Objekt::STATUS_VERNICHTET ||
+                   $contextparameter->getStatus() == Objekt::STATUS_VERLOREN){
                     $valid = false;
                     $reason = "exhibit_hdd_is_destroyed_or_lost";
                 }

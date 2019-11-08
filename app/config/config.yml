@@ -9,10 +9,14 @@ parameters:
     locale: de
     #app.locales: en|de
     pic_directory: '%kernel.root_dir%/../web/uploads/pic'
+    word_case_file: '%kernel.root_dir%/../web/case_template.docx'
     
 
+    
 framework:
     #esi:             ~
+    templating:
+        engines: ['twig']
     translator:      { fallbacks: ["%locale%"] }
     secret:          "%secret%"
     router:
@@ -22,8 +26,8 @@ framework:
     csrf_protection: ~
     validation:      { enable_annotations: true }
     #serializer:      { enable_annotations: true }
-    templating:
-        engines: ['twig']
+    
+        
         #assets_version: SomeVersionScheme
     default_locale:  "%locale%"
     trusted_hosts:   ~
@@ -126,3 +130,4 @@ fos_user:
 sensio_framework_extra:
     router:
         annotations: false
+

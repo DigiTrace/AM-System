@@ -395,8 +395,12 @@
                 <source>action.add.object</source>
                 <target>Add Object</target>
             </trans-unit>
-            <trans-unit id="action_faq_search">
-                <source>action.faq.search</source>
+            <trans-unit id="action_object_faq_search">
+                <source>action.object.faq.search</source>
+                <target>FAQ for the search function</target>
+            </trans-unit>
+            <trans-unit id="action_case_faq_search">
+                <source>action.case.faq.search</source>
                 <target>FAQ for the search function</target>
             </trans-unit>
             <trans-unit id="action_upload_image">
@@ -998,7 +1002,37 @@ AM-System
                 <target>relate to case</target>
             </trans-unit>
             
+            <trans-unit id="category.number.is.wrong">
+                <source>category.number.is.wrong</source>
+                <target>Category value is wrong</target>
+            </trans-unit>
             
+            <trans-unit id="status.number.is.wrong">
+                <source>status.number.is.wrong</source>
+                <target>Status value is wrong</target>
+            </trans-unit>
+            
+            <trans-unit id="only.boolean.values.allowed">
+                <source>only.boolean.values.allowed</source>
+                <target>Only boolean values are allowed</target>
+            </trans-unit>
+            
+            
+            <trans-unit id="case_listed_history_objects">
+                <source>case_listed_history_objects</source>
+                <target>Objects, which were involved with this case</target>
+            </trans-unit>
+            
+            <trans-unit id="action.download.word.case">
+                <source>action.download.word.case</source>
+                <target>Download as Docx</target>
+            </trans-unit>
+            
+            
+            <trans-unit id="export.docx.header">
+                <source>export.docx.header</source>
+                <target>Docx export from AM-System</target>
+            </trans-unit>
             
         </body>
     </file>

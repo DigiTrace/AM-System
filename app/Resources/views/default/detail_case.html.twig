@@ -101,6 +101,54 @@
        {% endfor %}
      </tbody>
   </table>
+     
+     
+     <br>
+     <br>
+     <br>
+     
+     
+     
+    <h3>{% trans %}case_listed_history_objects{% endtrans %}</h3>
+    <table class="table">
+     <thead>
+       <tr>
+         <th>{% trans %}desc.oid{% endtrans %}</th>
+         <th>{% trans %}desc.name{% endtrans %}</th>
+         <th>{% trans %}desc.lstatus{% endtrans %}</th>
+         <th>{% trans %}desc.last.action.done{% endtrans %}</th>
+         <th>{% trans %}desc.container{% endtrans %}</th>
+       </tr>
+     </thead>
+     <tbody>
+
+         {% for object in historie_objekts %}
+
+         <tr style="cursor:pointer" onclick="window.location.href='{{ path('detail_object', {'id': object['Barcode_id']}) }}'">
+            <td style='font-family: courier;font-size: large'>
+                <a href="{{ path('detail_object', {'id': object['Barcode_id']}) }}">
+                {{ object['Barcode_id'] }}
+                </a>
+            </td>
+            <td>
+                <a href="{{ path('detail_object', {'id': object['Barcode_id']}) }}">
+                    {{ object['Name'] }}
+                </a>
+            </td>
+            <td>{{ object['Status_id'] | wrappergetStatusNameFromId | trans }}</td>
+            <td>{{ object['Zeitstempelderumsetzung']|date('d.m.y H:i') }}</td>
+            <td>
+                {% if object['Standort'] == false %}
+                /
+                {% else %}
+                <a href='{{ path('detail_object', {'id': object['Standort']}) }}' >{{ object['Standort'] }} | {{ object['Standortname'] }} </a></td>
+                {% endif %}
+            </td>
+       </tr>
+       {% endfor %}
+     </tbody>
+  </table>
+     
        
               {% trans with {'%cdate%': "now"|date('d.m.y'),'%ctime%':"now"| date('H:i')  } %}report has been made at %cdate% %ctime%{% endtrans %}
 {% endblock %}
@@ -112,4 +160,5 @@
 {% block context %}
     <a onclick="window.print()"> <span class="glyphicon glyphicon-print"></span> {% trans %}action.print{% endtrans %}</a><br>
     <a href='{{ path("update_case",{id:fall.getCaseId})}}'> <span class="glyphicon glyphicon-pencil"></span> {% trans %}action.update.case{% endtrans %}</a><br>
+    <a href='{{ path("download_case_word",{id:fall.getCaseId})}}'> <span class="glyphicon glyphicon-download"></span> {% trans %}action.download.word.case{% endtrans %}</a><br>
 {% endblock %}

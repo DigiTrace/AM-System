@@ -62,7 +62,7 @@
                             <div class="col-xs-4">
                                 <dl>
                                    <dt>{% trans %}desc.category{% endtrans %}</dt>
-                                   <dd>{{ categorytemp[objekt.getKategorie]|trans  }}</dd>
+                                   <dd>{{ objekt.getKategorieName|trans  }}</dd>
                                 </dl>
                             </div>
                             <div class="col-xs-7">
@@ -170,7 +170,7 @@
                             <div class="col-sm-12">
                                  <dl>
                                    <dt>{% trans %}desc.status{% endtrans %}</dt>
-                                   <dd>{{ statustemp[objekt.getStatus] | trans }}</dd>
+                                   <dd>{{ objekt.getStatusName | trans }}</dd>
                                 </dl>
 
                             </div>
@@ -183,7 +183,7 @@
                                         {% if objekt.getVerwendung == false %}
                                           /
                                         {% else %}
-                                            {{ objekt.getVerwendung | nl2br | barcodelinker | raw }}
+                                            {{ objekt.getVerwendung | nl2br | barcodelinker | caselinker | raw }}
                                         {% endif %}
                                     </dd>
                                  </dl>
@@ -526,9 +526,9 @@
     
     <a onclick="window.print()"> <span class="glyphicon glyphicon-print"></span> {% trans %}action.print{% endtrans %}</a><br>
      {# Wenn das Objekt NICHT vernichtet oder verloren worden sind #}
-    {% if objekt.getStatus != 3  and objekt.getStatus != 6 %}
+    {% if objekt.getStatus != constant('STATUS_VERNICHTET',objekt)  and objekt.getStatus != constant('STATUS_VERLOREN',objekt) %}
         
-        {% if objekt.getStatus != 1  and objekt.getKategorie == constant('KATEGORIE_DATENTRAEGER',objekt) %}
+        {% if objekt.getStatus != constant('STATUS_VERNICHTET',objekt)  and objekt.getKategorie == constant('KATEGORIE_DATENTRAEGER',objekt) %}
         <a href='{{ path("null_object",{id:id})}}'> <span class="glyphicon glyphicon-erase"></span> {% trans %}action.cleaned{% endtrans %}</a><br>
         {% endif %}
         

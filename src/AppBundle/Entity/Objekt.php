@@ -36,6 +36,58 @@ class Objekt
     const KATEGORIE_AKTE = 4;
     const KATEGORIE_ASSERVAT_DATENTRAEGER = 5;
     
+    
+    
+    const STATUS_EINGETRAGEN = 0;
+    const STATUS_GENULLT = 1;
+    const STATUS_ZUM_KUNDEN_MITGENOMMEN = 2;
+    const STATUS_VERNICHTET = 3;
+    const STATUS_AN_PERSON_UEBERGEBEN = 4;
+    const STATUS_RESERVIERT = 5;
+    const STATUS_VERLOREN = 6;
+    const STATUS_IN_EINEM_BEHAELTER_GELEGT = 7;
+    const STATUS_AUS_DEM_BEHAELTER_ENTFERNT = 8;
+    const STATUS_EINEM_FALL_HINZUGEFUEGT = 9;
+    const STATUS_AUS_DEM_FALL_ENTFERNT = 10;
+    const STATUS_RESERVIERUNG_AUFGEHOBEN = 11;
+    const STATUS_IN_VERWENDUNG = 12;
+    const STATUS_EDITIERT = 13;
+    const STATUS_FESTPLATTENIMAGE_GESPEICHERT = 14;
+    
+    
+    const VSTATUS_NEUTRALISIERT = 40;
+    
+    
+    static $statusToId = array( 
+        'status.added'            => Objekt::STATUS_EINGETRAGEN,
+        'status.cleaned'                 => Objekt::STATUS_GENULLT, 
+        'status.taken.to.customer'       => Objekt::STATUS_ZUM_KUNDEN_MITGENOMMEN,
+        'status.destroyed'               => Objekt::STATUS_VERNICHTET,
+        'status.handover.person'         => Objekt::STATUS_AN_PERSON_UEBERGEBEN,
+        'status.reserved'                => Objekt::STATUS_RESERVIERT,
+        'status.lost'                    => Objekt::STATUS_VERLOREN,
+        'status.stored.in.container'     => Objekt::STATUS_IN_EINEM_BEHAELTER_GELEGT,
+        'status.pulled.out.of.container' => Objekt::STATUS_AUS_DEM_BEHAELTER_ENTFERNT,
+        'status.added.to.case'           => Objekt::STATUS_EINEM_FALL_HINZUGEFUEGT,
+        'status.removed.from.case'       => Objekt::STATUS_AUS_DEM_FALL_ENTFERNT,
+        'status.unbind.reservation'      => Objekt::STATUS_RESERVIERUNG_AUFGEHOBEN,
+        'status.used'                    => Objekt::STATUS_IN_VERWENDUNG,
+        'status.edited'                  => Objekt::STATUS_EDITIERT,
+        'status.saved.image'             => Objekt::STATUS_FESTPLATTENIMAGE_GESPEICHERT);
+    
+    
+    static $kategorienToId = array( 
+        'category.exhibit'     => Objekt::KATEGORIE_ASSERVAT,
+        'category.equipment'   => Objekt::KATEGORIE_AUSRUESTUNG, 
+        'category.container'   => Objekt::KATEGORIE_BEHAELTER,
+        'category.hdd'         => Objekt::KATEGORIE_DATENTRAEGER,
+        'category.record'      => Objekt::KATEGORIE_AKTE,
+        'category.exhibit.hdd' => Objekt::KATEGORIE_ASSERVAT_DATENTRAEGER);
+    
+    
+    
+    static $vstatusToId = array ("status.neutralize" => helper::VSTATUS_NEUTRALISIERT);
+    
     public function __construct() {
         $this->Zeitstempel = new \DateTime();
         $this->Zeitstempelderumsetzung = new \DateTime();
@@ -346,6 +398,17 @@ class Objekt
     }
     
     
+    /**
+     * Get Kategorie
+     *
+     * @return string
+     */
+    public function getKategorieName()
+    {
+        return $this->getKategorieNameFromId($this->Kategorie_id);
+    }
+    
+    
 
     /**
      * Set nutzerId
@@ -446,6 +509,16 @@ class Objekt
         return $this->Status_id;
     }
     
+    
+    /**
+     * Get Status
+     *
+     * @return string
+     */
+    public function getStatusName()
+    {
+        return $this->getStatusNameFromId($this->Status_id);
+    }
     
      /**
      * Set Pic as Resource
@@ -627,6 +700,32 @@ class Objekt
             return false;
         }
         return true;
+    }
+    
+    // Get the count of avaiable Categories in the Objekt Entity
+    // Must be incremented, 
+    public static function getCountCategories(){
+        return 6;
+    }
+    
+    // Get the count of avaiable Categories in the Objekt Entity
+    // Must be incremented, 
+    public static function getCountStatues(){
+        return 15;
+    }
+    
+    public static function getKategorieNameFromId($categoryid){
+        foreach(Objekt::$kategorienToId as $key => $value){
+            if($value == $categoryid)
+                return $key;
+        }
+    }
+    
+    public static function getStatusNameFromId($statusid){
+        foreach(Objekt::$statusToId as $key => $value){
+            if($value == $statusid)
+                return $key;
+        }
     }
     
     

@@ -22,55 +22,35 @@
 
 {% block content1 %}
            <h2>FAQ zur Suche</h2>
-           Die Suchleiste in der Objektübersicht dient dazu, nach entsprechenden Objekten zu suchen / filtern.
+           Die Suchleiste in der Fallübersicht dient dazu, nach entsprechenden Fällen zu suchen / filtern.
            Hierbei kann allgemein oder nach speziellen Parametern gesucht werden.
            <h3>Allgemeine Suche</h3>
            In der allgemeine Suche muss lediglich ein Suchwort angegeben werden, beispielsweise ein Barcode. Das System nimmt das Suchwort und sucht an folgenden Stellen:
            <ul>
-               <li>Den Namen der Objekte</li>
-               <li>Die Verwendung der Objekte</li>
-               <li>Den Barcode der Objekte</li>
-               <li>Vergangene Verwendung der jeweiligen Objekte</li>
+               <li>Fallid</li>
+               <li>Fallbeschreibung</li>
            </ul>
-           Aufgrund der breiten Suche kann es passieren, dass Objekte gelistet werden, welche auf dem ersten Blick keine Relation mit dem Objekt besitzen.
+           <br><br>
            <h3>Erweiterte Suche</h3>
            Wenn die Ergebnisse der allgemeinen Suche nicht treffend sind, kann eine erweiterte Suche angewendet werden. Bei dieser Suche kann dem System explizit nach bestimmten Kriterien untersucht werden. Hierbei ist es jedoch von Nöten, richtige Parameterdefinitionen durchzuführen.
            Jede Parameterisierung hat folgende folgenden Aufbau:<br> 
            &lt;Kriterium&gt;:&lt;Wert&gt; <br>
            Für Kriteriendefinitionen siehe unten stehenden Liste. Bei den Werten können standardmäßig nur nach Wörtern gesucht werden. Falls nach Teilsätzen gesucht werden sollen, kann die Notation &lt;Kriterium&gt;:"&lt;Wert&gt;" verwendet werden.<br>
            Es können mehrere Parameterisierungen verwendet werden, hierbei muss das zu suchende Objekt alle Kriterien erfüllen.<br>
-           Beispiel: "c:ass name:tosh"<br>
-           In diesem Beispiel wird nach einem Objekt gesucht, dessen Kategorie mit "ass" zu tun hat (wird auf Asservat gemappt) und sein Namen "tosh" beinhaltet.
+           Beispiel: "name:tosh"<br>
+           In diesem Beispiel wird nach einem Fall gesucht, dessen Name "tosh" beinhaltet.
            <br><br>
            Hier eine Liste der Kriterien:
            <ul>
-               <li>c: Kategorie des Objektes</li>
-               <li>s: Derzeitiger Status des Objektes</li>
-               <li>name: Namen des Objektes</li>
-               <li>mdesc: Momentane Verwendung des Objektes</li>
-               <li>hdesc: Vergangene Verwendung des Objektes</li>
-               <li>mr:Momentane Reservierung des Objektes (true,false,Nutzername)</li>
-               <li>hr:Historische Reservierung des Objektes (true,false,Nutzername)</li>
-               <li>mu: Letzte Änderung durch Nutzer</li>
-               <li>hu: Vergangene Änderung durch Nutzer </li>
-               <li>storedin: Behältername, falls Objekt einem zugewiesen wurde </li>
-               <li>mcase: Fallid, welche Objekte derzeit verwendet werden</li>
-               <li>hcase: Fallid, wobei vergangene Fallzugehörigkeiten für Objekte gesucht werden. VORSICHT: Unter entsprechenden Bedingungen kann die Suche auch derzeitig involierte Fälle beinhalten</li>
-               <li>type: Bauart, falls Objekt ein Datenträger ist</li>
-               <li>ff: Formfaktor, falls Objekt ein Datenträger ist</li>
-               <li>size: Grösse des Datenträgers</li>
-               <li>prod: Hersteller des Datenträgers</li>
-               <li>modell: Modell des Datenträgers</li>
-               <li>connection: Anschlussmöglichkeit des Datenträgers</li>
-               <li>sn: Seriennummer des Datenträgers</li>
-               <li>pn: Produktnummer des Datenträgers</li>
-               <li>mdate: Derzeitiges Datum der Eintragung (<20.01.2015, >09.12.2014, 08.07.2013)</li>
+               <li>caseid: Fallid</li>
+               <li>desc: Beschreibung des Falles</li>
+               <li>casebegin: Wann der Fall angelegt wurde</li>
+               <li>caseactive: Ob ein Fall derzeit aktiv ist</li>
            </ul>
-          
-           Folgende Kriterien können durch den präfix ! (Beispiel: name:!tosh) invertiert werden: <br>
-           c,s,name,mdesc,hdesc,type,ff,prod,modell, connection,sn,pn,storedin,mcase,hcase
            
-          
+           
+           
+           
 {% endblock %}
 
 

@@ -38,6 +38,8 @@ class AppExtension extends AbstractExtension
     {
         return array(
             new TwigFilter('barcodelinker', array($this, 'barcodeLinker')),
+            new TwigFilter('caselinker', array($this, 'caseLinker')),
+            new TwigFilter('wrappergetStatusNameFromId', array($this, 'wrappergetStatusNameFromId')),
         );
     }
 
@@ -55,38 +57,36 @@ class AppExtension extends AbstractExtension
             $text
           );
         
+        return $text;
+    }
+    
+    
+    public function caseLinker($text)
+    {   
+        $pattern = "/(?J)(?<case>(DTFA)\d{0,8})+/";
         
         
         
-         /*preg_match_all($pattern,
-                        $text,
-                        $matches,
-                        PREG_SET_ORDER);
-         
-        $uniqBarcodes = ["tt"];
-        foreach($matches as $match){ 
-           $uniqBarcodes[$match]= $match;
-        }
-        print("am");
-        
-        print_r($uniqBarcodes);
-        
-        
-        foreach($uniqBarcodes as $match){
-            
-            $ahref = '<a href="'.$this->generator->generate("detail_object",array("id"=>$match)).'">'.$match."</a>";
-            
-            $text = str_replace($match,$ahref , $text);
-        }*/
-        
-        
-        
+        $text = preg_replace_callback(
+            $pattern,
+            function ($match) {
+              return '<a href="'.$this->generator->generate("detail_case",array("id"=>$match["case"])).'">'.$match["case"]."</a>";
+            },
+            $text
+          );
         
         return $text;
     }
+    // Workaround because static functions cant be directly called in Twig
+    public function wrappergetStatusNameFromId($text)
+    {   
+        return \AppBundle\Entity\Objekt::getStatusNameFromId($text);
+    }
+    
+    
 }
 
 
 
-?>
+
 

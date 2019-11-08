@@ -30,7 +30,6 @@
                <li>Den Namen der Objekte</li>
                <li>Die Verwendung der Objekte</li>
                <li>Den Barcode der Objekte</li>
-               <li>Vergangene Verwendung der jeweiligen Objekte</li>
            </ul>
            Aufgrund der breiten Suche kann es passieren, dass Objekte gelistet werden, welche auf dem ersten Blick keine Relation mit dem Objekt besitzen.
            <h3>Erweiterte Suche</h3>
@@ -46,16 +45,20 @@
            <ul>
                <li>c: Kategorie des Objektes</li>
                <li>s: Derzeitiger Status des Objektes</li>
+               <li>barcode: Barcode des Objektes</li>
                <li>name: Namen des Objektes</li>
+               <li>notice: Notiz des Objektes</li>
                <li>mdesc: Momentane Verwendung des Objektes</li>
                <li>hdesc: Vergangene Verwendung des Objektes</li>
                <li>mr:Momentane Reservierung des Objektes (true,false,Nutzername)</li>
                <li>hr:Historische Reservierung des Objektes (true,false,Nutzername)</li>
                <li>mu: Letzte Änderung durch Nutzer</li>
                <li>hu: Vergangene Änderung durch Nutzer </li>
-               <li>storedin: Behältername, falls Objekt einem zugewiesen wurde </li>
+               <li>mstoredin: Behältername, falls Objekt einem zugewiesen wurde </li>
+               <li>hstoredin: Behältername, falls je ein Objekt in diesem hinzugefügt wurden. VORSICHT: Unter entsprechenden Bedingungen kann die Suche auch momentan gelagerte Objekte beinhalten. </li>
                <li>mcase: Fallid, welche Objekte derzeit verwendet werden</li>
                <li>hcase: Fallid, wobei vergangene Fallzugehörigkeiten für Objekte gesucht werden. VORSICHT: Unter entsprechenden Bedingungen kann die Suche auch derzeitig involierte Fälle beinhalten</li>
+               <li>caseactive: Falls ein Objekt einem "aktiven" Fall zugeordnet ist</li>
                <li>type: Bauart, falls Objekt ein Datenträger ist</li>
                <li>ff: Formfaktor, falls Objekt ein Datenträger ist</li>
                <li>size: Grösse des Datenträgers</li>
@@ -66,11 +69,56 @@
                <li>pn: Produktnummer des Datenträgers</li>
                <li>mdate: Derzeitiges Datum der Eintragung (<20.01.2015, >09.12.2014, 08.07.2013)</li>
            </ul>
-          
-           Folgende Kriterien können durch den präfix ! (Beispiel: name:!tosh) invertiert werden: <br>
-           c,s,name,mdesc,hdesc,type,ff,prod,modell, connection,sn,pn,storedin,mcase,hcase
+           
+           Viele der Kriterien besitzen eine eigene Notation bzw. Definition, welche in der Suche berücksichtigt werden.
            
           
+           Folgende Kriterien können durch den präfix ! (Beispiel: name:!tosh oder name:"!tosh") invertiert werden: <br>
+           c,s,name,barcode,mdesc,hdesc,type,ff,prod,modell,size,connection,sn,pn,mstoredin,hstoredin,mcase,hcase,mr,hr,mdate<br><br>
+           
+           Folgende Kriterien können durch Boolische Werte auf Existenz geprüft werden (durch name:True oder name:true oder name:false oder name:False): <br>
+           name,barcode,mdesc,hdesc,type,ff,prod,modell, connection,sn,pn,mstoredin,hstoredin,mcase,hcase,mr,hr<br><br>
+           
+           Folgende Kriterien können durch Boolische Werte geprüft werden:<br>
+           caseactive<br><br>
+           
+           Folgende Kriterien können durch Nummerische Werte validiert werden: <br>
+           c,s,size<br><br>
+           
+           
+           Hinsichtlich der Status(s) werden die Nummerischen Werte wie folgt als Text gemappt:
+           <ol start="0">
+               <li>Eingetragen</li>
+               <li>Genullt</li>
+               <li>Zum Kunden mitgenommen</li>
+               <li>Vernichtet</li>
+               <li>An Person übergeben</li>
+               <li>Reserviert</li>
+               <li>Verloren</li>
+               <li>In einem Behaelter gelegt</li>
+               <li>Aus dem Behälter entfernt</li>
+               <li>Einem Fall hinzugefügt</li>
+               <li>Aus dem Fall entfernt</li>
+               <li>Reservierung aufgehoben</li>
+               <li>In Verwendung</li>
+               <li>Editiert</li>
+               <li>Festplattenimage gespeichert</li>
+           </ol>
+           <br>
+            Hinsichtlich der Kategorien(c) werden die Nummerischen Werte wie folgt als Text gemappt:
+           <ol start="0">
+               <li>Asservat</li>
+               <li>Ausrüstung</li>
+               <li>Behälter</li>
+               <li>Datenträger</li>
+               <li>Akte</li>
+               <li>Datenträgerasservat</li>               
+           </ol>
+            <br>
+           Folgende Kriterien können durch logische Operatoren (<,>) validiert werden: <br>
+           size, mdate<br><br>
+           
+           
 {% endblock %}
 
 

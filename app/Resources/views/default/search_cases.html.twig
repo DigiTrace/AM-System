@@ -22,13 +22,7 @@
 {% extends 'base.html.twig' %}
 {% form_theme searchform 'bootstrap_3_layout.html.twig' %} 
 {% block content1 %}
-    {% for label, messages in app.flashes %}
-         {% for message in messages %}
-             <div class="alert alert-{{ label }}">
-                 {{ message | trans | nl2br}}
-             </div>
-         {% endfor %}
-     {% endfor %}
+  
     <div class="row">
         <div class="col-sm-4"> <h2>{% trans %}casesummary{% endtrans %}</h2> </div>
         <div class="col-sm-8" style="margin-top:7px">
@@ -39,6 +33,13 @@
             {{ form_end(searchform) }}
         </div>
     </div>
+    {% for label, messages in app.flashes %}
+         {% for message in messages %}
+             <div class="alert alert-{{ label }}">
+                 {{ message | trans | nl2br}}
+             </div>
+         {% endfor %}
+     {% endfor %}
     <table class="table">
         
         {% if pagination.getDirection == "desc" %} {% set arrow = '<span class="glyphicon glyphicon-arrow-down"></span>' %} 
@@ -47,18 +48,18 @@
     
         <thead>
           <tr>
-            <th class="col-md-2 col-sm-2">{{ knp_pagination_sortable(pagination, 'case_id'|trans, 'f.case_id') }}
-                {% if pagination.isSorted('f.case_id') %}
+            <th class="col-md-2 col-sm-2">{{ knp_pagination_sortable(pagination, 'case_id'|trans, 'c.case_id') }}
+                {% if pagination.isSorted('c.case_id') %}
                 {{ arrow | raw}}
                 {% endif %}
             </th>
-            <th class="col-md-8 col-sm-8">{{ knp_pagination_sortable(pagination, 'case_desc'|trans, 'f.Beschreibung') }}
-                {% if pagination.isSorted('f.Beschreibung') %}
+            <th class="col-md-8 col-sm-8">{{ knp_pagination_sortable(pagination, 'case_desc'|trans, 'c.Beschreibung') }}
+                {% if pagination.isSorted('c.Beschreibung') %}
                 {{ arrow | raw}}
                 {% endif %}
             </th>
-            <th class="col-md-2 col-sm-2">{{ knp_pagination_sortable(pagination, 'desc_timestamp'|trans, 'f.Zeitstempel_beginn') }}
-                {% if pagination.isSorted('f.Zeitstempel_beginn') %}
+            <th class="col-md-2 col-sm-2">{{ knp_pagination_sortable(pagination, 'desc_timestamp'|trans, 'c.Zeitstempel_beginn') }}
+                {% if pagination.isSorted('c.Zeitstempel_beginn') %}
                 {{ arrow | raw}}
                 {% endif %}
             </th>
@@ -104,7 +105,8 @@
 {% endblock %}
 
 {% block context %}
-    <a href="{{ path("add_case") }}"><span class="glyphicon glyphicon-pencil"></span> {% trans %}add_new_case{% endtrans %} </a>
+    <a href="{{ path("add_case") }}"><span class="glyphicon glyphicon-pencil"></span> {% trans %}add_new_case{% endtrans %} </a><br>
+    <a href="{{ path("search_cases_faq") }}"><span class="glyphicon glyphicon-question-sign"></span> {% trans %}action.case.faq.search{% endtrans %}</a> <br>
 {% endblock %}
 
 

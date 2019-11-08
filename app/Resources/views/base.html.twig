@@ -18,11 +18,8 @@
    // along with this program.  If not, see <http://www.gnu.org/licenses/>.
    
 #}
-
 {% extends 'variable.html.twig' %}
-
-{% block wrapper %}
-<!DOCTYPE html>
+{% block wrapper %}<!DOCTYPE html>
 <html lang="en">
     <head>
         <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -110,7 +107,12 @@
           <p>             
               {% trans %}applicationof{% endtrans %} <img src="{{asset('public/img/DigiTrace_Logo.png')}}" width="100px" alt="Digitrace GmbH" >, Made by Robert Krasowski
           </p>
-          <p><a href="{{ path('changelog') }}" >Changelog </a>, Version R1.08e</p>
+          
+           {% if app.user is not null%}
+                  <p><a href="{{ path('changelog') }}" >Changelog </a>, Version R1.08e</p>
+            {% endif %}
+          
+          
         </footer>
        {% block javascripts %}{% endblock %}
        <script>

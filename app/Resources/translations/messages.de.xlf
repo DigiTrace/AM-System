@@ -395,8 +395,12 @@
                 <source>action.add.object</source>
                 <target>Objekt eintragen</target>
             </trans-unit>
-            <trans-unit id="action_faq_search">
-                <source>action.faq.search</source>
+            <trans-unit id="action_object_faq_search">
+                <source>action.object.faq.search</source>
+                <target>FAQ zur Suche</target>
+            </trans-unit>
+            <trans-unit id="action_case_faq_search">
+                <source>action.case.faq.search</source>
                 <target>FAQ zur Suche</target>
             </trans-unit>
             <trans-unit id="action_upload_image">
@@ -1015,8 +1019,37 @@ AM-System
                 <target>Barcode ist nicht korrekt</target>
             </trans-unit>
             
+            <trans-unit id="category.number.is.wrong">
+                <source>category.number.is.wrong</source>
+                <target>Die angegebene Kategorieid ist falsch</target>
+            </trans-unit>
+            
+            <trans-unit id="status.number.is.wrong">
+                <source>status.number.is.wrong</source>
+                <target>Die angegebene Statusid ist falsch</target>
+            </trans-unit>
             
             
+            <trans-unit id="only.boolean.values.allowed">
+                <source>only.boolean.values.allowed</source>
+                <target>Nur Boolische Werte sind erlaubt</target>
+            </trans-unit>
+            
+            
+            <trans-unit id="case_listed_history_objects">
+                <source>case_listed_history_objects</source>
+                <target>Jemals im Fall involvierte Objekte</target>
+            </trans-unit>
+            
+            <trans-unit id="action.download.word.case">
+                <source>action.download.word.case</source>
+                <target>Als Docx herunterladen</target>
+            </trans-unit>
+            
+            <trans-unit id="export.docx.header">
+                <source>export.docx.header</source>
+                <target>Docx Export vom AM-System</target>
+            </trans-unit>
             
         </body>
     </file>

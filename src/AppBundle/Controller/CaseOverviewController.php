@@ -58,7 +58,21 @@ class CaseOverviewController extends Controller
             $this->get('session')->set('anzahleintraege', $anzahleintraege);
         }
         
-        $query = $this->get_case_list($searchword);
+        if($searchword == null){
+             $searchword =  $request->get("suche");
+        }
+        
+        
+        if($searchword == null){
+            
+            $em    = $this->get('doctrine.orm.entity_manager');
+            $dql   = "SELECT c FROM AppBundle:Fall c";
+            $query = $em->createQuery($dql);
+            
+        }
+        else{
+            $query = $this->create_search_query($searchword);
+        } 
         
         
         $paginator  = $this->get('knp_paginator');
@@ -67,7 +81,7 @@ class CaseOverviewController extends Controller
             $request->query->getInt('page', 1)/*page number*/,
             $this->get('session')->get('anzahleintraege')/*limit per page*/ ,
             array(
-                'defaultSortFieldName' => 'f.Zeitstempel_beginn',
+                'defaultSortFieldName' => 'c.Zeitstempel_beginn',
                 'defaultSortDirection' => 'desc',
             )
         );
@@ -223,22 +237,215 @@ class CaseOverviewController extends Controller
     
     
     
-    private function get_case_list($searchword){
+    
+    
+    private function create_search_query($searchword){
         
-        if($searchword == null){
-            $em    = $this->get('doctrine.orm.entity_manager');
-            $dql   = "SELECT f FROM AppBundle:Fall f";
-            $query = $em->createQuery($dql);
+      $repository = $this->getDoctrine()->getRepository(Fall::class); 
+      
+      $query = $repository->createQueryBuilder('c');
+      $query->leftjoin("AppBundle:Objekt"         , "o","WITH" ,"c.id = o.Fall_id");
+      $query->leftjoin("AppBundle:Historie_Objekt", "ho","WITH","c.id = ho.Fall_id ");
+      
+      
+
+        $parameters = array();
+
+        //WORKING PATTERN; NICHT EDITIEREN, fehlt <> sache
+        //$pattern = '/(?J)((?<kriterium>\w+):("|\')(?<value>[\w| ]+)("|\')|'
+        //        . '(?<kriterium>\w+):(?<value>\w+))/';
+
+        // Ueberprueft, ob gilt: kriterium:"wert wert" oder 
+        //                       kriterium:'wert wert' oder 
+        //                       kriterium:wert ist
+        // <> mit drin in Value 
+        $pattern = '/(?J)((?<kriterium>\w+):("|\')(?<value>[\w| <>\-\.!üÜöÖäÄ]+)("|\')|'
+                . '(?<kriterium>\w+):(?<value>[\w<>\-\.!üÜöÖäÄ]+))/';
+        $generalvaluepattern = '/(?<operator>[!]?)(?<value>[\w üÜöÖäÄ]+)/';
+        $numbervaluepattern = '/(?<operator>[!]?)(?<value>[\d]+)/';
+        $countmatches =  preg_match_all($pattern,
+                            $searchword,
+                            $matches,
+                            PREG_SET_ORDER);
+                
+        
+        $simplewhereconditions= array("caseid" => "c.case_id",
+                                "desc" => "c.Beschreibung");
+
+
+        $translator = $this->get('translator');
+        $errors = "";
+        $usedSearchParameters = array();
+        $indexparameter = -1;
+        foreach($matches as $match){
+            
+            $temp = "";
+            $indexparameter++;
+            $skipparameter = null;
+            $success = preg_match($generalvaluepattern,
+                                    $match['value'],
+                                    $generalmatch);
+            if($success == true){
+                foreach ($simplewhereconditions as $key =>$value){
+                    
+                    if($match['kriterium'] == $key){
+                        
+                        switch($generalmatch['value']):
+                        case "true":
+                        case "True":
+                            $query->andwhere($simplewhereconditions[$match['kriterium']]." is not null ");
+                            $skipparameter = true;
+                            break;
+                        case "false":
+                        case "False":
+                            $query->andwhere($simplewhereconditions[$match['kriterium']]." is null ");
+                            $skipparameter = false;
+                            break;
+                        endswitch;
+                    }
+                } 
+                   
+                    
+                        
+                if($skipparameter != null){
+                    array_push($usedSearchParameters,
+                               array($match['kriterium'],
+                                   ($skipparameter)? "true":"false")
+                              );
+                    continue;
+                }
+            }
+                    
+            
+            
+            switch($match["kriterium"]):
+                case "caseid":
+                case "desc":
+                    $success = preg_match($generalvaluepattern,
+                                    $match['value'],
+                                    $generalmatch);
+                    if($success == true){
+                        if($generalmatch['operator'] != "!")
+                            $query->andwhere($simplewhereconditions[$match['kriterium']]." like :parameter".$indexparameter);
+                        else
+                            $query->andwhere($simplewhereconditions[$match['kriterium']]." not like :parameter".$indexparameter);
+
+                        $parameters["parameter".$indexparameter] = "%".$generalmatch['value']."%";
+                        
+                        array_push($usedSearchParameters,
+                                   array($match['kriterium'],
+                                       $generalmatch['operator'].$generalmatch['value'])
+                                  );
+                    }
+
+                    break;
+                case "casebegin":
+                    $success = preg_match('/(?<operator>[!<>]?)(?<day>[\d]{2})[-\.]{1}(?<month>[\d]{2})[-\.]{1}(?<year>[\d]{4})/',
+                                    $match['value'],
+                                    $mdatematch);
+                    
+                    if($success == true){
+
+                        if(checkdate($mdatematch['month'], $mdatematch['day'], $mdatematch['year']) == true){
+                            
+                            switch ($mdatematch['operator']):
+                            case "<":
+                            case ">":
+                                $query->andwhere("DATE_DIFF(c.Zeitstempel_beginn,:parameter".$indexparameter.") ".$mdatematch['operator']." 0 ");
+                                break;
+                            case "!":
+                                $query->andwhere("DATE_DIFF(c.Zeitstempel_beginn,:parameter".$indexparameter.") != 0 ");
+                                break;
+                            case "":
+                                $query->andwhere("DATE_DIFF(c.Zeitstempel_beginn,:parameter".$indexparameter.") = 0 ");
+                                break;
+                            endswitch;
+                            $parameters["parameter".$indexparameter] = new \DateTime($mdatematch['day']."-".$mdatematch['month']."-".$mdatematch['year']);
+                            
+                            array_push($usedSearchParameters,
+                                   array($match['kriterium'],
+                                       $generalmatch['operator'].$match['value'])
+                                  );
+                        }
+                        else{
+                            $this->addFlash("danger",'timestamp.value.not.valid');
+                        }
+                    }
+                    else{
+                        $this->addFlash("danger",'timestamp.value.not.valid');
+                    }
+                    
+                    break;
+                
+                    
+                case "caseactive":
+                    switch ($match['value']):
+                        case "True":
+                        case "true":
+                            $query->andwhere("c.istAktiv = true");
+                            break;
+                        case "false":
+                        case "False":
+                            $query->andwhere("c.istAktiv = false");
+                            break;
+                        default :
+                            $this->addFlash("danger",'only.boolean.values.allowed');
+                            break;
+                    endswitch;
+               
+                   
+                    array_push($usedSearchParameters,
+                               array($match['kriterium'],
+                                   $match['value'])
+                              );
+
+                    break;
+                    
+
+                default:
+                    $errors = $errors ." ". $match['kriterium'];
+                    break;
+            endswitch;   
+        }
+        
+        
+     
+
+        if($errors != ""){
+            $this->addFlash("danger",
+                            $translator->trans('criteria.was.not.found %criteria%',array("%criteria%" => $errors))
+                    );
+        }
+
+        if($countmatches > 0){
+
+            foreach ($parameters as $d => $value){
+                $query->setParameter($d,$value);
+            } 
+            $string_used_parameters = "";
+            foreach ($usedSearchParameters as $value){
+                $string_used_parameters = $string_used_parameters." ". $value[0].":".$value[1];
+            } 
+            $this->addFlash("success",$string_used_parameters);
+            
         }
         else{
             $em = $this->getDoctrine()
-                    ->getManager();
-            $query = $em->createQuery('SELECT f '
-                    . 'FROM AppBundle:Fall f '
-                    . "WHERE f.Beschreibung like :search "
-                    . "OR f.case_id like :search ")
-                    ->setParameter('search',"%".$searchword."%");
+                ->getManager();
+            $query = $em->createQuery('SELECT c '
+                    . 'FROM AppBundle:Fall c '
+                    . "WHERE c.Beschreibung like :search "
+                    . "OR c.case_id like :search ")
+                    ->setParameter('search',"%".$searchword."%");  
         }
         return $query;
+    }
+    
+    /**
+     * @Route("/faelle/faq", name="search_cases_faq")
+     */
+    public function search_faqAction(Request $request)
+    {        
+        return $this->render('default/search_cases_faq.twig');
     }
 }

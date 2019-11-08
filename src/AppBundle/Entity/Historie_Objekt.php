@@ -144,6 +144,11 @@ class Historie_Objekt
     {
         return $this->Barcode_id;
     }
+    //WORKAROUND: TO FIX:
+    public function getBarcode()
+    {
+        return $this->Barcode_id;
+    }
 
     /**
      * Set zeitstempel
