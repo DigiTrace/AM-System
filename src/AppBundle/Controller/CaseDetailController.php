@@ -71,8 +71,7 @@ class CaseDetailController extends Controller {
                     . 'JOIN AppBundle:Historie_Objekt ho with ho.Barcode_id = o.Barcode_id '
                     . 'LEFT JOIN AppBundle:Objekt so with so.Barcode_id = o.Standort '
                     . "WHERE ho.Fall_id = :case OR "
-                    . "o.Fall_id = :case " 
-                    . "ORDER by ho.historie_id desc ")
+                    . "o.Fall_id = :case ")
                     ->setParameter("case",$case->getId());  
         return $query->getResult();
         
