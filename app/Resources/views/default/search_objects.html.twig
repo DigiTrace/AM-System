@@ -116,11 +116,11 @@
 
 {% block context %}
     <a href="{{ path("add_object") }}"><span class="glyphicon glyphicon-pencil"></span> {% trans %}action.add.object{% endtrans %}</a><br>
-    <a href="{{ path("search_objects") }}?suche=c:{{ categorytemp[0] |trans }}"><span class="glyphicon glyphicon-search"></span> {% trans %}action.filter.exhibit{% endtrans %}</a> <br>
-    <a href="{{ path("search_objects") }}?suche=c:{{ categorytemp[3] |trans }}"><span class="glyphicon glyphicon-search"></span> {% trans %}action.filter.hdd{% endtrans %}</a> <br>
-    <a href="{{ path("search_objects") }}?suche=c:{{ categorytemp[4] |trans }}"><span class="glyphicon glyphicon-search"></span> {% trans %}action.filter.record{% endtrans %}</a> <br>
-    <a href="{{ path("search_objects") }}?suche=c:{{ categorytemp[1] |trans }}"><span class="glyphicon glyphicon-search"></span> {% trans %}action.filter.equipment{% endtrans %}</a> <br>
-    <a href="{{ path("search_objects") }}?suche=c:{{ categorytemp[2] |trans }}"><span class="glyphicon glyphicon-search"></span> {% trans %}action.filter.container{% endtrans %}</a> <br>
+    <a href="{{ path("search_objects") }}?suche=c:0"><span class="glyphicon glyphicon-search"></span> {% trans %}action.filter.exhibit{% endtrans %}</a> <br>
+    <a href="{{ path("search_objects") }}?suche=c:3"><span class="glyphicon glyphicon-search"></span> {% trans %}action.filter.hdd{% endtrans %}</a> <br>
+    <a href="{{ path("search_objects") }}?suche=c:4"><span class="glyphicon glyphicon-search"></span> {% trans %}action.filter.record{% endtrans %}</a> <br>
+    <a href="{{ path("search_objects") }}?suche=c:1"><span class="glyphicon glyphicon-search"></span> {% trans %}action.filter.equipment{% endtrans %}</a> <br>
+    <a href="{{ path("search_objects") }}?suche=c:2"><span class="glyphicon glyphicon-search"></span> {% trans %}action.filter.container{% endtrans %}</a> <br>
     {#<a href="{{ path("search_objects") }}?suche=c:{{ categorytemp[1] |trans }}"><span class="glyphicon glyphicon-search"></span> {% trans %}action.filter.equipment{% endtrans %} {{ date("-2days") |date("d-m-Y")  }}</a> <br>#}
     <a href="{{ path("search_objects_faq") }}"><span class="glyphicon glyphicon-question-sign"></span> {% trans %}action.object.faq.search{% endtrans %}</a> <br>
     <a href='{{ path("select_new_status_for_multiple_objects")}}'> <span class="glyphicon glyphicon-pencil"></span> {% trans %}action.chosen.object.change{% endtrans %}</a><br>

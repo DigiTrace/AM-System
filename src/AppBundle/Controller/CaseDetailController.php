@@ -180,7 +180,7 @@ class CaseDetailController extends Controller {
             'time' => date('d.m.y H:i'),
             'user' => $user->getUsername()
         );
-        
+        \PhpOffice\PhpWord\Settings::setOutputEscapingEnabled(true);
         
         $templateProcessor = new TemplateProcessor($this->getParameter("word_case_file"));
         $fileName=$case->getCaseid().".docx";

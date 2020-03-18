@@ -934,7 +934,7 @@ class ObjectDetailController extends Controller{
 	$hist = new \AppBundle\Entity\Historie_Objekt($object->getBarcode());
 
 	$hist->setFall($object->getFall());
-	$hist->setNutzerId($object->getNutzer());
+	$hist->setNutzerId($this->getNutzer());
 	$hist->setReserviertVon($object->getreserviertVon());
 	$hist->setStandort($object->getStandort());
 	$hist->setZeitstempelumsetzung($object->getZeitstempelumsetzung());
