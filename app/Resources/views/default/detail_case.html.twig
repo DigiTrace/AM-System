@@ -54,6 +54,28 @@
                </td>
              </tr>
              <tr>
+               <td>{% trans %}case_dos{% endtrans %}</td>
+               <td>
+                   {% if fall.getDOS == ""%}
+                        {% trans %}dos_not_set{% endtrans %}
+                   {% else %}
+                       <span 
+                        {% if fall.getDOS == "DOS_PUBLIC"%}
+                            class="label label-success"
+                        {% elseif fall.getDOS == "DOS_INTERNAL"%}
+                            class="label label-primary"
+                        {% elseif fall.getDOS == "DOS_CONFIDENTIAL"%}
+                            class="label label-warning"
+                        {% elseif fall.getDOS == "DOS_SECRET"%}
+                            class="label label-danger"
+                       {% endif %}
+                       >
+                        {{ fall.getDOS | trans}}   
+                       </span>
+                   {% endif %}
+                </td>
+             </tr>
+             <tr>
                  <td>{% trans %}case_timestamp{% endtrans %}</td>
                  <td>{{ fall.getZeitstempel|date('d.m.y H:i') }}</td>
              </tr>

@@ -141,10 +141,21 @@ class CaseOverviewController extends Controller
 	
         $error = "";
         $new_case = new Fall();
+        $dosarray = Fall::getDOSList();
+        
         $addform = $this->createFormBuilder($new_case,array('attr' => array('onsubmit' => "return alertbeforesubmit()")))
                 ->add("case_id", TextType::class, array('label' => 'case_id','required' => true))
                 ->add('beschreibung',  TextareaType::class,array('label' => 'case_description'))
                 ->add('save',SubmitType::class,array('label' => 'add_new_case'))
+                
+                ->add('dos', ChoiceType::class,array('required' => false,
+                                                    'placeholder'=> false,
+                                                     'expanded' => false,
+                                                     'multiple' => false,
+                                                     'choices' => $dosarray,
+                                                     'choice_label' => function($dosarray, $key, $index) {
+                                                                                 return $index;
+                                                     }))
                 ->getForm();
         
         $addform->handleRequest($request);

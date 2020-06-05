@@ -780,11 +780,16 @@ class ObjectDetailController extends Controller{
         
         // schleichende Migration von alten Datentraeger Objekten
         if($datentraeger == null && 
-            $object->getKategorie() == helper::KATEGORIE_DATENTRAEGER){
+            ( $object->getKategorie() == helper::KATEGORIE_DATENTRAEGER ||
+                $object->getKategorie() == helper::KATEGORIE_ASSERVAT_DATENTRAEGER )
+          ){
             $datentraeger = new Datentraeger();
             $datentraeger->setBarcode($id);
         }
        
+        
+        // Ab hier hat jeder Datentraeger (Asservat HDD, HDD) einen Eintrag in
+        // der Datentraegertabelle
         
         
         $newVerwendung = "";
@@ -811,7 +816,7 @@ class ObjectDetailController extends Controller{
             }
             
             
-            if($object->getKategorie() == helper::KATEGORIE_DATENTRAEGER)
+            if($datentraeger != null)
             {
                 $editablefields = ["Bauart"        => array($datentraeger->getBauart()    ,$changeform->getData()['bauart']),
                                    "Formfaktor"    => array($datentraeger->getFormfaktor(),$changeform->getData()['formfaktor']),
@@ -841,7 +846,7 @@ class ObjectDetailController extends Controller{
             $object->setVerwendung($changeform->getData()['verwendung']);
             $object->setNotiz($changeform->getData()['notiz']);
             
-            if($object->getKategorie() == helper::KATEGORIE_DATENTRAEGER)
+            if($datentraeger != null)
             {
                 $datentraeger->setBauart($changeform->getData()['bauart']);
                 $datentraeger->setFormfaktor($changeform->getData()['formfaktor']);

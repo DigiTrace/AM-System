@@ -30,6 +30,13 @@ use Doctrine\Common\Collections\ArrayCollection;
  */
 class Fall
 {
+    // DOS -> degree of secrecy
+    const DEGREE_OF_SECRECY_PUBLIC = "DOS_PUBLIC";
+    const DEGREE_OF_SECRECY_INTERNAL = "DOS_INTERNAL";
+    const DEGREE_OF_SECRECY_CONFIDENTIAL = "DOS_CONFIDENTIAL";
+    const DEGREE_OF_SECRECY_SECRET = "DOS_SECRET";
+    
+    
     public function __construct() {
         $time = new \DateTime('NOW');
         $this->Zeitstempel_beginn = $time;
@@ -80,6 +87,21 @@ class Fall
     
     public function setCaseId($caseid){
         $this->case_id = $caseid;
+    }
+    
+    
+     /**
+     * @ORM\Column(type="string",length=255)
+     * @Assert\NotBlank()
+     */    
+    protected $DOS = Fall::DEGREE_OF_SECRECY_PUBLIC;
+    
+    public function getDOS(){
+        return $this->DOS;
+    }
+    
+    public function setDOS($dos){
+        $this->DOS = $dos;
     }
     
     
@@ -204,6 +226,20 @@ class Fall
 
         return $this;
     }
+    
+    
+    /**
+     * Get DOS_LIST
+     * @return Array
+     */
+    static function getDOSList()
+    {
+        return array(Fall::DEGREE_OF_SECRECY_PUBLIC,
+                    Fall::DEGREE_OF_SECRECY_INTERNAL,
+                    Fall::DEGREE_OF_SECRECY_CONFIDENTIAL,
+                    Fall::DEGREE_OF_SECRECY_SECRET);
+    }
+    
     
     
 }

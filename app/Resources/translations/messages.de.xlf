@@ -1051,6 +1051,43 @@ AM-System
                 <target>Docx Export vom AM-System</target>
             </trans-unit>
             
+            
+             <trans-unit id="Dos">
+                <source>Dos</source>
+                <target>Vertraulichkeitsstufe</target>
+            </trans-unit>
+            
+          
+            <trans-unit id="Dos_PUBLIC">
+                <source>DOS_PUBLIC</source>
+                <target>Öffentlich</target>
+            </trans-unit>
+            
+            <trans-unit id="Dos_INTERNAL">
+                <source>DOS_INTERNAL</source>
+                <target>Intern</target>
+            </trans-unit>
+            
+            <trans-unit id="Dos_CONFIDENTIAL">
+                <source>DOS_CONFIDENTIAL</source>
+                <target>Vertraulich</target>
+            </trans-unit>
+            
+            <trans-unit id="Dos_SECRET">
+                <source>DOS_SECRET</source>
+                <target>Geheim</target>
+            </trans-unit>
+            
+            <trans-unit id="case_dos">
+                <source>case_dos</source>
+                <target>Vertraulichkeitsstufe:</target>
+            </trans-unit>
+            
+            <trans-unit id="dos_not_set">
+                <source>dos_not_set</source>
+                <target>Vertraulichkeitsstufe ist nicht definiert worden</target>
+            </trans-unit>
+            
         </body>
     </file>
 </xliff>

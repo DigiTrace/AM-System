@@ -102,6 +102,22 @@
                                        <a href="{{ path('detail_case', {'id': objekt.getFall.getCaseId }) }}">
                                             {{ objekt.getFall.getCaseId }} | {{ objekt.getFall.getBeschreibung | slice(0,40) }}... 
                                        </a>
+                                       
+                                       {% if objekt.getFall.getDOS != ""%}
+                                           <span 
+                                            {% if objekt.getFall.getDOS == "DOS_PUBLIC"%}
+                                                class="label label-success"
+                                            {% elseif objekt.getFall.getDOS == "DOS_INTERNAL"%}
+                                                class="label label-primary"
+                                            {% elseif objekt.getFall.getDOS == "DOS_CONFIDENTIAL"%}
+                                                class="label label-warning"
+                                            {% elseif objekt.getFall.getDOS == "DOS_SECRET"%}
+                                                class="label label-danger"
+                                           {% endif %}
+                                           >
+                                            {{ objekt.getFall.getDOS | trans}}   
+                                           </span>
+                                       {% endif %}
                                        {% endif %}
                                    </dd>
                                 </dl>

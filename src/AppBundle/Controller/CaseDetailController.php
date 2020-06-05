@@ -166,6 +166,8 @@ class CaseDetailController extends Controller {
             'case_id_text' => $case->getCaseId(),
             'case_description' => $this->get('translator')->trans('case_description'),
             'case_description_text' => $case->getBeschreibung(),
+            'case_dos' => $this->get('translator')->trans('case_dos'),
+            'case_dos_text' => $this->get('translator')->trans($case->getDOS()),
             'case_isactiv' => $this->get('translator')->trans('case_isactiv'),
             'case_isactiv_text' => ($case->istAktiv() == true ? "Ja" : "Nein"),
             'case_timestamp' => $this->get('translator')->trans('case_timestamp'),

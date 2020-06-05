@@ -32,7 +32,50 @@
      {% endfor %}
      
    <h2>{% trans %}add_case_headline{% endtrans %}</h2>
+     
+   
     {{ form_start(addform) }}
+    
+    
+    
+    
+             <div class="row">
+                 <div class='col-sm-8'>
+                     <div id="case_id_field">
+                    {{ form_label(addform.case_id) }}
+                    {{ form_widget(addform.case_id) }}
+                    {{ form_errors(addform.case_id) }}
+                    <span class="help-block"></span>
+                     </div>
+                </div>
+
+                <div class='col-sm-4'>
+                    {{ form_label(addform.dos) }}
+                    {{ form_errors(addform.dos) }}
+                    {{ form_widget(addform.dos) }}
+                </div>
+                 
+             </div>
+                
+             <div class="row">
+                 <div class='col-sm-12'>
+                     {{ form_label(addform.beschreibung) }}
+                    {{ form_errors(addform.beschreibung) }}
+                    {{ form_widget(addform.beschreibung) }}
+                    <span class="help-block"></span>
+                 </div>
+                
+                 
+             </div>
+                 
+             <div class="row">
+                <div class='col-sm-4'>
+                    {{ form_widget(addform.save) }}
+                   
+                </div>
+             </div>
+                 
+                 
     {{ form_widget(addform) }}
 
     {{ form_end(addform) }}

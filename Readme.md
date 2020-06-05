@@ -24,7 +24,7 @@ To run the container, following command must be executed:
 
 `sudo docker run -t -p 8080:8080 --name amtest  AMSystem `
 
-The Website can be found at `http://127.0.0.1:8080`  
+The website can be found at `http://127.0.0.1:8080`  
 
 Following accounts are predefined:  
   * User/test  

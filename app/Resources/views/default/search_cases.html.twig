@@ -53,10 +53,10 @@
                 {{ arrow | raw}}
                 {% endif %}
             </th>
-            <th class="col-md-8 col-sm-8">{{ knp_pagination_sortable(pagination, 'case_desc'|trans, 'c.Beschreibung') }}
-                {% if pagination.isSorted('c.Beschreibung') %}
-                {{ arrow | raw}}
-                {% endif %}
+            <th class="col-md-1 col-sm-1">{% trans %} case_dos {% endtrans %}
+            </th>
+            <th class="col-md-7 col-sm-7">
+                {% trans %} case_desc {% endtrans %}
             </th>
             <th class="col-md-2 col-sm-2">{{ knp_pagination_sortable(pagination, 'desc_timestamp'|trans, 'c.Zeitstempel_beginn') }}
                 {% if pagination.isSorted('c.Zeitstempel_beginn') %}
@@ -68,22 +68,40 @@
         </thead>
         <tbody>
             {% for fall in pagination %}
-            {#<tr style="cursor:pointer" oncontextmenu="javascript:window.open('{{ path('detail_case', {'id': fall.getDigitraceId}) }}');" onclick="window.location.href='{{ path('detail_case', {'id': fall.getDigitraceId}) }}'">
-                <td>{{ fall.getDigitraceId }}</td>
-                <td>{{ fall.getBeschreibung }}</td>
-                <td>{{ fall.getZeitstempel|date('d.m.y H:i') }}</td>
-            </tr>#}
-            {% if fall.istAktiv == false %}
-            <tr class="active">
-                <td><s>{{ fall.getCaseId }}</s></td>
-            {% else %}
-            <tr>
-                <td>{{ fall.getCaseId }}</td>
-            {% endif %}
-                
-                <td><a href="{{ path('detail_case', {'id': fall.getCaseId}) }}">{{ fall.getBeschreibung }}</a></td>
-                <td>{{ fall.getZeitstempel|date('d.m.y H:i') }}</td>
-            </tr>
+                {#<tr style="cursor:pointer" oncontextmenu="javascript:window.open('{{ path('detail_case', {'id': fall.getDigitraceId}) }}');" onclick="window.location.href='{{ path('detail_case', {'id': fall.getDigitraceId}) }}'">
+                    <td>{{ fall.getDigitraceId }}</td>
+                    <td>{{ fall.getBeschreibung }}</td>
+                    <td>{{ fall.getZeitstempel|date('d.m.y H:i') }}</td>
+                </tr>#}
+                {% if fall.istAktiv == false %}
+                <tr class="active">
+                    <td><s>{{ fall.getCaseId }}</s></td>
+                {% else %}
+                <tr>
+                    <td>{{ fall.getCaseId }}</td>
+                {% endif %}
+                <td>
+                    {% if fall.getDOS != ""%}
+                       <span 
+                        {% if fall.getDOS == "DOS_PUBLIC"%}
+                            class="label label-success"
+                        {% elseif fall.getDOS == "DOS_INTERNAL"%}
+                            class="label label-primary"
+                        {% elseif fall.getDOS == "DOS_CONFIDENTIAL"%}
+                            class="label label-warning"
+                        {% elseif fall.getDOS == "DOS_SECRET"%}
+                            class="label label-danger"
+                       {% endif %}
+                       >
+                        {{ fall.getDOS | trans}}   
+                       </span>
+                   {% endif %}
+                    
+                </td>
+                   
+                    <td><a href="{{ path('detail_case', {'id': fall.getCaseId}) }}">{{ fall.getBeschreibung }}</a></td>
+                    <td>{{ fall.getZeitstempel|date('d.m.y H:i') }}</td>
+                </tr>
             
             {% endfor %}
 

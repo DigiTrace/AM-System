@@ -1034,6 +1034,44 @@ AM-System
                 <target>Docx export from AM-System</target>
             </trans-unit>
             
+            <trans-unit id="Dos">
+                <source>Dos</source>
+                <target>Degree of Secrecy</target>
+            </trans-unit>
+            
+          
+            <trans-unit id="Dos_PUBLIC">
+                <source>DOS_PUBLIC</source>
+                <target>Public</target>
+            </trans-unit>
+            
+            <trans-unit id="Dos_INTERNAL">
+                <source>DOS_INTERNAL</source>
+                <target>Internal</target>
+            </trans-unit>
+            
+            <trans-unit id="Dos_CONFIDENTIAL">
+                <source>DOS_CONFIDENTIAL</source>
+                <target>Confidential</target>
+            </trans-unit>
+            
+            <trans-unit id="Dos_SECRET">
+                <source>DOS_SECRET</source>
+                <target>Secret</target>
+            </trans-unit>
+            
+            <trans-unit id="case_dos">
+                <source>case_dos</source>
+                <target>Degree of Secrecy:</target>
+            </trans-unit>
+            
+            <trans-unit id="dos_not_set">
+                <source>dos_not_set</source>
+                <target>Degree of secrecy is not defined</target>
+            </trans-unit>
+             	 
+           
+            
         </body>
     </file>
 </xliff>

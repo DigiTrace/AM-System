@@ -171,17 +171,17 @@ class Objekt
     protected $Zeitstempelderumsetzung;
     
    
-    /**
-     * @ORM\Column(type="text",nullable=true)
-     * @Assert\File(mimeTypes={ "image/jpeg" })
-     */
-    protected $Bild;
+    #/**
+    # * @ORM\Column(type="text",nullable=true)
+    # * @Assert\File(mimeTypes={ "image/jpeg" })
+    # */
+    #protected $Bild;
     
-    /**
-     * @ORM\Column(type="string",nullable=true)
-     * @Assert\File(mimeTypes={ "image/jpeg" })
-     */
-    private $BildPfad;
+    #/**
+    # * @ORM\Column(type="string",nullable=true)
+    # * @Assert\File(mimeTypes={ "image/jpeg" })
+    # */
+    #private $BildPfad;
     
     
     
@@ -203,6 +203,12 @@ class Objekt
      *      )
      */
     private $HDDs;
+    
+    
+    /**
+     * @ORM\OneToOne(targetEntity="ObjektBlob",mappedBy="Objekt",cascade={"persist", "remove"})
+     */
+    protected $ObjektBlob;
     
     
   
@@ -524,18 +530,15 @@ class Objekt
      * Set Pic as Resource
      *
      * @param blob $id
-     * @return Objekt
+     * 
      */
     public function setPic($Id)
     {
-        if($Id == "" || $Id == null){
-            $this->Bild = null;
+        if($this->ObjektBlob == null){
+            $this->ObjektBlob = new ObjektBlob($this);
         }
-        else{
-            $strm = fopen($Id,"rb");
-            $this->Bild = base64_encode(stream_get_contents($strm));
-        }
-        return $this;
+        
+        $this->ObjektBlob->setPic($Id);
     }
 
     /**
@@ -545,7 +548,10 @@ class Objekt
      */
     public function getPic()
     {
-        return $this->Bild;
+        if($this->ObjektBlob != null){
+            return $this->ObjektBlob->getPic();
+        }
+        return null;
     }
     
     
@@ -553,14 +559,14 @@ class Objekt
      * Set Picpath
      *
      * @param string $id
-     *
-     * @return Objekt
      */
     public function setPicpath($Id)
     {
-        $this->BildPfad = $Id;
-
-        return $this;
+        if($this->ObjektBlob == null){
+            $this->ObjektBlob = new ObjektBlob($this);
+        }
+        
+        $this->ObjektBlob->setPicpath($Id);
     }
 
     /**
@@ -570,7 +576,10 @@ class Objekt
      */
     public function getPicpath()
     {
-        return $this->BildPfad;
+        if($this->ObjektBlob != null){
+            return $this->ObjektBlob->getPicpath();
+        }
+        return null;
     }
     
 
@@ -598,14 +607,6 @@ class Objekt
     {
         return $this->Standort;
     }
-    
-
-
-    
-    
-    
-
-    
     
     
     // https://afilina.com/doctrine-not-saving-manytomany
