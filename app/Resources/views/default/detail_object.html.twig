@@ -100,11 +100,11 @@
                                        {% else %}
 
                                        <a href="{{ path('detail_case', {'id': objekt.getFall.getCaseId }) }}">
-                                            {{ objekt.getFall.getCaseId }} | {{ objekt.getFall.getBeschreibung | slice(0,40) }}... 
+                                            {{ objekt.getFall.getCaseId }} | {{ objekt.getFall.getBeschreibung | slice(0,60) }}... 
                                        </a>
                                        
                                        {% if objekt.getFall.getDOS != ""%}
-                                           <span 
+                                           <br> <span 
                                             {% if objekt.getFall.getDOS == "DOS_PUBLIC"%}
                                                 class="label label-success"
                                             {% elseif objekt.getFall.getDOS == "DOS_INTERNAL"%}
@@ -476,7 +476,11 @@
 
                              {% for entry in history_entries %}
 
-                             <tr>
+                                {% if entry.getSystemaktion == 1 %}
+                                    <tr class="active">
+                                    {% else %}
+                                    <tr >
+                                {% endif %}
                                 <td>{{ entry.getZeitstempelumsetzung|date('d.m.y H:i')}}</td>
                                 <td>{{ entry.getZeitstempel|date('d.m.y H:i')}}</td>
                                 <td>{{ statustemp[entry.getStatusId]|trans  }}</td>

@@ -349,6 +349,13 @@ class Historie_Objekt
         return $this->Standort;
     }
     
+    public function setSystemaktion($status){
+        $this->Systemaktion = $status;
+    }
+    
+    public function GetSystemaktion(){
+        return $this->Systemaktion;
+    }
    
     
     public function addImage(\AppBundle\Entity\Objekt $object){

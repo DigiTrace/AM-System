@@ -152,6 +152,7 @@ class CaseOverviewController extends Controller
                                                     'placeholder'=> false,
                                                      'expanded' => false,
                                                      'multiple' => false,
+                                                     'data' => Fall::DEGREE_OF_SECRECY_CONFIDENTIAL,
                                                      'choices' => $dosarray,
                                                      'choice_label' => function($dosarray, $key, $index) {
                                                                                  return $index;

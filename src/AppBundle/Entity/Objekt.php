@@ -729,5 +729,13 @@ class Objekt
         }
     }
     
+    public function setSystemaktion($status){
+        $this->Systemaktion = $status;
+    }
+    
+    public function GetSystemaktion(){
+        return $this->Systemaktion;
+    }
+    
     
 }

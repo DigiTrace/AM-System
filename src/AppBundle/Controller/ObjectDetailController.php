@@ -839,8 +839,9 @@ class ObjectDetailController extends Controller{
             if($newVerwendung == ""){
                 return $this->redirectToRoute('detail_object',array('id' =>$id) );
             }
-                
+            $object->setSystemaktion(true); 
             $this->createNewHistorieEntry($object);
+            $object->setSystemaktion(false);
             
             $object->setName($changeform->getData()['name']);
             $object->setVerwendung($changeform->getData()['verwendung']);
@@ -946,7 +947,7 @@ class ObjectDetailController extends Controller{
 	// Veraenderte Daten
 	$hist->setStatusId(helper::STATUS_EDITIERT);
 	$hist->setVerwendung($newVerwendung);
-	
+	$hist->setSystemaktion(true);
 	$hist->setZeitstempel(new \DateTime("now"));
 
 	foreach($object->getImages() as $image){
@@ -1013,6 +1014,7 @@ class ObjectDetailController extends Controller{
         $hist->setVerwendung($object->getVerwendung());
         $hist->setZeitstempel($object->getZeitstempel());
         $hist->setZeitstempelumsetzung($object->getZeitstempelumsetzung());
+        $hist->setSystemaktion($object->GetSystemaktion());
         
         
         foreach($object->getImages() as $image){
@@ -1143,13 +1145,15 @@ class ObjectDetailController extends Controller{
             $this->alter_object($object,
                 helper::STATUS_GENULLT,
                 $new_verwendung,
-                $datum);
+                $datum,
+                true);
         }
         if($object->getStandort() != null){
             $this->alter_object($object,
                 helper::STATUS_AUS_DEM_BEHAELTER_ENTFERNT,
                 $new_verwendung,
-                $datum);
+                $datum,
+                true);
         }
 
         if($object->getFall() != null){
@@ -1177,111 +1181,6 @@ class ObjectDetailController extends Controller{
                                         false,
                                         array(array('info','action.description.neutralize.object'),));
        
-        /*
-        $object = $this->getObject($id);
-        
-        if($object == null){
-            $this->addFlash('danger','object_was_not_found');
-            return $this->redirectToRoute('search_objects'); 
-        }
-        
-        // Can not be validated in function isObjectWithNewStatusValid, because
-        // it has no specific status to test
-        if($object->getKategorie() != helper::KATEGORIE_DATENTRAEGER){
-            $this->addFlash('danger','action_can_not_be_done_by_object');
-            return $this->redirectToRoute('detail_object',array('id' =>$id) ); 
-        }
-        
-        $changeform = $this->get_ChangeVerwendungsForm(true,
-                                                       false,
-                                                        $object->getVerwendung());
-        
-         
-        $changeform->handleRequest($request);
-        
-        if ($changeform->isSubmitted() && $changeform->isValid()) {
-            
-            $null = 0;
-            $fall = 0;
-            $behaelter = 0;
-            
-            if($object->getStatus() != helper::STATUS_GENULLT){
-                $null = 1;
-            }
-            
-            if($object->getStandort() != null){
-                $behaelter = 1;
-            }
-            
-            if($object->getFall() != null){
-                $fall = 1;
-            }
-            
-            $date = $changeform->getData()['dueDate'];
-                        
-            $datenull = clone $date;              //  Da das Modifizieren des
-            $datebehalter = clone $date;          // urspruenglichen Datum Fehler
-            $datefall = clone $date;              // in der Datenbank verursacht,
-                                                  // werden diese statisch gesetzt.
-            $datenull->modify("-3 seconds");
-            $datebehalter->modify("-2 seconds");
-            $datefall->modify("-1 seconds");
-            
-                       
-            
-            $tempVerwendung = "";
-            if($null == 1){
-                
-                if($behaelter + $fall >= 1){
-                    $tempVerwendung = "siehe Eintrag mit den Präfix Neutralisiert";
-                }
-                else{
-                    $tempVerwendung = "Neutralisiert:".$changeform->getData()['verwendung'];
-                }
-                
-                $this->alter_object($object,
-                                    helper::STATUS_GENULLT,
-                                    $tempVerwendung,
-                                    $datenull);
-            }
-            
-            
-            
-            if($behaelter == 1){
-                
-                if($fall == 1){
-                    $tempVerwendung = "siehe Eintrag mit den Präfix Neutralisiert";
-                }
-                else{
-                    $tempVerwendung = "Neutralisiert:".$changeform->getData()['verwendung'];
-                }
-                
-                
-            }
-            
-           
-           
-            if($fall == 1){
-                
-               // $notice = $notice." fall   ".$datefall->format("H:i:s");
-                $this->alter_object($object,
-                                    helper::STATUS_AUS_DEM_FALL_ENTFERNT,
-                                    "Neutralisiert:".$changeform->getData()['verwendung'],
-                                    $datefall);
-            }
-            
-            
-            
-            return $this->redirectToRoute('detail_object',array('id' =>$id) );  
-        }
-        else{
-            $this->addFlash('info','action.description.neutralize.object');
-        }
-        return $this->render('default/change_object.html.twig', [
-            'id' => $id,
-            'changeform' => $changeform->createView(),
-        ]);
-       */
     }
     
     /*
@@ -1334,8 +1233,9 @@ class ObjectDetailController extends Controller{
                                                 helper::STATUS_AUS_DEM_BEHAELTER_ENTFERNT) == true){
                         $this->alter_object($object,
                                     helper::STATUS_AUS_DEM_BEHAELTER_ENTFERNT,
-                                    "System: Aufgrund von Uebergabe aus dem Behaelter entfernt",
-                                    $changeform->getData()['dueDate']);
+                                    "",
+                                    $changeform->getData()['dueDate'],
+                                    true);
                     }
                     
                     $this->alter_object($object,
@@ -1399,7 +1299,7 @@ class ObjectDetailController extends Controller{
                                 $status_id,
                             $new_verwendung, 
                             $datum, 
-                            $prefixv = null){
+                            $isSystemaktion = false){
         
         $usr= $this->get('security.token_storage')->getToken()->getUser();
         $em = $this->getDoctrine()->getManager();
@@ -1407,12 +1307,14 @@ class ObjectDetailController extends Controller{
         $this->createNewHistorieEntry($object);
         
         $new_status = $status_id;
+        
+        $object->setSystemaktion($isSystemaktion);
 
         $object->setZeitstempel(new \DateTime('now'));
         $object->setZeitstempelumsetzung($datum);
         
 
-        $object->setVerwendung($prefixv.$new_verwendung);
+        $object->setVerwendung($new_verwendung);
         $object->setStatus($new_status);
         $object->setNutzer($this->getNutzer());
         
@@ -1437,59 +1339,6 @@ class ObjectDetailController extends Controller{
             
         }
         
-        
-        
-
-        /* Wenn ein Behaelter vom Status her verändert wurde, so is es 
-         * notwendig, alle in ihm enthaltenen Objekte gleichesfalls zu 
-         * aendern. Es wird rekursiv gearbeitet.
-         */
-        
-        /*
-         * Aufgrund des zu großen Risikos eines Missbrauches wird die Rekursion 
-         * im Falle eines Behaelters entfernt. Falls Organisatorisch ein Bedarf
-         * besteht, kann diese Funktionalitaet nachgeliefert werden
-         */
-        /*if($object->getKategorie() == helper::KATEGORIE_BEHAELTER){
-
-            $query = $em->createQuery(
-                    'select o from AppBundle:Objekt o '
-                    . 'join o.Standort s '
-                    . "where s.Barcode_id = :barcode")
-                    ->setParameter("barcode",$object->getBarcode());
-            $stored_objects = $query->getResult();
-
-
-            foreach($stored_objects as $Sobject){
-
-                /*
-                 * Es werden alle anderen Objekte gelistet, welche sich
-                 * ebenfalls in dem Behaelter befinden.
-                 */
-                /*$query = $em->createQuery(
-                    'select o from AppBundle:Objekt o '
-                    . 'join o.Standort s '
-                    . "where s.Barcode_id ='".$object->getBarcode()."' AND "
-                    . "o.Barcode_id !='".$Sobject->getBarcode()."' ");
-                $another_objects = $query->getResult();
-
-                $prefix_verwendung = "";
-                foreach($another_objects as $Aobject){
-                    $prefix_verwendung = $prefix_verwendung.$Aobject->getBarcode()."|". $Aobject->getName()." , ";
-                }
-                
-                $prefix_verwendung = "[ Mitsamt ".
-                                        $prefix_verwendung.
-                                        "\n im Behälter ".
-                                        $object->getBarcode().
-                                        "|".
-                                        $object->getName()."]:";
-                
-                $this->alter_object($Sobject, $status_id, $new_verwendung,$datum, $prefix_verwendung);
-
-            }
-
-        }*/
         $em->flush();
             
         return null;
@@ -1625,14 +1474,15 @@ class ObjectDetailController extends Controller{
         if($object->getStandort() != null){
             $this->alter_object($object,
                 helper::STATUS_AUS_DEM_BEHAELTER_ENTFERNT,
-                "System: Aufgrund schnellen Umtragens aus dem Behaelter entfernt",
-                $timestamp);
+                "",
+                $timestamp,
+                true);
         }
         
         
         
         $this->createNewHistorieEntry($object);
-            
+        $object->setSystemaktion(false); 
         $em = $this->getDoctrine()->getManager();
         $new_status = helper::STATUS_IN_EINEM_BEHAELTER_GELEGT;
 
