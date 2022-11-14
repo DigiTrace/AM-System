@@ -1322,7 +1322,6 @@ class ObjectDetailController extends Controller{
         switch($status_id){
             case helper::STATUS_GENULLT:
                 $object->flushImages();
-                $object->setNotiz(null);
                 break;
             case helper::STATUS_AUS_DEM_FALL_ENTFERNT:
                 $object->setFall(null);
