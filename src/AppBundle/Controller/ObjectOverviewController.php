@@ -466,6 +466,7 @@ class ObjectOverviewController extends Controller{
                     . 'WITH o.Barcode_id = d.Barcode_id '
                     . "WHERE o.Name like :searchword "
                     . "OR o.Verwendung like :searchword "
+		    . "OR o.Notiz like :searchword "
                     . "OR o.Barcode_id like :searchword "
                     . "OR d.SN like :searchword ")
                     ->setParameter(":searchword" , "%".$searchword."%");  
