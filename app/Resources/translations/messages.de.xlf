@@ -920,7 +920,7 @@
 
             <trans-unit id="message.hdd.objekt.has.no.saved.exhibit.hdd.objects">
                 <source>message.hdd.objekt.has.no.saved.exhibit.hdd.objects</source>
-                <target>Auf dieser HDD exisitieren keine Images von Datenträgerasservaten</target>
+                <target>Dem Sysem sind keine Images von Datenträgerasservaten bekannt</target>
             </trans-unit>
             
             <trans-unit id="currentimagelocations">

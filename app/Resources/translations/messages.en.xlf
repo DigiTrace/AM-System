@@ -912,7 +912,7 @@
 
             <trans-unit id="message.hdd.objekt.has.no.saved.exhibit.hdd.objects">
                 <source>message.hdd.objekt.has.no.saved.exhibit.hdd.objects</source>
-                <target>No images are saved on this HDD</target>
+                <target>No images are known to be stored on this HDD</target>
             </trans-unit>
             
             <trans-unit id="currentimagelocations">
