@@ -1,0 +1,86 @@
+{% extends 'base.html.twig' %}
+
+
+{% block content1 %}
+
+        {% for label, messages in app.flashes %}
+            {% for message in messages %}
+                <div class="alert alert-{{ label }}">
+                    {{ message |trans }}
+                </div>
+            {% endfor %}
+        {% endfor %}
+    
+        {{ form_start(AddNutzerform) }}
+    
+    
+    
+    
+             <div class="row">
+                 <div class='col-sm-12'>
+                     <div id="case_id_field">
+                    {{ form_label(AddNutzerform.username) }}
+                    {{ form_widget(AddNutzerform.username) }}
+                    {{ form_errors(AddNutzerform.username) }}
+                    <span class="help-block"></span>
+                     </div>
+                </div>                 
+             </div>
+
+
+              <div class="row">
+                 <div class='col-sm-12'>
+                     <div id="case_id_field">
+                    {{ form_label(AddNutzerform.fullname) }}
+                    {{ form_widget(AddNutzerform.fullname) }}
+                    {{ form_errors(AddNutzerform.fullname) }}
+                    <span class="help-block"></span>
+                     </div>
+                </div>                 
+             </div>
+                
+             <div class="row">
+                 <div class='col-sm-12'>
+                     {{ form_label(AddNutzerform.email) }}
+                    {{ form_errors(AddNutzerform.email) }}
+                    {{ form_widget(AddNutzerform.email) }}
+                    <span class="help-block"></span>
+                </div>
+             </div>
+
+            <div class="row">
+                 <div class='col-sm-12'>
+                     {{ form_label(AddNutzerform.plainpassword) }}
+                    {{ form_errors(AddNutzerform.plainpassword) }}
+                    {{ form_widget(AddNutzerform.plainpassword) }}
+                    <span class="help-block"></span>
+                </div>
+             </div>
+
+
+                 
+             <div class="row">
+                <div class='col-sm-4'>
+                    {{ form_widget(AddNutzerform.save) }}
+                   
+                </div>
+             </div>        
+    {{ form_widget(AddNutzerform) }}
+
+    {{ form_end(AddNutzerform) }}
+
+
+{% endblock %}
+
+
+
+{% block context %}
+    <a href='{{ path('NutzerPasswordAenderung') }}'>{% trans %} action.change.password {% endtrans %}</a><br>
+    <a href='{{ path('Nutzerprofil') }}'>{% trans %} action.show.profile {% endtrans %}</a><br>
+    <a href='{{ path('Nutzerprofil') }}'>{% trans %} action.edit.profile {% endtrans %}</a><br>
+    {% if is_granted('ROLE_ADMIN') %}
+             <a href='{{ path('Nutzerhinzufuegen') }}'>{% trans %} action.add.user {% endtrans %} </a><br>
+             <a href='{{ path('usersummary') }}'>{% trans %} action.show.users {% endtrans %} </a><br>
+    {% endif %}
+    <a href='{{ path('change_language') }}'>{% trans %} action.change.language {% endtrans %} </a><br>
+{% endblock %}

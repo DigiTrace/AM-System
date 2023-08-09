@@ -1,0 +1,19 @@
+{% extends 'base.html.twig' %}
+
+
+{% block content1 %}
+    <h2>{% trans %} profile.page {% endtrans %}</h2>
+{% endblock %}
+
+
+
+{% block context %}
+    <a href='{{ path('NutzerPasswordAenderung') }}'>{% trans %} action.change.password {% endtrans %}</a><br>
+    <a href='{{ path('Nutzerprofil') }}'>{% trans %} action.show.profile {% endtrans %}</a><br>
+    <a href='{{ path('Nutzerprofil') }}'>{% trans %} action.edit.profile {% endtrans %}</a><br>
+    {% if is_granted('ROLE_ADMIN') %}
+             <a href='{{ path('Nutzerhinzufuegen') }}'>{% trans %} action.add.user {% endtrans %} </a><br>
+             <a href='{{ path('usersummary') }}'>{% trans %} action.show.users {% endtrans %} </a><br>
+    {% endif %}
+    <a href='{{ path('change_language') }}'>{% trans %} action.change.language {% endtrans %} </a><br>
+{% endblock %}

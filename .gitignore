@@ -1,24 +1,26 @@
-/app/config/parameters.yml
-/app/data.db3
-/build/
-/phpunit.xml
-/var/*
-!/var/cache
-/var/cache/*
-!var/cache/.gitkeep
-!/var/logs
-/var/logs/*
-!var/logs/.gitkeep
-!/var/sessions
-/var/sessions/*
-!var/sessions/.gitkeep
-!var/SymfonyRequirements.php
+
+###> symfony/framework-bundle ###
+/.env.local
+/.env.local.php
+/.env.*.local
+/config/secrets/prod/prod.decrypt.private.php
+/public/bundles/
+/var/
 /vendor/
-/web/bundles/
-/web/uploads/pic/*
-!/web/uploads/pic/.gitkeep
-*~
-phpunit.xml.dist
-stop
-nbproject
-.web-server-pid
+###< symfony/framework-bundle ###
+
+###> symfony/phpunit-bridge ###
+.phpunit.result.cache
+/phpunit.xml
+###< symfony/phpunit-bridge ###
+
+###> phpunit/phpunit ###
+/phpunit.xml
+.phpunit.result.cache
+###< phpunit/phpunit ###
+
+.env
+/migrations/*
+!/migrations/.gitkeep
+/public/uploads/pic/*
+!/public/uploads/pic/.gitkeep

@@ -1,0 +1,7 @@
+parameters:
+    timezone: '%env(APP_TIMEZONE)%'
+    locale: de
+    #app.locales: en|de
+    pic_directory: '%kernel.project_dir%/public/uploads/pic'
+    word_case_file: '%kernel.project_dir%/public/case_template.docx'
+    
