@@ -34,6 +34,9 @@ RUN mv composer.phar /usr/local/bin/composer
 RUN chmod +x /usr/local/bin/composer
 RUN ln -snf /usr/share/zoneinfo/Europe/Berlin /etc/localtime
 
+# Alte Version von Composer beziehen, da die neuere Fassung mit mit Symfony 3.4 nicht kompatibel ist
+RUN composer self-update 2.2.9
+
 # Git clone
 RUN git clone https://github.com/DigiTrace/AM-System
 ADD Dockerstuff/parameters.yml AM-System/app/config/parameters.yml
