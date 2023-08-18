@@ -95,7 +95,7 @@ class CaseOverviewController extends AbstractController
             
         }
         else{
-            $query = $this->create_search_query($searchword);
+            $query = $this->create_search_query($doctrine, $searchword);
         } 
         
         
