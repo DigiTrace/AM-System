@@ -62,7 +62,11 @@ class ObjectOverviewController extends AbstractController{
     /**
      * @Route("/objekte", name="search_objects")
      */
-    public function search_objects(RequestStack $requestStack,Request $request, ManagerRegistry $doctrine,PaginatorInterface $paginator,TranslatorInterface $translator)
+    public function search_objects(RequestStack $requestStack,
+                                    Request $request, 
+                                    ManagerRegistry $doctrine,
+                                    PaginatorInterface $paginator,
+                                    TranslatorInterface $translator)
     {     
         /*
          * In dieser Funktion werden alle Objekte dargestellt,
@@ -545,7 +549,8 @@ class ObjectOverviewController extends AbstractController{
                 ->add("suchwort", SearchType::class,array(
                         'required' => false,
                         'label'=> false,
-                        'attr' => array('size'=> 30)));
+                        'attr' => array('size'=> 30)))
+                ->setAction($this->generateURL('search_objects'));
         
         $searchform->add("anzahleintraege", ChoiceType::class, array(
                     'choices' => array(
