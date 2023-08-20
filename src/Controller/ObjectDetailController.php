@@ -82,10 +82,10 @@ class ObjectDetailController extends AbstractController{
         
         $prafix = str_split($barcode,4)[0];
         
-        if( ($prafix == "DTAS" && ($kategorie == helper::KATEGORIE_ASSERVAT || $kategorie == helper::KATEGORIE_ASSERVAT_DATENTRAEGER)||
-             $prafix == "DTHD" && $kategorie == helper::KATEGORIE_DATENTRAEGER||
-             $prafix == "DTHW" && ($kategorie == helper::KATEGORIE_AUSRUESTUNG || $kategorie == helper::KATEGORIE_BEHAELTER) || 
-             $prafix == "DTAK" && $kategorie == helper::KATEGORIE_AKTE) 
+        if( ($prafix == "DTAS" && ($kategorie == Objekt::KATEGORIE_ASSERVAT || $kategorie == Objekt::KATEGORIE_ASSERVAT_DATENTRAEGER)||
+             $prafix == "DTHD" && $kategorie == Objekt::KATEGORIE_DATENTRAEGER||
+             $prafix == "DTHW" && ($kategorie == Objekt::KATEGORIE_AUSRUESTUNG || $kategorie == Objekt::KATEGORIE_BEHAELTER) || 
+             $prafix == "DTAK" && $kategorie == Objekt::KATEGORIE_AKTE) 
             && strlen($barcode) == 9){
             return $prafix;
         }
@@ -125,7 +125,7 @@ class ObjectDetailController extends AbstractController{
                 $em = $doctrine->getManager();
                 
                 if(($em->getRepository(Objekt::class)->find($addform->getData()['barcode_id'])) == null){
-                   $new_object->setStatus(helper::STATUS_EINGETRAGEN);
+                   $new_object->setStatus(Objekt::STATUS_EINGETRAGEN);
                    $new_object->setBarcode($info['barcode_id']);
                    $new_object->setName($info['name']);
                    $new_object->setVerwendung($info['verwendung']);
@@ -147,8 +147,8 @@ class ObjectDetailController extends AbstractController{
                    
                    
                    
-                   if($info['kategorie_id'] == helper::KATEGORIE_DATENTRAEGER ||
-                      $info['kategorie_id'] == helper::KATEGORIE_ASSERVAT_DATENTRAEGER){
+                   if($info['kategorie_id'] == Objekt::KATEGORIE_DATENTRAEGER ||
+                      $info['kategorie_id'] == Objekt::KATEGORIE_ASSERVAT_DATENTRAEGER){
                        
                        $new_datentraeger = new Datentraeger($info);
                        
@@ -235,8 +235,8 @@ class ObjectDetailController extends AbstractController{
             
             // if a Objects has to be stored or added to case, this action cant
             // proceed, if contextthing isnt set
-            if(($temp["newstatus"] == helper::STATUS_EINEM_FALL_HINZUGEFUEGT ||
-                $temp["newstatus"] == helper::STATUS_IN_EINEM_BEHAELTER_GELEGT) &&
+            if(($temp["newstatus"] == Objekt::STATUS_EINEM_FALL_HINZUGEFUEGT ||
+                $temp["newstatus"] == Objekt::STATUS_IN_EINEM_BEHAELTER_GELEGT) &&
                 $temp["contextthings"] == null){
                 
                 $this->addFlash('danger','selected_action_needs_contextthings');
@@ -487,11 +487,11 @@ class ObjectDetailController extends AbstractController{
             $ids = $chooseform->getData()['objects'];
             
             //Status has to be evaluted, cause relationship has to be validated 
-            if($newstatus == helper::STATUS_IN_EINEM_BEHAELTER_GELEGT){
-                $store_object = $this->getObject($doctrine,$session->get("contextthings"));
+            if($newstatus == Objekt::STATUS_IN_EINEM_BEHAELTER_GELEGT){
+                $store_object = $doctrine->getRepository(Objekt::class)->find($session->get("contextthings"));
             }
-            if($newstatus == helper::STATUS_EINEM_FALL_HINZUGEFUEGT){
-                $case = $this->getCase($doctrine,$session->get("contextthings"));   
+            if($newstatus == Objekt::STATUS_EINEM_FALL_HINZUGEFUEGT){
+                $case = $doctrine->getRepository(Fall::class)->find($session->get("contextthings"));  
             }
             
             $objects = [];
@@ -500,7 +500,7 @@ class ObjectDetailController extends AbstractController{
                 $contextreason =  "";
                 
                 if($id != ""){
-                    $object = $this->getObject($doctrine,$id);
+                    $object = $doctrine->getRepository(Objekt::class)->find($id);
 
                     if($object == null){
                         $errorIds = $errorIds . $id."\r\n";
@@ -541,11 +541,11 @@ class ObjectDetailController extends AbstractController{
                     // Check if the Object id valid with the new status
                     if($toadd == true){
                         switch($newstatus){
-                            case helper::STATUS_IN_EINEM_BEHAELTER_GELEGT:
-                                $contextthing = $this->getObject($doctrine, $session->get("contextthings"));
+                            case Objekt::STATUS_IN_EINEM_BEHAELTER_GELEGT:
+                                $contextthing = $doctrine->getRepository(Objekt::class)->find($session->get("contextthings"));
                                 break;
-                            case helper::STATUS_EINEM_FALL_HINZUGEFUEGT:
-                                $contextthing = $this->getCase($doctrine, $session->get("contextthings"));
+                            case Objekt::STATUS_EINEM_FALL_HINZUGEFUEGT:
+                                $contextthing = $doctrine->getRepository(Fall::class)->find($session->get("contextthings"));
                                 break;
                             default:
                                $contextthing = null; 
@@ -581,21 +581,21 @@ class ObjectDetailController extends AbstractController{
                 foreach($objects as $object){
                     
                     switch($newstatus){
-                        case helper::STATUS_IN_EINEM_BEHAELTER_GELEGT:
+                        case Objekt::STATUS_IN_EINEM_BEHAELTER_GELEGT:
                             $this->store_object($doctrine,
                                             $object->getBarcode(), 
                                             $store_object->getBarcode(), 
                                             $date, 
                                             $session->get("newdescription"));
                             break;
-                        case helper::STATUS_EINEM_FALL_HINZUGEFUEGT:
+                        case Objekt::STATUS_EINEM_FALL_HINZUGEFUEGT:
                             $this->add_to_case( $doctrine,
                                            $object->getBarcode(), 
                                            $case->getId(), 
                                             $date, 
                                             $session->get("newdescription"));
                             break;
-                        case helper::VSTATUS_NEUTRALISIERT:
+                        case Objekt::VSTATUS_NEUTRALISIERT:
                             
                             $this->neutralize_object($doctrine,$object,
                                                      $session->get("newdescription"),
@@ -642,7 +642,7 @@ class ObjectDetailController extends AbstractController{
         else{
             $this->addFlash("info",$this->translator->trans('action_description_mass_update_part2 %newstatus%',
                 array("newstatus" => $this->translator->trans(array_search($session->get("newstatus"),
-            helper::$statusToId)))));
+            Objekt::$statusToId)))));
         }
         
         // When the Site is called directly go to search_objects
@@ -665,24 +665,18 @@ class ObjectDetailController extends AbstractController{
      */
     public function details_object(Request $request,ManagerRegistry $doctrine,$id)
     {        
-        /*
-         * hier wird eines der Faelle im Detail angezeigt,
-         * Dadurch erhält man Zugriff auf die fuer den Fall verwendeten
-         * Objekte.
-         */
-        $object = $this->getObject($doctrine,$id);
+        
+        $object = $doctrine->getRepository(Objekt::class)->find($id);
+        $datentraeger = $doctrine->getRepository(Datentraeger::class)->find($id);
+        
         
         if($object == null){
             $this->addFlash('danger','object_was_not_found');
             
             return $this->forward('App\Controller\ObjectOverviewController::search_objects', array());
         }
-        
         $em = $doctrine->getManager();
-        
-        $datentraeger = $em->getRepository(Datentraeger::class)->find($id);
-        
-        
+
         
         
         $query = $em->createQuery('SELECT o '
@@ -697,9 +691,7 @@ class ObjectDetailController extends AbstractController{
          * Wenn es sich um einen Behaelter handelt, sollen die
          * eingelagerten Objekte angeziegt werden.
          */
-        if($object->getKategorie() == helper::KATEGORIE_BEHAELTER){
-            
-            $em = $doctrine->getManager();
+        if($object->getKategorie() == Objekt::KATEGORIE_BEHAELTER){
             
             $query = $em->createQuery('SELECT o '
                     . 'FROM App:Objekt o '
@@ -794,7 +786,8 @@ class ObjectDetailController extends AbstractController{
     public function  edit_object(Request $request,ManagerRegistry $doctrine,$id)
     {        
         $em = $doctrine->getManager();
-        $object = $this->getObject($doctrine,$id);
+        $object = $doctrine->getRepository(Objekt::class)->find($id);
+        $datentraeger = $doctrine->getRepository(Datentraeger::class)->find($id);
         
         if($object == null){
             $this->addFlash('danger','object_was_not_found');
@@ -802,20 +795,17 @@ class ObjectDetailController extends AbstractController{
         }
         
         if($this->isObjectWithNewStatusValid($object, 
-                                            helper::STATUS_EDITIERT, 
+                                            Objekt::STATUS_EDITIERT, 
                                             null, 
                                             $reason) == false){
             $this->addFlash('danger',$reason);
             return $this->redirectToRoute('detail_object',array('id' =>$id) );
         }
         
-        
-        $datentraeger = $em->getRepository(Datentraeger::class)->find($id);
-        
         // schleichende Migration von alten Datentraeger Objekten
         if($datentraeger == null && 
-            ( $object->getKategorie() == helper::KATEGORIE_DATENTRAEGER ||
-                $object->getKategorie() == helper::KATEGORIE_ASSERVAT_DATENTRAEGER )
+            ( $object->getKategorie() == Objekt::KATEGORIE_DATENTRAEGER ||
+                $object->getKategorie() == Objekt::KATEGORIE_ASSERVAT_DATENTRAEGER )
           ){
             $datentraeger = new Datentraeger();
             $datentraeger->setBarcode($id);
@@ -898,18 +888,14 @@ class ObjectDetailController extends AbstractController{
             }
             
             
-            
             $em->persist($object);
             if($datentraeger != null){
                 $em->persist($datentraeger);
             }
             
-	    $this->admiteditedObject($doctrine,$object, $newVerwendung);
+	        $this->admiteditedObject($doctrine,$object, $newVerwendung);
 	    
-	    $em->flush();
-            
-                        
-            
+	        $em->flush();
             
             return $this->redirectToRoute('detail_object',array('id' =>$id) );  
         }
@@ -923,102 +909,30 @@ class ObjectDetailController extends AbstractController{
     }
     // This function make the historyentry for the edit Action
     private function admiteditedObject(ManagerRegistry $doctrine, $object, $newVerwendung){
-        //$em = $this->getDoctrine()->getManager(); 
-        //$connection = $em->getConnection();
-            /*$sql = "INSERT INTO ams_Historie_Objekt(barcode_id, "
-                                                . "zeitstempel, "
-                                                . "zeitstempelderumsetzung, "
-                                                . "status_id, "
-                                                . "verwendung,"
-                                                . "nutzer_id, "
-                                                . "standort, "
-                                                . "fall_id,"
-                                                . "reserviert_von)"
-                                                . "VALUES(:barcode, "
-                                                        . ":zeit, "
-                                                        . ":zeitumsetzung,"
-                                                        . ":status, "
-                                                        . ":verwendung,"
-                                                        . ":nutzer, "
-                                                        . ":standort, "
-                                                        . ":fall, "
-                                                        . ":reserviert)";*/
-        
-            //$statement = $connection->prepare($sql);
-            //$statement->bindValue('barcode', $object->getBarcode());
-            
-            //$now = new \DateTime("now");
-            
-            //$statement->bindValue('zeit', $now->format('Y-m-d H:i:s'));
-            
-            // Damit der Datensatz vor den aktuellen Status steht
-            //$statement->bindValue('zeitumsetzung', $object->getZeitstempelumsetzung()
-            //                                              ->format('Y-m-d H:i:s'));
-            
-            //$statement->bindValue('status', helper::STATUS_EDITIERT);
-            //$statement->bindValue('verwendung', $newVerwendung);
-            //$statement->bindValue('nutzer', $this->getNutzer()->getId());
-            
-            
-            // Werden explizit null gesetzt, da Sinn und Zweck das Anzeigen einer Editierung ist
-            //$statement->bindValue('reserviert', null);
-            //$statement->bindValue('standort', null);
-            //$statement->bindValue('fall', null);
-       
-            
-            //$statement->execute();
-
-
-	$em = $doctrine->getManager();
-	  
-	$hist = new \App\Entity\Historie_Objekt($object->getBarcode());
-
-	$hist->setFall($object->getFall());
-	$hist->setNutzerId($this->getNutzer($doctrine));
-	$hist->setReserviertVon($object->getreserviertVon());
-	$hist->setStandort($object->getStandort());
-	$hist->setZeitstempelumsetzung($object->getZeitstempelumsetzung());
-	// Veraenderte Daten
-	$hist->setStatusId(helper::STATUS_EDITIERT);
-	$hist->setVerwendung($newVerwendung);
-	$hist->setSystemaktion(true);
-	$hist->setZeitstempel(new \DateTime("now"));
-
-	foreach($object->getImages() as $image){
-	    $hist->addImage($image);
-	}
-
-	$em->persist($hist);
-	return 0;
-
-    }
-
-
-    
-    private function getObject(ManagerRegistry $doctrine,$id){
         $em = $doctrine->getManager();
         
-        $object = $em->getRepository(Objekt::class)->find($id);
-        
-        /*if (!$object) {
-            throw $this->createNotFoundException('Objekt existiert nicht');
-        }*/
-        
-        return $object;
-    }
-    
-     private function getCase(ManagerRegistry $doctrine, $id){
-        $em = $doctrine->getManager();
-        
-        $object = $em->getRepository(Fall::class)->find($id);
-        
-        if (!$object) {
-            throw $this->createNotFoundException('Fall existiert nicht');
+        $hist = new \App\Entity\Historie_Objekt($object->getBarcode());
+
+        $hist->setFall($object->getFall());
+        $hist->setNutzerId($this->getNutzer($doctrine));
+        $hist->setReserviertVon($object->getreserviertVon());
+        $hist->setStandort($object->getStandort());
+        $hist->setZeitstempelumsetzung($object->getZeitstempelumsetzung());
+        // Veraenderte Daten
+        $hist->setStatusId(Objekt::STATUS_EDITIERT);
+        $hist->setVerwendung($newVerwendung);
+        $hist->setSystemaktion(true);
+        $hist->setZeitstempel(new \DateTime("now"));
+
+        foreach($object->getImages() as $image){
+            $hist->addImage($image);
         }
-        
-        return $object;
+
+        $em->persist($hist);
+        return 0;
+
     }
-    
+
     
    
     private function getNutzer(ManagerRegistry $doctrine){
@@ -1068,7 +982,7 @@ class ObjectDetailController extends AbstractController{
     public function null_object_action(Request $request,ManagerRegistry $doctrine,$id){
        return $this->changeVeraenderung($request, $doctrine,
                                         $id, 
-                                        helper::STATUS_GENULLT,
+                                        Objekt::STATUS_GENULLT,
                                         true,
                                         false);
     }
@@ -1079,7 +993,7 @@ class ObjectDetailController extends AbstractController{
     public function use_object_action(Request $request,ManagerRegistry $doctrine, $id){
         return $this->changeVeraenderung($request, $doctrine, 
                                         $id, 
-                                        helper::STATUS_IN_VERWENDUNG,
+                                        Objekt::STATUS_IN_VERWENDUNG,
                                         false,
                                         false);
     }
@@ -1091,7 +1005,7 @@ class ObjectDetailController extends AbstractController{
     public function destroyed_object_action(Request $request, ManagerRegistry $doctrine, $id){
         return $this->changeVeraenderung($request, $doctrine,
                                         $id, 
-                                        helper::STATUS_VERNICHTET,
+                                        Objekt::STATUS_VERNICHTET,
                                         false,
                                         true,
                                         array(array('warning','warning.object.cant.be.used.anymore')));
@@ -1103,7 +1017,7 @@ class ObjectDetailController extends AbstractController{
     public function delivery_object_action(Request $request, ManagerRegistry $doctrine, $id){
         return $this->changeVeraenderung($request, $doctrine,
                                         $id, 
-                                        helper::STATUS_AN_PERSON_UEBERGEBEN,
+                                        Objekt::STATUS_AN_PERSON_UEBERGEBEN,
                                         false,
                                         false,
                                         array(array('info','action.description.delivery.object'),)
@@ -1117,7 +1031,7 @@ class ObjectDetailController extends AbstractController{
     public function lost_object_action(Request $request,ManagerRegistry $doctrine, $id){
         return $this->changeVeraenderung($request,$doctrine,
                                         $id, 
-                                        helper::STATUS_VERLOREN,
+                                        Objekt::STATUS_VERLOREN,
                                         true,
                                         true,
                                         array(array('info','action.description.lost.object'),
@@ -1130,7 +1044,7 @@ class ObjectDetailController extends AbstractController{
     public function reserve_object_action(Request $request,ManagerRegistry $doctrine,$id){
        return $this->changeVeraenderung($request, $doctrine,
                                         $id, 
-                                        helper::STATUS_RESERVIERT,
+                                        Objekt::STATUS_RESERVIERT,
                                         true,
                                         false);
     }
@@ -1141,7 +1055,7 @@ class ObjectDetailController extends AbstractController{
     public function unreserve_object_action(Request $request, ManagerRegistry $doctrine, $id){
         return $this->changeVeraenderung($request, $doctrine,
                                          $id, 
-                                         helper::STATUS_RESERVIERUNG_AUFGEHOBEN,
+                                         Objekt::STATUS_RESERVIERUNG_AUFGEHOBEN,
                                          true,
                                          false);
     }
@@ -1153,7 +1067,7 @@ class ObjectDetailController extends AbstractController{
     public function pull_out_object_action(Request $request, ManagerRegistry $doctrine, $id){
        return $this->changeVeraenderung($request, $doctrine, 
                                         $id, 
-                                        helper::STATUS_AUS_DEM_BEHAELTER_ENTFERNT,
+                                        Objekt::STATUS_AUS_DEM_BEHAELTER_ENTFERNT,
                                         false,
                                         false,
                                         array(array('info','action.description.pull.out.object'),));
@@ -1165,7 +1079,7 @@ class ObjectDetailController extends AbstractController{
     public function remove_from_case_object_action(Request $request, ManagerRegistry $doctrine, $id){
        return $this->changeVeraenderung($request, $doctrine,
                                         $id, 
-                                        helper::STATUS_AUS_DEM_FALL_ENTFERNT,
+                                        Objekt::STATUS_AUS_DEM_FALL_ENTFERNT,
                                         false,
                                         false,
                                        array(array('info','action.description.remove.from.case.object'),) );
@@ -1177,10 +1091,10 @@ class ObjectDetailController extends AbstractController{
                             $new_verwendung, 
                             $datum){
         
-        if($object->getStatus() != helper::STATUS_GENULLT){
+        if($object->getStatus() != Objekt::STATUS_GENULLT){
             $this->alter_object($doctrine,
                 $object,
-                helper::STATUS_GENULLT,
+                Objekt::STATUS_GENULLT,
                 $new_verwendung,
                 $datum,
                 true);
@@ -1188,7 +1102,7 @@ class ObjectDetailController extends AbstractController{
         if($object->getStandort() != null){
             $this->alter_object($doctrine,
                 $object,
-                helper::STATUS_AUS_DEM_BEHAELTER_ENTFERNT,
+                Objekt::STATUS_AUS_DEM_BEHAELTER_ENTFERNT,
                 $new_verwendung,
                 $datum,
                 true);
@@ -1197,7 +1111,7 @@ class ObjectDetailController extends AbstractController{
         if($object->getFall() != null){
             $this->alter_object($doctrine,
                 $object,
-                helper::STATUS_AUS_DEM_FALL_ENTFERNT,
+                Objekt::STATUS_AUS_DEM_FALL_ENTFERNT,
                 $new_verwendung,
                 $datum);
 
@@ -1215,7 +1129,7 @@ class ObjectDetailController extends AbstractController{
         
         return $this->changeVeraenderung($request,$doctrine,
                                         $id, 
-                                        helper::VSTATUS_NEUTRALISIERT,
+                                        Objekt::VSTATUS_NEUTRALISIERT,
                                         false,
                                         false,
                                         array(array('info','action.description.neutralize.object'),));
@@ -1240,7 +1154,7 @@ class ObjectDetailController extends AbstractController{
          *  Dies ist notwendig, um Fehlerhafte doppelte Eintragen(Zuruecktaste)
          *  zu unterbinden. 
          */
-        $object = $this->getObject($doctrine,$id);
+        $object = $doctrine->getRepository(Objekt::class)->find($id);
         
         if($object == null){
             $this->addFlash('danger','object_was_not_found');
@@ -1265,15 +1179,15 @@ class ObjectDetailController extends AbstractController{
             
             
             switch($status_id){
-                case helper::VSTATUS_NEUTRALISIERT:
+                case Objekt::VSTATUS_NEUTRALISIERT:
                     $this->neutralize_object($doctrine,$object,$changeform->getData()['verwendung'],$changeform->getData()['dueDate']);
                     break;
-                case helper::STATUS_AN_PERSON_UEBERGEBEN:
+                case Objekt::STATUS_AN_PERSON_UEBERGEBEN:
                     if($this->isObjectWithNewStatusValid($object, 
-                                                helper::STATUS_AUS_DEM_BEHAELTER_ENTFERNT) == true){
+                    Objekt::STATUS_AUS_DEM_BEHAELTER_ENTFERNT) == true){
                         $this->alter_object($doctrine, 
                                     $object,
-                                    helper::STATUS_AUS_DEM_BEHAELTER_ENTFERNT,
+                                    Objekt::STATUS_AUS_DEM_BEHAELTER_ENTFERNT,
                                     "",
                                     $changeform->getData()['dueDate'],
                                     true);
@@ -1281,7 +1195,7 @@ class ObjectDetailController extends AbstractController{
                     
                     $this->alter_object($doctrine,
                                 $object,
-                                helper::STATUS_AN_PERSON_UEBERGEBEN,
+                                Objekt::STATUS_AN_PERSON_UEBERGEBEN,
                                 $changeform->getData()['verwendung'],
                                 $changeform->getData()['dueDate']);
                     
@@ -1364,19 +1278,19 @@ class ObjectDetailController extends AbstractController{
         
         // Notwendige Aenderung, um eine Aktion an ein Objekt durchzufuehren
         switch($status_id){
-            case helper::STATUS_GENULLT:
+            case Objekt::STATUS_GENULLT:
                 $object->flushImages();
                 break;
-            case helper::STATUS_AUS_DEM_FALL_ENTFERNT:
+            case Objekt::STATUS_AUS_DEM_FALL_ENTFERNT:
                 $object->setFall(null);
                 break;
-            case helper::STATUS_RESERVIERT:
+            case Objekt::STATUS_RESERVIERT:
                 $object->setReserviertVon($this->getNutzer($doctrine));
                 break;
-            case helper::STATUS_RESERVIERUNG_AUFGEHOBEN:
+            case Objekt::STATUS_RESERVIERUNG_AUFGEHOBEN:
                 $object->setReserviertVon(null);
                 break;
-            case helper::STATUS_AUS_DEM_BEHAELTER_ENTFERNT:
+            case Objekt::STATUS_AUS_DEM_BEHAELTER_ENTFERNT:
                 $object->setStandort(null);
                 break;
             
@@ -1394,15 +1308,14 @@ class ObjectDetailController extends AbstractController{
      */
     public function select_objects_action(Request $request,ManagerRegistry $doctrine,$id)
     {
-        // Nur zum Ueberpruefen der ID
-        $object = $this->getObject($doctrine,$id);
+        $object = $doctrine->getRepository(Objekt::class)->find($id);
         
         if($object == null){
             $this->addFlash('danger','object_was_not_found');
             return $this->redirectToRoute('search_objects'); 
         }
         
-        $status_id = helper::STATUS_IN_EINEM_BEHAELTER_GELEGT;
+        $status_id = Objekt::STATUS_IN_EINEM_BEHAELTER_GELEGT;
         if($this->isObjectWithNewStatusValid($object, 
                                             $status_id, 
                                             null, 
@@ -1443,10 +1356,10 @@ class ObjectDetailController extends AbstractController{
             $em = $doctrine->getManager();
             $query = $em->createQuery('SELECT o '
                     . 'FROM App:Objekt o '
-                    . "WHERE o.Kategorie_id =".helper::KATEGORIE_BEHAELTER
+                    . "WHERE o.Kategorie_id =".Objekt::KATEGORIE_BEHAELTER
                     . " AND o.Barcode_id != :barcode "
-                    . "AND o.Status_id !=".helper::STATUS_VERNICHTET. " "
-                    . "AND o.Status_id !=".helper::STATUS_VERLOREN. " "
+                    . "AND o.Status_id !=".Objekt::STATUS_VERNICHTET. " "
+                    . "AND o.Status_id !=".Objekt::STATUS_VERLOREN. " "
                     . "AND(o.Standort != :barcode OR o.Standort is null)")
                     ->setParameter("barcode", $id);  
             $objekte = $query->getResult();
@@ -1458,10 +1371,10 @@ class ObjectDetailController extends AbstractController{
                     . 'FROM App:Objekt o '
                     . "WHERE (o.Name like :searchword "
                     . " OR o.Barcode_id like :searchword )"
-                    . " AND o.Kategorie_id =".helper::KATEGORIE_BEHAELTER
+                    . " AND o.Kategorie_id =".Objekt::KATEGORIE_BEHAELTER
                     . " AND o.Barcode_id != :barcode "
-                    . "AND o.Status_id !=".helper::STATUS_VERNICHTET. " "
-                    . "AND o.Status_id !=".helper::STATUS_VERLOREN. " "
+                    . "AND o.Status_id !=".Objekt::STATUS_VERNICHTET. " "
+                    . "AND o.Status_id !=".Objekt::STATUS_VERLOREN. " "
                     . "AND(o.Standort != :barcode OR o.Standort is null)")
                     ->setParameter("searchword","%".$searchword."%")
                     ->setParameter("barcode", $id);  
@@ -1509,13 +1422,14 @@ class ObjectDetailController extends AbstractController{
     
     private function store_object(ManagerRegistry $doctrine,$fromid,$toid,$timestamp,$description){
         
-        $object = $this->getObject($doctrine,$fromid); // Das Objekt, was in den Behaelter hinzugefuegt wird
-        $store_object = $this->getObject($doctrine,$toid); // Behaelter, wo das Objekt gelagert wird
+        
+        $object = $doctrine->getRepository(Objekt::class)->find($fromid); // Das Objekt, was in den Behaelter hinzugefuegt wird
+        $store_object = $doctrine->getRepository(Objekt::class)->find($toid); // Behaelter, wo das Objekt gelagert wird
         
         if($object->getStandort() != null){
             $this->alter_object($doctrine,
                 $object,
-                helper::STATUS_AUS_DEM_BEHAELTER_ENTFERNT,
+                Objekt::STATUS_AUS_DEM_BEHAELTER_ENTFERNT,
                 "",
                 $timestamp,
                 true);
@@ -1526,7 +1440,7 @@ class ObjectDetailController extends AbstractController{
         $this->createNewHistorieEntry($doctrine,$object);
         $object->setSystemaktion(false); 
         $em = $doctrine->getManager();
-        $new_status = helper::STATUS_IN_EINEM_BEHAELTER_GELEGT;
+        $new_status = Objekt::STATUS_IN_EINEM_BEHAELTER_GELEGT;
 
         $object->setZeitstempel(new \DateTime('now'));
         $object->setZeitstempelumsetzung($timestamp);
@@ -1551,14 +1465,14 @@ class ObjectDetailController extends AbstractController{
     public function store_object_action(Request $request,ManagerRegistry $doctrine,$fromid,$toid)
     {
         
-        $object = $this->getObject($doctrine,$fromid); // Das Objekt, was in den Behaelter hinzugefuegt wird
+        $object = $doctrine->getRepository(Objekt::class)->find($fromid); // Das Objekt, was in den Behaelter hinzugefuegt wird
         
         if($object == null){
             $this->addFlash('danger','object_was_not_found');
             return $this->redirectToRoute('search_objects'); 
         }
         
-        $store_object = $this->getObject($doctrine,$toid); // Behaelter, wo das Objekt gelagert wird
+        $store_object = $doctrine->getRepository(Objekt::class)->find($toid); // Behaelter, wo das Objekt gelagert wird
         
         if($store_object == null){
             $this->addFlash('danger','container_was_not_found');
@@ -1571,7 +1485,7 @@ class ObjectDetailController extends AbstractController{
        
         
         if($this->isObjectWithNewStatusValid($object, 
-                                            helper::STATUS_IN_EINEM_BEHAELTER_GELEGT, 
+                                            Objekt::STATUS_IN_EINEM_BEHAELTER_GELEGT, 
                                             $store_object, 
                                             $reason) == false){
             $this->addFlash('danger',$reason);
@@ -1594,7 +1508,7 @@ class ObjectDetailController extends AbstractController{
         else{
             $this->addFlash("info",$this->translator->trans('action.description.store.object %category% %objectname% %containername%',
                                          array("%objectname%" => $object->getName(),
-                                               "%category%" => $this->translator->trans(array_search($object->getKategorie(),helper::$kategorienToId)),
+                                               "%category%" => $this->translator->trans(array_search($object->getKategorie(),Objekt::$kategorienToId)),
                                                "%containername%" => $store_object->getName())));
         }
         return $this->render('default/change_object.html.twig', [
@@ -1647,7 +1561,7 @@ class ObjectDetailController extends AbstractController{
                     . 'App:Fall f '
                     . "WHERE (DATE_DIFF(o.Zeitstempel,:time) = 0 and "
                     . "o.Fall_id = f.id and "
-                    . "o.Status_id = ".helper::STATUS_EINEM_FALL_HINZUGEFUEGT .") OR DATE_DIFF(f.Zeitstempel_beginn,:time) = 0 and "
+                    . "o.Status_id = ".Objekt::STATUS_EINEM_FALL_HINZUGEFUEGT .") OR DATE_DIFF(f.Zeitstempel_beginn,:time) = 0 and "
                     . "o.Nutzer_id = :user ")
                     ->setParameter("time", new \DateTime('now'))
                     ->setParameter("user", $this->getNutzer($doctrine));
@@ -1671,7 +1585,7 @@ class ObjectDetailController extends AbstractController{
         
         $this->createNewHistorieEntry($doctrine,$object);
             
-        $new_status = helper::STATUS_EINEM_FALL_HINZUGEFUEGT;
+        $new_status = Objekt::STATUS_EINEM_FALL_HINZUGEFUEGT;
 
         $object->setZeitstempel(new \DateTime('now'));
         $object->setStatus($new_status);
@@ -1698,8 +1612,8 @@ class ObjectDetailController extends AbstractController{
         
         // Falls Objekt nicht mehr aenderbar ist, soll die Aktion nicht mittels
         // manipulierten Anfragen ausgeführt werden
-        if($object->getStatus() == helper::STATUS_VERNICHTET ||
-            $object->getStatus() == helper::STATUS_VERLOREN ||
+        if($object->getStatus() == Objekt::STATUS_VERNICHTET ||
+            $object->getStatus() == Objekt::STATUS_VERLOREN ||
             $object->getFall() != null){
             return $this->redirectToRoute('detail_object',array('id' =>$objectid) );
         }
@@ -1733,7 +1647,7 @@ class ObjectDetailController extends AbstractController{
             else{
                  $this->addFlash("info",$this->translator->trans('action.description.add.to.case %category% %objectname% %casename%',
                                              array("%objectname%" => $object->getName(),
-                                                   "%category%" => $this->translator->trans(array_search($object->getKategorie(),helper::$kategorienToId)),
+                                                   "%category%" => $this->translator->trans(array_search($object->getKategorie(),Objekt::$kategorienToId)),
                                                    "%casename%" => $case->getBeschreibung())));
             }
             return $this->render('default/change_object.html.twig', [
@@ -1796,7 +1710,7 @@ class ObjectDetailController extends AbstractController{
      */
     public function upload_pic_action (Request $request,ManagerRegistry $doctrine,$id){
         
-        $object = $this->getObject($doctrine,$id);
+        $object = $doctrine->getRepository(Objekt::class)->find($id);
         
         if($object == null){
             $this->addFlash('danger','object_was_not_found');
@@ -1947,7 +1861,7 @@ class ObjectDetailController extends AbstractController{
     public function select_exhibit_hdd_objects_action(Request $request,ManagerRegistry $doctrine,$id)
     {
         // Nur zum Ueberpruefen der ID
-        $object = $this->getObject($doctrine,$id);
+        $object = $doctrine->getRepository(Objekt::class)->find($id);
         
         if($object == null){
             $this->addFlash('danger','object_was_not_found');
@@ -1955,7 +1869,7 @@ class ObjectDetailController extends AbstractController{
         }
                
         if($this->isObjectWithNewStatusValid($object, 
-                                            helper::STATUS_FESTPLATTENIMAGE_GESPEICHERT, 
+                                            Objekt::STATUS_FESTPLATTENIMAGE_GESPEICHERT, 
                                             null, 
                                             $reason) == false){
             $this->addFlash('danger',$reason);
@@ -2002,8 +1916,8 @@ class ObjectDetailController extends AbstractController{
                     . " AND :object not MEMBER OF o.Images"
                     . " AND :object not MEMBER OF o.HDDs")
                     ->setParameter("searchkategorie",$searchkategorie)
-                    ->setParameter("status_destroyed",helper::STATUS_VERNICHTET)
-                    ->setParameter("status_lost",helper::STATUS_VERLOREN)
+                    ->setParameter("status_destroyed",Objekt::STATUS_VERNICHTET)
+                    ->setParameter("status_lost",Objekt::STATUS_VERLOREN)
                     ->setParameter(":object",$object);
         }
         else{
@@ -2018,8 +1932,8 @@ class ObjectDetailController extends AbstractController{
                     . " AND :object not MEMBER OF o.HDDs")
                     ->setParameter("searchword","%".$searchword."%")
                     ->setParameter("searchkategorie",$searchkategorie)
-                    ->setParameter("status_destroyed",helper::STATUS_VERNICHTET)
-                    ->setParameter("status_lost",helper::STATUS_VERLOREN)
+                    ->setParameter("status_destroyed",Objekt::STATUS_VERNICHTET)
+                    ->setParameter("status_lost",Objekt::STATUS_VERLOREN)
                     ->setParameter(":object",$object);
         }
         $objekte = $query->getResult();
@@ -2043,15 +1957,14 @@ class ObjectDetailController extends AbstractController{
      */
     public function save_image_on_hdd_action(Request $request,ManagerRegistry $doctrine,$fromid,$toid,$returnid)
     {
-        $object = $this->getObject($doctrine,$fromid); // Der Datentraeger, wo das Image gespeichert wird
-
+        
+        $object = $doctrine->getRepository(Objekt::class)->find($fromid); // Der Datentraeger, wo das Image gespeichert wird
         
         if($object == null){
             $this->addFlash('danger','object_was_not_found');
             return $this->redirectToRoute('search_objects'); 
         }
-        
-        $exhibit_object = $this->getObject($doctrine,$toid); // Festplattenasservat
+        $exhibit_object = $doctrine->getRepository(Objekt::class)->find($toid); // Festplattenasservat
 
         
         if($exhibit_object == null){
@@ -2064,7 +1977,7 @@ class ObjectDetailController extends AbstractController{
         
         
         if($this->isObjectWithNewStatusValid($object, 
-                                            helper::STATUS_FESTPLATTENIMAGE_GESPEICHERT, 
+                                            Objekt::STATUS_FESTPLATTENIMAGE_GESPEICHERT, 
                                             $exhibit_object, 
                                             $reason) == false){
             $this->addFlash('danger',$reason);
@@ -2075,10 +1988,10 @@ class ObjectDetailController extends AbstractController{
         
         // Falls Objekt nicht mehr aenderbar ist, soll die Aktion nicht mittels
         // manipulierten Anfragen ausgeführt werden
-        if($object->getStatus() == helper::STATUS_VERNICHTET ||
-            $object->getStatus() == helper::STATUS_VERLOREN ||
-            $exhibit_object->getStatus() == helper::STATUS_VERNICHTET ||
-            $exhibit_object->getStatus() == helper::STATUS_VERLOREN){
+        if($object->getStatus() == Objekt::STATUS_VERNICHTET ||
+            $object->getStatus() == Objekt::STATUS_VERLOREN ||
+            $exhibit_object->getStatus() == Objekt::STATUS_VERNICHTET ||
+            $exhibit_object->getStatus() == Objekt::STATUS_VERLOREN){
             return $this->redirectToRoute('detail_object',array('id' =>$callbackid) );
         }
         
@@ -2091,7 +2004,7 @@ class ObjectDetailController extends AbstractController{
             $this->createNewHistorieEntry($doctrine,$object);
             
             $em = $doctrine->getManager();
-            $new_status = helper::STATUS_FESTPLATTENIMAGE_GESPEICHERT;
+            $new_status = Objekt::STATUS_FESTPLATTENIMAGE_GESPEICHERT;
             
             $object->setZeitstempel(new \DateTime('now'));
             $object->setZeitstempelumsetzung($changeform->getData()['dueDate']);
