@@ -79,17 +79,17 @@ class CaseDetailController extends AbstractController {
     
     private function getinvolvedObjectsFromCase($case){
         $em = $this->getDoctrine()->getManager();
-        $query = $em->createQuery('SELECT distinct o.Barcode_id,'
-                . 'o.Name,'
-                . 'so.Barcode_id AS Standort,'
-                . 'o.Status_id,'
-                . 'o.Zeitstempelderumsetzung,'
-                . 'so.Name AS Standortname  '
-                    . 'FROM App:Objekt o '
-                    . 'JOIN App:Historie_Objekt ho with ho.Barcode_id = o.Barcode_id '
-                    . 'LEFT JOIN App:Objekt so with so.Barcode_id = o.Standort '
-                    . "WHERE ho.Fall_id = :case OR "
-                    . "o.Fall_id = :case ")
+        $query = $em->createQuery("SELECT distinct o.Barcode_id,"
+                . "o.Name,"
+                . "so.Barcode_id AS Standort,"
+                . "o.Status_id,"
+                . "o.Zeitstempelderumsetzung,"
+                . "so.Name AS Standortname  "
+                    . "FROM App:Objekt o "
+                    . "JOIN App:Historie_Objekt ho with ho.Barcode_id = o.Barcode_id "
+                    . "LEFT JOIN App:Objekt so with so.Barcode_id = o.Standort "
+                    . "WHERE ho.Fall_id = :case AND "
+                    . "(o.Fall_id = :case OR  o.Fall_id is null)")
                     ->setParameter("case",$case->getId());  
         return $query->getResult();
         
@@ -122,17 +122,18 @@ class CaseDetailController extends AbstractController {
                                      'historie_objekts' => $history_entrys]);
     }
     
-
-
- /**
-     * @Route("/fall/debug", name="debug_case")
-     */
-    public function debug_case(Request $request) {
-        
-        
-        return phpinfo();
+    // Erzeugen eines Dateinamens fuer den Export von Faellen.
+    // Die Funktion behandelt moegliche Sonderfaelle
+    private function generateFilename($stringcaseid){
+        // Zeichen, welche sowohl Serverseitig, als auch Clientseitig Probleme erzeugen koennen
+        // werden in dieser Funktion ersetzt durch '_'
+        $invalidChars=['/','\\'];
+        $tempstr=$stringcaseid;
+        foreach($invalidChars as $char){
+            $tempstr=str_replace($char,"_",$tempstr);
+        }
+        return $tempstr.".docx";
     }
-
     
 
     /**
@@ -218,7 +219,9 @@ class CaseDetailController extends AbstractController {
         \PhpOffice\PhpWord\Settings::setOutputEscapingEnabled(true);
         
         $templateProcessor = new TemplateProcessor($this->getParameter("word_case_file"));
-        $fileName=$case->getCaseid().".docx";
+        
+        
+        $fileName = $this->generateFilename($case->getCaseid());
         $temp_file = tempnam(sys_get_temp_dir(), $fileName);
         
         foreach($replaceText as $key => $value){
