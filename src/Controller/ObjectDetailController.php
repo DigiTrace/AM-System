@@ -705,7 +705,7 @@ class ObjectDetailController extends AbstractController{
                     . 'FROM App:Objekt o '
                     . 'LEFT JOIN  App:Fall f WITH o.Fall_id = f.id '
                     . 'WHERE o.Standort = :barcode '
-                    . 'ORDER BY f.case_id desc')
+                    . 'ORDER BY f.case_id desc, o.Barcode_id')
                     ->setParameter("barcode",$object->getBarcode());  
             $stored_objects = $query->getResult();
         }
