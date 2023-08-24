@@ -493,7 +493,7 @@ class ObjectOverviewController extends AbstractController{
     /**
      * @Route("/objekt-scanner", name="search_objects_scanner")
      */
-    public function search_objects_scanner(Request $request)
+    public function search_objects_scanner(ManagerRegistry $doctrine,Request $request)
     {
         /*
          * Im Grunde eine Art "API" zum Verwenden des Barcode Scanners
