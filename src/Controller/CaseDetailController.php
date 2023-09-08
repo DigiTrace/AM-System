@@ -216,7 +216,7 @@ class CaseDetailController extends AbstractController {
         );
         
         # TODO: MUSS WIEDER REIN
-        \PhpOffice\PhpWord\Settings::setOutputEscapingEnabled(false);
+        \PhpOffice\PhpWord\Settings::setOutputEscapingEnabled(true);
         
         $templateProcessor = new TemplateProcessor($this->getParameter("word_case_file"));
         
