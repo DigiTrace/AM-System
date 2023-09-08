@@ -17,17 +17,22 @@ use Doctrine\ORM\EntityManagerInterface;
 
 class ProfileController extends AbstractController
 {
-    #[Route('/profile', name: 'Nutzerprofil')]
+    #[Route('/profil', name: 'Nutzerprofil')]
     public function index(): Response
     {
+        $user = $this->getUser();
+
+
+
         return $this->render('profile/index.html.twig', [
             'controller_name' => 'ProfileController',
+            'user' => $user
         ]);
     }
 
 
 
-    #[Route('/profile/passwort', name: 'NutzerPasswordAenderung')]
+    #[Route('/profil/passwort', name: 'NutzerPasswordAenderung')]
     public function ChangePassword(Request $request, UserPasswordHasherInterface $passwordHasher, EntityManagerInterface $entityManager): Response
     {
         
@@ -57,6 +62,7 @@ class ProfileController extends AbstractController
                 $entityManager->persist($user);
                 $entityManager->flush();
                 $this->addFlash('success',"security.changepw.newPW.set");
+                return $this->redirectToRoute('Nutzerprofil');
             }
 
         }
@@ -64,6 +70,52 @@ class ProfileController extends AbstractController
 
         return $this->render('profile/ChangePasswort.html.twig', array(
             'changePWform' => $changepwform->createView()
+        ));
+    }
+
+
+    #[Route('/profil/aendern', name: 'NutzerAenderung')]
+    public function ChangeProfile(Request $request, EntityManagerInterface $entityManager): Response
+    {
+        $user = $this->getUser();
+
+        $changeform = $this->createFormBuilder(array('attr' => array('onsubmit' => "return alertbeforesubmit()")))
+            ->add("username", TextType::class, 
+                array('label' => 'security.login.username',
+                      'required' => true, 
+                      'attr' => array('value' => $user->getUsername())))
+            ->add("fullname", TextType::class, 
+                array('label' => 'security.login.fullname',
+                      'required' => true,
+                      'attr' => array('value' => $user->getFullname())))
+            ->add("email", TextType::class, 
+                array('label' => 'useremail',
+                      'required' => true,
+                      'attr' => array('value' => $user->getEmail())))
+            ->add('save',SubmitType::class)
+            ->getForm();
+
+
+        $changeform->handleRequest($request);
+        if ($changeform->isSubmitted() && $changeform->isValid()) {
+        
+            
+
+            
+
+            $user->setUsername($changeform->getData()['username']);
+            $user->setFullname($changeform->getData()['fullname']);
+            $user->setEmail($changeform->getData()['email']);
+            $entityManager->persist($user);
+            $entityManager->flush();
+            $this->addFlash('success',"profile.successful.changed");
+            return $this->redirectToRoute('Nutzerprofil');
+
+        }
+        
+
+        return $this->render('profile/ChangeProfile.html.twig', array(
+            'changeform' => $changeform->createView()
         ));
     }
 }

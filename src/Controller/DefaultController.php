@@ -67,7 +67,7 @@ class DefaultController extends AbstractController
    
     
      /**
-     * @Route("/profile/change-language", name="change_language")
+     * @Route("/profil/change-language", name="change_language")
      */
     public function change_language(Request $request, RequestStack $requestStack){
         
@@ -102,7 +102,7 @@ class DefaultController extends AbstractController
             $session = $requestStack->getSession();
             
             $session->set("_locale",$form->getData()["language"]);
-            return $this->redirectToRoute('homepage',array() );
+            return $this->redirectToRoute('Nutzerprofil',array() );
         }
         
         return $this->render('default/change_language.html.twig', array(

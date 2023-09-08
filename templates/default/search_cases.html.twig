@@ -99,7 +99,7 @@
                     
                 </td>
                    
-                    <td><a href="{{ path('detail_case', {'id': fall.getCaseId}) }}">{{ fall.getBeschreibung }}</a></td>
+                    <td><a href="{{ path('detail_case', {'id': fall.getCaseId}) }}">{{ fall.getBeschreibung | nl2br}}</a></td>
                     <td>{{ fall.getZeitstempel|date('d.m.y H:i') }}</td>
                 </tr>
             

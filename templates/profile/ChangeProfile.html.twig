@@ -1,5 +1,5 @@
 {% extends 'base.html.twig' %}
-{% form_theme changePWform 'bootstrap_3_layout.html.twig' %} 
+{% form_theme changeform 'bootstrap_3_layout.html.twig' %} 
 
 
 {% block content1 %}
@@ -15,7 +15,7 @@
 
     
 
-        {{ form_start(changePWform) }}
+        {{ form_start(changeform) }}
     
     
 
@@ -23,9 +23,9 @@
              <div class="row">
                  <div class='col-sm-4'>
                      <div id="case_id_field">
-                    {{ form_label(changePWform.oldPW) }}
-                    {{ form_widget(changePWform.oldPW) }}
-                    {{ form_errors(changePWform.oldPW) }}
+                    {{ form_label(changeform.username) }}
+                    {{ form_widget(changeform.username) }}
+                    {{ form_errors(changeform.username) }}
                     <span class="help-block"></span>
                      </div>
                 </div>                 
@@ -33,24 +33,34 @@
                 
              <div class="row">
                  <div class='col-sm-4'>
-                     {{ form_label(changePWform.newPW) }}
-                    {{ form_errors(changePWform.newPW) }}
-                    {{ form_widget(changePWform.newPW) }}
+                    {{ form_label(changeform.fullname) }}
+                    {{ form_errors(changeform.fullname) }}
+                    {{ form_widget(changeform.fullname) }}
                     <span class="help-block"></span>
-                </div>
-                
-                 
+                </div>   
              </div>
-                 
+
+            <div class="row">
+                 <div class='col-sm-4'>
+                    {{ form_label(changeform.email) }}
+                    {{ form_errors(changeform.email) }}
+                    {{ form_widget(changeform.email) }}
+                    <span class="help-block"></span>
+                </div>   
+             </div>
+
+
+
+
              <div class="row">
                 <div class='col-sm-4'>
-                    {{ form_widget(changePWform.save) }}
+                    {{ form_widget(changeform.save) }}
                    
                 </div>
              </div>        
-    {{ form_widget(changePWform) }}
+    {{ form_widget(changeform) }}
 
-    {{ form_end(changePWform) }}
+    {{ form_end(changeform) }}
 
 
 {% endblock %}

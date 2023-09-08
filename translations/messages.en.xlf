@@ -1078,6 +1078,11 @@ AM-System
                 <source>security.login.username</source>
                 <target>Username</target>
             </trans-unit>
+            
+            <trans-unit id="security.login.fullname">
+                <source>security.login.fullname</source>
+                <target>Fullname</target>
+            </trans-unit>
 
             <trans-unit id="security.login.password">
                 <source>security.login.password</source>
@@ -1142,6 +1147,11 @@ AM-System
                 <target>Email:</target>
             </trans-unit>
             
+            <trans-unit id="profile_successful_changed">
+                <source>profile.successful.changed</source>
+                <target>Profil successful changed</target>
+            </trans-unit>
+
         </body>
     </file>
 </xliff>

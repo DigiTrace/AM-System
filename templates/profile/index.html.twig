@@ -1,8 +1,36 @@
 {% extends 'base.html.twig' %}
-
+ 
 
 {% block content1 %}
     <h2>{% trans %} profile.page {% endtrans %}</h2>
+    {% for label, messages in app.flashes %}
+        {% for message in messages %}
+            <div class="alert alert-{{ label }}">
+                {{ message |trans }}
+            </div>
+        {% endfor %}
+    {% endfor %}
+
+
+
+    <div class="row">
+        <div class='col-sm-4'>
+            <table >
+            <tr><td>{% trans %}security.login.username{% endtrans %}:</td><td> {{ user.getUsername }}</td></tr>
+            <tr><td>{% trans %}security.login.fullname{% endtrans %}:</td><td> {{ user.getFullname }}</td></tr>
+            <tr><td>{% trans %}useremail{% endtrans %}:</td><td> {{ user.getEmail }}</td></tr>
+            </table>
+
+        </div>
+                     
+    </div>
+
+
+
+
+
+
+
 {% endblock %}
 
 
@@ -10,7 +38,7 @@
 {% block context %}
     <a href='{{ path('NutzerPasswordAenderung') }}'>{% trans %} action.change.password {% endtrans %}</a><br>
     <a href='{{ path('Nutzerprofil') }}'>{% trans %} action.show.profile {% endtrans %}</a><br>
-    <a href='{{ path('Nutzerprofil') }}'>{% trans %} action.edit.profile {% endtrans %}</a><br>
+    <a href='{{ path('NutzerAenderung') }}'>{% trans %} action.edit.profile {% endtrans %}</a><br>
     {% if is_granted('ROLE_ADMIN') %}
              <a href='{{ path('Nutzerhinzufuegen') }}'>{% trans %} action.add.user {% endtrans %} </a><br>
              <a href='{{ path('usersummary') }}'>{% trans %} action.show.users {% endtrans %} </a><br>
