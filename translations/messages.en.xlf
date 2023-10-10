@@ -1152,6 +1152,10 @@ AM-System
                 <target>Profil successful changed</target>
             </trans-unit>
 
+            <trans-unit id="report_userstamp">
+                <source>report.generated.by.user.%user%.on.%time%</source>
+                <target>Report generated on %time% by %user%</target>
+            </trans-unit>
         </body>
     </file>
 </xliff>

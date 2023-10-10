@@ -114,8 +114,7 @@ class CaseDetailController extends AbstractController {
         
         $history_entrys = $this->getinvolvedObjectsFromCase($case);
         
-        
-        
+    
         
         return $this->render('default/detail_case.html.twig',
                                     ['fall' => $case,
@@ -211,11 +210,15 @@ class CaseDetailController extends AbstractController {
             'desc.container'=> $this->translator->trans('desc.container'),
             'container_listed_objects'=> $this->translator->trans('container_listed_objects'),
             'case_listed_history_objects'=> $this->translator->trans('case_listed_history_objects'),
-            'time' => date('d.m.y H:i'),
-            'user' => $user->getUsername()
+            'userstamp'=> $this->translator->trans('report.generated.by.user.%user%.on.%time%',array("%user%" => $user->getFullname(),'%time%' => date('d.m.y H:i')))
         );
+
         
-        # TODO: MUSS WIEDER REIN
+
+
+
+        
+        
         \PhpOffice\PhpWord\Settings::setOutputEscapingEnabled(true);
         
         $templateProcessor = new TemplateProcessor($this->getParameter("word_case_file"));
