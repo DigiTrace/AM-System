@@ -89,7 +89,7 @@ class CaseDetailController extends AbstractController {
                     . "JOIN App:Historie_Objekt ho with ho.Barcode_id = o.Barcode_id "
                     . "LEFT JOIN App:Objekt so with so.Barcode_id = o.Standort "
                     . "WHERE ho.Fall_id = :case AND "
-                    . "(o.Fall_id = :case OR  o.Fall_id is null)")
+                    . "(o.Fall_id != :case OR  o.Fall_id is null)")
                     ->setParameter("case",$case->getId());  
         return $query->getResult();
         
