@@ -35,6 +35,7 @@
     <thead>
       <tr>
         <th style="max-width:100px">{% trans %}user{% endtrans %}</th>
+        <th>{% trans %}security.login.fullname{% endtrans %}</th>
         <th>{% trans %}useremail{% endtrans %}</th>
         <th>{% trans %}useroptions{% endtrans %}</th>
       </tr>
@@ -48,8 +49,9 @@
             {% else %}
             <td class="col-md-2"><s>{{ user.getUsername }}</s></td>
             {% endif %}
+            <td class="col-md-2">{{ user.getFullname }}</td>
             <td class="col-md-2">{{ user.getEmail }}</td>
-             <td class="col-md-5">
+            <td class="col-md-5">
                  {% if user.isEnabled == true and "ROLE_ADMIN" not in user.getRoles%}
                  
                  <a onclick="alteruser('{{ path("set_enable_user") }}','{{ user.getUsername }}')" data-toggle="tooltip" title="{% trans %}action.deactivate.user{% endtrans %}">

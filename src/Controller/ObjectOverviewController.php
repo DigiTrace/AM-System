@@ -185,8 +185,8 @@ class ObjectOverviewController extends AbstractController{
                                 "barcode" => "o.Barcode_id",
                                 "notice" => "o.Notiz",
                                 "hdesc" => "ho.Verwendung",
-                                "mu" => "n.username",
-                                "hu" => "hn.username",
+                                "mu" => "n.fullname",
+                                "hu" => "hn.fullname",
                                 "mstoredin" => "so.Barcode_id",
                                 "hstoredin" => "hso.Barcode_id",
                                 "mcase" => "c.case_id",
@@ -198,8 +198,8 @@ class ObjectOverviewController extends AbstractController{
                                 "pn" => "d.PN",
                                 "sn" => "d.SN",
                                 "connection" => "d.Anschluss",
-                                "mr" => "r.username",
-                                "hr" => "hr.username");
+                                "mr" => "r.fullname",
+                                "hr" => "hr.fullname");
 
 
         

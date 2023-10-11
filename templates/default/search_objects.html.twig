@@ -86,7 +86,7 @@
               
         
         {% if objekt.getreserviertVon != null %}
-            <td> <span class="glyphicon glyphicon-alert"></span> {% trans with {'%user%':objekt.getreserviertVon.getUsername} %}reserved from %user%{% endtrans %}</td>
+            <td> <span class="glyphicon glyphicon-alert"></span> {% trans with {'%user%':objekt.getreserviertVon.getFullname} %}reserved from %user%{% endtrans %}</td>
         {% elseif objekt.isUsable == false %}
             <td> <span class="glyphicon glyphicon-remove"></span> </td>
         {% else %}

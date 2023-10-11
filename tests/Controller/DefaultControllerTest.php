@@ -1076,7 +1076,7 @@ class DefaultControllerTest extends WebTestCase
        
         $this->assertStringContainsString($name,$query);
         $this->assertStringContainsString($kategorie,$query);
-        $this->assertStringContainsString('desc.luser User',$query);
+        $this->assertStringContainsString('desc.luser Testuser',$query);
         //$time = new \DateTime('now');
         //$this->assertStringContainsString($time->format('d.m.y H:i'),$query); 
         
@@ -1313,7 +1313,7 @@ class DefaultControllerTest extends WebTestCase
        
         $this->assertStringContainsString($name,$query);
         $this->assertStringContainsString($kategorie,$query);
-        $this->assertStringContainsString('desc.luser User',$query);
+        $this->assertStringContainsString('desc.luser Testuser',$query);
         $this->assertStringContainsString("status.cleaned",$query);  // <-- Ist das Objekt genullt?
        
         $this->logoutCorrect($client);      
@@ -1360,7 +1360,7 @@ class DefaultControllerTest extends WebTestCase
        
         $this->assertStringContainsString($name,$query);
         $this->assertStringContainsString($kategorie,$query);
-        $this->assertStringContainsString('desc.luser User',$query);
+        $this->assertStringContainsString('desc.luser Testuser',$query);
         $this->assertStringNotContainsStringIgnoringCase("status.cleaned",$query);  // <-- Ist die Ausruestung genullt?
   
         $this->logoutCorrect($client);
@@ -1397,7 +1397,7 @@ class DefaultControllerTest extends WebTestCase
         $query = $crawler->filter("#currentstatus")->text();
         
        
-        $this->assertStringContainsString('desc.luser User',$query);
+        $this->assertStringContainsString('desc.luser Testuser',$query);
         $this->assertStringContainsString("status.destroyed",$query);  // <-- Ist das Objekt zerstoert?  
         $this->logoutCorrect($client);      
     }
@@ -1432,7 +1432,7 @@ class DefaultControllerTest extends WebTestCase
         $query = $crawler->filter("#currentstatus")->text();
         
        
-        $this->assertStringContainsString('desc.luser User',$query);
+        $this->assertStringContainsString('desc.luser Testuser',$query);
         $this->assertStringContainsString("status.lost",$query);  // <-- Ist das Objekt verloren?  
         $this->logoutCorrect($client);      
     }
@@ -1524,7 +1524,7 @@ class DefaultControllerTest extends WebTestCase
        
         $this->assertStringContainsString($name,$query);
         $this->assertStringContainsString($kategorie,$query);
-        $this->assertStringContainsString('desc.luser User',$query);
+        $this->assertStringContainsString('desc.luser Testuser',$query);
         $this->assertStringContainsString("status.reserved",$query);  // <-- Ist das Objekt genullt?
        
         $this->logoutCorrect($client);      
@@ -1555,7 +1555,7 @@ class DefaultControllerTest extends WebTestCase
         $query = $crawler->filter("#currentstatus")->text();
         
        
-        $this->assertStringContainsString('desc.luser User',$query);
+        $this->assertStringContainsString('desc.luser Testuser',$query);
         $this->assertStringContainsString("DTHW00002 | (TEST)Schrank",$query);  // <-- Ist das Objekt dem Schrank zugeordnet?  
         $this->logoutCorrect($client);      
     }
@@ -1619,7 +1619,7 @@ class DefaultControllerTest extends WebTestCase
         $query = $crawler->filter("#currentstatus")->text();
         
        
-        $this->assertStringContainsString('desc.luser User',$query);
+        $this->assertStringContainsString('desc.luser Testuser',$query);
         $this->assertStringContainsString("DTHW00002 | (TEST)Schrank",$query);  // <-- Ist das Objekt dem Schrank zugeordnet?  
         
         
@@ -1658,7 +1658,7 @@ class DefaultControllerTest extends WebTestCase
         $query = $crawler->filter("#currentstatus")->text();
         
        
-        $this->assertStringContainsString('desc.luser User',$query);
+        $this->assertStringContainsString('desc.luser Testuser',$query);
         $this->assertStringContainsString("DTHW00003 | (TEST)Papierbox",$query);  // <-- Ist das Objekt dem Schrank zugeordnet?  
         
         
@@ -1702,7 +1702,7 @@ class DefaultControllerTest extends WebTestCase
         $query = $crawler->filter("#currentstatus")->text();
         
        
-        $this->assertStringContainsString('desc.luser User',$query);
+        $this->assertStringContainsString('desc.luser Testuser',$query);
         $this->assertStringNotContainsStringIgnoringCase("DTHW00005 | (TEST)Pappkarton",$query);  // <-- Ist das Objekt dem Schrank zugeordnet?  
         
         $this->logoutCorrect($client);      
@@ -1752,7 +1752,7 @@ class DefaultControllerTest extends WebTestCase
         $query = $crawler->filter("#currentstatus")->text();
         
        
-        $this->assertStringContainsString('desc.luser User',$query);
+        $this->assertStringContainsString('desc.luser Testuser',$query);
         $this->assertStringContainsString($case_id,$query);  // <-- Ist das Objekt dem Fall zugeordnet ?  
         $this->logoutCorrect($client);      
     }

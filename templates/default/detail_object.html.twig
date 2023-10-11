@@ -86,7 +86,7 @@
                                         {% if objekt.getReserviertVon == false %}
                                            /
                                         {% else %}
-                                            {{ objekt.getReserviertVon.getUsername }}
+                                            {{ objekt.getReserviertVon.getFullname }}
                                         {% endif %}
                                    </dd>
                                 </dl>
@@ -164,7 +164,7 @@
                                 <dl>
                                    <dt>{% trans %}desc.luser{% endtrans %}</dt>
                                    <dd> 
-                                        {{ objekt.getNutzer.getUsername }}
+                                        {{ objekt.getNutzer.getFullname }}
                                    </dd>
                                 </dl>
                             </div>
@@ -521,7 +521,7 @@
                                     {% endif %}
                                  {% endif %}
 
-                                <td>{{ entry.getNutzerId }}</td>
+                                <td>{{ entry.getNutzerId.getFullname }}</td>
                            </tr>
                            {% endfor %}
                          </tbody>

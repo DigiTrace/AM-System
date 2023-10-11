@@ -269,8 +269,8 @@ class CaseOverviewController extends AbstractController
 
                 $message->htmlTemplate('emails/notifyCaseCreation.html.twig');
                 $message->context([
-                    'name' => $tonotifyuser->getUsername(),
-                    'calleduser' => $calleduser->getUsername(),
+                    'name' => $tonotifyuser->getFullname(),
+                    'calleduser' => $calleduser->getFullname(),
                     'caseid' => $new_case->getCaseId()
                 ]);
             
