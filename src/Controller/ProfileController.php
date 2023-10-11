@@ -101,16 +101,32 @@ class ProfileController extends AbstractController
         
             
 
+            # Pruefen, ob der neue Benutzer schon vorhanden ist:
             
+            $query =  $entityManager->createQuery("select u from App:Nutzer u "
+                                    . "where u.fullname like :fullname "
+                                    . "OR u.email like :email "
+                                    . "OR u.username like :username ");
 
-            $user->setUsername($changeform->getData()['username']);
-            $user->setFullname($changeform->getData()['fullname']);
-            $user->setEmail($changeform->getData()['email']);
-            $entityManager->persist($user);
-            $entityManager->flush();
-            $this->addFlash('success',"profile.successful.changed");
-            return $this->redirectToRoute('Nutzerprofil');
+            $query->setParameter(":fullname",$changeform->getData()['fullname']);
+            $query->setParameter(":username",$changeform->getData()['username']);
+            $query->setParameter(":email",$changeform->getData()['email']);
+            $users = $query->getResult();
 
+             
+            if (count($users) > 0){
+                $this->addFlash('danger',"profile.failed.changed.user.data.taken");
+
+            } 
+            else{
+                $user->setUsername($changeform->getData()['username']);
+                $user->setFullname($changeform->getData()['fullname']);
+                $user->setEmail($changeform->getData()['email']);
+                $entityManager->persist($user);
+                $entityManager->flush();
+                $this->addFlash('success',"profile.successful.changed");
+                return $this->redirectToRoute('Nutzerprofil');
+            }
         }
         
 

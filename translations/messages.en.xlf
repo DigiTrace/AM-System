@@ -1121,6 +1121,11 @@ AM-System
                 <target>New password set</target>
             </trans-unit>
 
+            <trans-unit id="security.adduser.account.fail.dup.user">
+                <source>security.adduser.account.fail.dup.user</source>
+                <target>Provided user information matches existing one, please check the usersummary</target>
+            </trans-unit>
+
             <trans-unit id="security.adduser.account.created">
                 <source>security.adduser.account.created</source>
                 <target>New Account created</target>
@@ -1150,6 +1155,11 @@ AM-System
             <trans-unit id="profile_successful_changed">
                 <source>profile.successful.changed</source>
                 <target>Profil successful changed</target>
+            </trans-unit>
+
+            <trans-unit id="profile_failed_changed_user_data_taken">
+                <source>profile.failed.changed.user.data.taken</source>
+                <target>Profil could not be change with the provided data. Please adjust your input.</target>
             </trans-unit>
 
             <trans-unit id="report_userstamp">

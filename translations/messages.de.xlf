@@ -1141,7 +1141,12 @@ AM-System
 
             <trans-unit id="security.adduser.account.created">
                 <source>security.adduser.account.created</source>
-                <target>New Account created</target>
+                <target>Neuen Benutzer erstellt</target>
+            </trans-unit>
+
+            <trans-unit id="security.adduser.account.fail.dup.user">
+                <source>security.adduser.account.fail.dup.user</source>
+                <target>Bereitgestellte Informationen treffen auf einen bereits bestehenden Nutzer zu, bitte prüfen Sie dies in der Nutzeransicht nach</target>
             </trans-unit>
 
             <trans-unit id="security.adduser.username">
@@ -1168,6 +1173,11 @@ AM-System
             <trans-unit id="profile_successful_changed">
                 <source>profile.successful.changed</source>
                 <target>Profil erfolgreich geändert</target>
+            </trans-unit>
+
+            <trans-unit id="profile_failed_changed_user_data_taken">
+                <source>profile.failed.changed.user.data.taken</source>
+                <target>Profil konnte nicht mit den bereitgestellten Daten geändert werden. Bitte passen Sie Ihre Angabe an.</target>
             </trans-unit>
 
             <trans-unit id="report_userstamp">

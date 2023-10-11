@@ -214,18 +214,34 @@ class AdminController extends AbstractController
         $addNutzerform->handleRequest($request);
         if ($addNutzerform->isSubmitted() && $addNutzerform->isValid()) {
 
-            $hashednewPassword = $passwordHasher->hashPassword(
-                $nutzer,
-                $nutzer->getPlainPassword()
-            );
-            $nutzer->setRoles(["ROLE_USER"]);
+            # Pruefen, ob der neue Benutzer schon vorhanden ist:
+            
+            $query =  $entityManager->createQuery("select u from App:Nutzer u "
+                                    . "where u.fullname like :fullname "
+                                    . "OR u.email like :email "
+                                    . "OR u.username like :username ");
 
-            $nutzer->setPassword($hashednewPassword);
-            $entityManager->persist($nutzer);
-            $entityManager->flush();
-            $this->addFlash('success',"security.adduser.account.created");
-            
-            
+            $query->setParameter(":fullname",$nutzer->getFullname());
+            $query->setParameter(":username",$nutzer->getUsername());
+            $query->setParameter(":email",$nutzer->getEmail());
+            $users = $query->getResult();
+
+             
+            if (count($users) > 0){
+                $this->addFlash('danger',"security.adduser.account.fail.dup.user");
+            }
+            else{
+                $hashednewPassword = $passwordHasher->hashPassword(
+                    $nutzer,
+                    $nutzer->getPlainPassword()
+                );
+                $nutzer->setRoles(["ROLE_USER"]);
+    
+                $nutzer->setPassword($hashednewPassword);
+                $entityManager->persist($nutzer);
+                $entityManager->flush();
+                $this->addFlash('success',"security.adduser.account.created");
+            }            
         }
 
         return $this->render('profile/AddNutzer.html.twig', array(
