@@ -261,185 +261,7 @@ class ObjectDetailController extends AbstractController{
     }
     
     
-    private function isObjectWithNewStatusValid($object,
-                                                $newstatus, 
-                                                $contextparameter = null, 
-                                                &$reason = null){
-        $valid = true;
-        $contextreason = "";
-        //  Die Vererbung der Aktion zu den eingelagerten Objekten
-        //  sind zu fehleranfaellig. Funktionalitaet wurde entfernt
-        /* if($object->getKategorie() == Objekt::KATEGORIE_BEHAELTER){
-            $valid = false;
-            $reason = "container_be_used_for_mass_update";
-        }*/
-        
-        if($newstatus == $object->getStatus() &&
-           !($object->getStatus() == Objekt::STATUS_IN_VERWENDUNG ||
-             $object->getStatus() == Objekt::STATUS_FESTPLATTENIMAGE_GESPEICHERT || 
-             $object->getStatus() == Objekt::STATUS_IN_EINEM_BEHAELTER_GELEGT )
-          ){
-            $valid = false;
-            $reason = "object_already_in_this_status";
-        }
-        
-        
-        if($newstatus == Objekt::STATUS_GENULLT && 
-            $object->getKategorie() != Objekt::KATEGORIE_DATENTRAEGER ){
-                $valid = false;
-                $reason = "object_is_not_a_hdd";
-        }
-        
-        if($newstatus == Objekt::STATUS_FESTPLATTENIMAGE_GESPEICHERT && 
-            $object->getKategorie() != Objekt::KATEGORIE_DATENTRAEGER){
-            
-            
-            if($object->getKategorie() != Objekt::KATEGORIE_ASSERVAT_DATENTRAEGER){
-                $valid = false;
-                $reason = "object_is_not_a_hdd";
-            }
-        }
-
-        if($object->getStatus() == Objekt::STATUS_VERLOREN ||
-           $object->getStatus() == Objekt::STATUS_VERNICHTET){
-            $valid = false;
-            $reason = "object_is_destroyed_or_lost";
-        }
-
-        if($newstatus == Objekt::STATUS_AUS_DEM_BEHAELTER_ENTFERNT &&
-                $object->getStandort() == null){
-            $valid = false;
-            $reason = "object_is_not_stored";
-        }
-        
-        if($newstatus == Objekt::STATUS_RESERVIERUNG_AUFGEHOBEN &&
-                $object->getreserviertVon() == null){
-            $valid = false;
-            $reason = "object_is_not_reserved";
-        }
-        
-        if($newstatus == Objekt::STATUS_RESERVIERT &&
-                $object->getreserviertVon() != null){
-            $valid = false;
-            $reason = "object_is_already_reserved";
-        }
-        
-
-        if($newstatus == Objekt::STATUS_AUS_DEM_FALL_ENTFERNT){
-            
-            if($object->getFall() == null){
-                $valid = false;
-                $reason = "object_is_not_in_a_case";
-            }
-            
-            if( $object->getKategorie() == Objekt::KATEGORIE_AKTE){
-                $valid = false;
-                $reason = "records_cant_be_removed_from_case";
-            }
-        }
-        
-        if($newstatus == Objekt::VSTATUS_NEUTRALISIERT &&
-                $object->getKategorie() != Objekt::KATEGORIE_DATENTRAEGER){
-           
-            
-                $valid = false;
-                $reason = "action_can_not_be_done_by_object";
-        }
-        
-        
-        
-
-       /* if($store_object != null){
-            if($this->has_object_relationship_with_store_object($object, $store_object) ||
-                $object->getStandort() != null){
-                $errorActionOnObject = $errorActionOnObject . $id."\r\n";
-            }
-        }
-
-        if($case != null){
-            if($object->getFall() != null){
-                $errorActionOnObject = $errorActionOnObject . $id."\r\n";
-            }
-        }*/
-
-        if($contextparameter != null){
-            // when a Object has to be stored
-            if($contextparameter instanceof \App\Entity\Objekt &&
-                  $newstatus == Objekt::STATUS_IN_EINEM_BEHAELTER_GELEGT){
-                
-                
-                if($contextparameter->getKategorie() != Objekt::KATEGORIE_BEHAELTER){
-                    $valid = false;
-                    $reason = "object_is_no_container";
-                }
-                if($this->has_object_relationship_with_store_object($object, $contextparameter)){
-                        
-                    $valid = false;
-                    $reason = "object_has_relationship_with_stored_object";
-                }
-                
-                // This condition is disabled due to enable lazy swap
-                /*if($object->getStandort() != null){
-                    $valid = false;
-                    $reason = "object_is_stored_in_another_object %context%";
-                    $contextreason = $object->getStandort()." | ".$object->getStandort()->getName();
-                    
-                }*/
-                
-                // Container has to be also valid
-                
-                if($contextparameter->getStatus() == Objekt::STATUS_VERNICHTET ||
-                   $contextparameter->getStatus() == Objekt::STATUS_VERLOREN){
-                    $valid = false;
-                    $reason = "to_be_added_container_is_destroyed_or_lost";
-                }
-                
-                
-            }
-            
-            
-            // when a image has to stored in HDD
-            if($contextparameter instanceof \App\Entity\Objekt &&
-                  $newstatus == Objekt::STATUS_FESTPLATTENIMAGE_GESPEICHERT){
-                
-                
-                if($contextparameter->getKategorie() != Objekt::KATEGORIE_ASSERVAT_DATENTRAEGER){
-                    $valid = false;
-                    $reason = "object_is_no_exhibit_hdd";
-                }
-                
-                if($object->getImages()->contains($contextparameter)){
-                    $valid = false;
-                    
-                    $reason = "image_is_already_in_hdd %context%";
-                    $contextreason = $contextparameter->getBarcode()." | ".$contextparameter->getName();
-                    
-                }
-                
-                // Container has to be also valid
-                
-                if($contextparameter->getStatus() == Objekt::STATUS_VERNICHTET ||
-                   $contextparameter->getStatus() == Objekt::STATUS_VERLOREN){
-                    $valid = false;
-                    $reason = "exhibit_hdd_is_destroyed_or_lost";
-                }
-                
-                
-            }
-            
-
-            if($contextparameter instanceof \App\Entity\Fall){
-                if($object->getFall() != null){
-                    $valid = false;
-                    $reason = "object_is_already_in_a_other_case %context%";
-                    $contextreason = $object->getFall()->getId();
-                }
-            }
-
-        }
-        $reason = $this->translator->trans($reason,array("context" => $contextreason));
-        return $valid;
-    }
+    
     
       
       
@@ -550,13 +372,12 @@ class ObjectDetailController extends AbstractController{
                             default:
                                $contextthing = null; 
                         }
-                        $action_correct = $this->isObjectWithNewStatusValid($object,
-                                                                $newstatus, 
+                        $action_correct = $object->isObjectWithNewStatusValid($newstatus, 
                                                                 $contextthing,
                                                                 $reason);
 
                         if($action_correct == false){
-                            $message= $reason;
+                            $message= $this->translator->trans($reason,array("context" => $contextthing));
                             $errorActionOnObject = $errorActionOnObject . $id." : ".$message."\r\n";
                         }
                     }
@@ -794,11 +615,10 @@ class ObjectDetailController extends AbstractController{
             return $this->redirectToRoute('search_objects'); 
         }
         
-        if($this->isObjectWithNewStatusValid($object, 
-                                            Objekt::STATUS_EDITIERT, 
+        if($object->isObjectWithNewStatusValid(Objekt::STATUS_EDITIERT, 
                                             null, 
                                             $reason) == false){
-            $this->addFlash('danger',$reason);
+            $this->addFlash('danger', $this->translator->trans($reason));
             return $this->redirectToRoute('detail_object',array('id' =>$id) );
         }
         
@@ -1161,11 +981,10 @@ class ObjectDetailController extends AbstractController{
             return $this->redirectToRoute('search_objects'); 
         }
         
-        if($this->isObjectWithNewStatusValid($object, 
-                                            $status_id, 
+        if($object->isObjectWithNewStatusValid($status_id, 
                                             null, 
                                             $reason) == false){
-            $this->addFlash('danger',$reason);
+            $this->addFlash('danger', $this->translator->trans($reason));
             return $this->redirectToRoute('detail_object',array('id' =>$id) );
         }
         
@@ -1183,8 +1002,7 @@ class ObjectDetailController extends AbstractController{
                     $this->neutralize_object($doctrine,$object,$changeform->getData()['verwendung'],$changeform->getData()['dueDate']);
                     break;
                 case Objekt::STATUS_AN_PERSON_UEBERGEBEN:
-                    if($this->isObjectWithNewStatusValid($object, 
-                    Objekt::STATUS_AUS_DEM_BEHAELTER_ENTFERNT) == true){
+                    if($object->isObjectWithNewStatusValid(Objekt::STATUS_AUS_DEM_BEHAELTER_ENTFERNT) == true){
                         $this->alter_object($doctrine, 
                                     $object,
                                     Objekt::STATUS_AUS_DEM_BEHAELTER_ENTFERNT,
@@ -1218,8 +1036,7 @@ class ObjectDetailController extends AbstractController{
              * automatisch herausgezogen werden
              */
             /*if($status_id == helper::STATUS_AN_PERSON_UEBERGEBEN &&
-                $this->isObjectWithNewStatusValid($object, 
-                                                helper::STATUS_AUS_DEM_BEHAELTER_ENTFERNT) == true){
+                $object->isObjectWithNewStatusValid(helper::STATUS_AUS_DEM_BEHAELTER_ENTFERNT) == true){
                 $this->alter_object($object,
                                     helper::STATUS_AUS_DEM_BEHAELTER_ENTFERNT,
                                     "System: Aufgrund von Uebergabe aus dem Behaelter entfernt",
@@ -1316,11 +1133,10 @@ class ObjectDetailController extends AbstractController{
         }
         
         $status_id = Objekt::STATUS_IN_EINEM_BEHAELTER_GELEGT;
-        if($this->isObjectWithNewStatusValid($object, 
-                                            $status_id, 
+        if($object->isObjectWithNewStatusValid($status_id, 
                                             null, 
                                             $reason) == false){
-            $this->addFlash('danger',$reason);
+            $this->addFlash('danger',$this->translator->trans($reason));
             return $this->redirectToRoute('detail_object',array('id' =>$id) );
         }
         
@@ -1392,33 +1208,7 @@ class ObjectDetailController extends AbstractController{
         
     }
     
-    // Überprüfung, ob das einzulagernde Objekt bereits mit den Behaeltern
-    // in einer Weise verbunden sind
-    private function has_object_relationship_with_store_object(\App\Entity\Objekt $object,
-                                                                \App\Entity\Objekt $store_object){
-        // Ein Objekt darf sich nicht selbst einlagern duerfen
-        if($object->getBarcode() == $store_object->getBarcode()){
-            return true;
-        }
-        
-        if($object->getStandort() != null){
-            if($object->getStandort()->getBarcode() == 
-                 $store_object->getBarcode()){
-                return true;
-            }
-        }
-        
-        $temp_object = clone $store_object;
-        while($temp_object->getStandort() != null){
-            if($temp_object->getStandort()->getBarcode() == $object->getBarcode()){
-                return true;
-            }
-            else{
-                $temp_object = $temp_object->getStandort();
-            }
-        }
-        return false;
-    }
+    
     
     private function store_object(ManagerRegistry $doctrine,$fromid,$toid,$timestamp,$description){
         
@@ -1484,11 +1274,10 @@ class ObjectDetailController extends AbstractController{
         
        
         
-        if($this->isObjectWithNewStatusValid($object, 
-                                            Objekt::STATUS_IN_EINEM_BEHAELTER_GELEGT, 
+        if($object->isObjectWithNewStatusValid(Objekt::STATUS_IN_EINEM_BEHAELTER_GELEGT, 
                                             $store_object, 
                                             $reason) == false){
-            $this->addFlash('danger',$reason);
+            $this->addFlash('danger', $this->translator->trans($reason));
             return $this->redirectToRoute('detail_object',array('id' =>$fromid) );
         }
         
@@ -1868,11 +1657,10 @@ class ObjectDetailController extends AbstractController{
             return $this->redirectToRoute('search_objects'); 
         }
                
-        if($this->isObjectWithNewStatusValid($object, 
-                                            Objekt::STATUS_FESTPLATTENIMAGE_GESPEICHERT, 
+        if($object->isObjectWithNewStatusValid(Objekt::STATUS_FESTPLATTENIMAGE_GESPEICHERT, 
                                             null, 
                                             $reason) == false){
-            $this->addFlash('danger',$reason);
+            $this->addFlash('danger',$this->translator->trans($reason));
             return $this->redirectToRoute('detail_object',array('id' =>$id) );
         }
         
@@ -1976,11 +1764,10 @@ class ObjectDetailController extends AbstractController{
         $callbackid = ($returnid == 0)? $object->getBarcode():$exhibit_object->getBarcode();
         
         
-        if($this->isObjectWithNewStatusValid($object, 
-                                            Objekt::STATUS_FESTPLATTENIMAGE_GESPEICHERT, 
+        if($object->isObjectWithNewStatusValid(Objekt::STATUS_FESTPLATTENIMAGE_GESPEICHERT, 
                                             $exhibit_object, 
                                             $reason) == false){
-            $this->addFlash('danger',$reason);
+            $this->addFlash('danger',$this->translator->trans($reason,array("context" => $exhibit_object)));
             return $this->redirectToRoute('detail_object',array('id' =>$callbackid) );
         }
         

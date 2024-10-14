@@ -25,7 +25,6 @@ use App\Controller\helper;
 use Symfony\Component\Validator\Constraints as Assert;
 
 
-
 #[ORM\Entity]
 #[ORM\Table(name: "ams_Objekt")]
 class Objekt
@@ -89,6 +88,8 @@ class Objekt
     
     static $vstatusToId = array ("status.neutralize" => helper::VSTATUS_NEUTRALISIERT);
     
+    private $translator;
+
     public function __construct() {
         $this->Zeitstempel = new \DateTime();
         $this->Zeitstempelderumsetzung = new \DateTime();
@@ -172,6 +173,8 @@ class Objekt
     #[ORM\OneToOne(targetEntity: "ObjektBlob", mappedBy:"Objekt",cascade: ["persist", "remove"])]
     protected $ObjektBlob;
     
+    
+
     
   
     public function __toString()
@@ -700,4 +703,212 @@ class Objekt
     }
     
     
+
+    public function isObjectWithNewStatusValid( $newstatus, 
+                                                $contextparameter = null, 
+                                                &$reason = null){
+        $valid = true;
+        $contextreason = "";
+        //  Die Vererbung der Aktion zu den eingelagerten Objekten
+        //  sind zu fehleranfaellig. Funktionalitaet wurde entfernt
+        /* if($this->getKategorie() == Objekt::KATEGORIE_BEHAELTER){
+            $valid = false;
+            $reason = "container_be_used_for_mass_update";
+        }*/
+        
+        if($newstatus == $this->getStatus() &&
+           !($this->getStatus() == Objekt::STATUS_IN_VERWENDUNG ||
+             $this->getStatus() == Objekt::STATUS_FESTPLATTENIMAGE_GESPEICHERT || 
+             $this->getStatus() == Objekt::STATUS_IN_EINEM_BEHAELTER_GELEGT )
+          ){
+            $valid = false;
+            $reason = "object_already_in_this_status";
+        }
+        
+        
+        if($newstatus == Objekt::STATUS_GENULLT && 
+            $this->getKategorie() != Objekt::KATEGORIE_DATENTRAEGER ){
+                $valid = false;
+                $reason = "object_is_not_a_hdd";
+        }
+        
+        if($newstatus == Objekt::STATUS_FESTPLATTENIMAGE_GESPEICHERT && 
+            $this->getKategorie() != Objekt::KATEGORIE_DATENTRAEGER){
+            
+            
+            if($this->getKategorie() != Objekt::KATEGORIE_ASSERVAT_DATENTRAEGER){
+                $valid = false;
+                $reason = "object_is_not_a_hdd";
+            }
+        }
+
+        if($this->getStatus() == Objekt::STATUS_VERLOREN ||
+           $this->getStatus() == Objekt::STATUS_VERNICHTET){
+            $valid = false;
+            $reason = "object_is_destroyed_or_lost";
+        }
+
+        if($newstatus == Objekt::STATUS_AUS_DEM_BEHAELTER_ENTFERNT &&
+                $this->getStandort() == null){
+            $valid = false;
+            $reason = "object_is_not_stored";
+        }
+        
+        if($newstatus == Objekt::STATUS_RESERVIERUNG_AUFGEHOBEN &&
+                $this->getreserviertVon() == null){
+            $valid = false;
+            $reason = "object_is_not_reserved";
+        }
+        
+        if($newstatus == Objekt::STATUS_RESERVIERT &&
+                $this->getreserviertVon() != null){
+            $valid = false;
+            $reason = "object_is_already_reserved";
+        }
+        
+
+        if($newstatus == Objekt::STATUS_AUS_DEM_FALL_ENTFERNT){
+            
+            if($this->getFall() == null){
+                $valid = false;
+                $reason = "object_is_not_in_a_case";
+            }
+            
+            if( $this->getKategorie() == Objekt::KATEGORIE_AKTE){
+                $valid = false;
+                $reason = "records_cant_be_removed_from_case";
+            }
+        }
+        
+        if($newstatus == Objekt::VSTATUS_NEUTRALISIERT &&
+                $this->getKategorie() != Objekt::KATEGORIE_DATENTRAEGER){
+           
+            
+                $valid = false;
+                $reason = "action_can_not_be_done_by_object";
+        }
+        
+        
+        
+
+       /* if($store_object != null){
+            if($this->has_object_relationship_with_store_object($this, $store_object) ||
+                $this->getStandort() != null){
+                $errorActionOnObject = $errorActionOnObject . $id."\r\n";
+            }
+        }
+
+        if($case != null){
+            if($this->getFall() != null){
+                $errorActionOnObject = $errorActionOnObject . $id."\r\n";
+            }
+        }*/
+
+        if($contextparameter != null){
+            // when a Object has to be stored
+            if($contextparameter instanceof \App\Entity\Objekt &&
+                  $newstatus == Objekt::STATUS_IN_EINEM_BEHAELTER_GELEGT){
+                
+                
+                if($contextparameter->getKategorie() != Objekt::KATEGORIE_BEHAELTER){
+                    $valid = false;
+                    $reason = "object_is_no_container";
+                }
+                if($this->has_object_relationship_with_store_object($contextparameter)){
+                        
+                    $valid = false;
+                    $reason = "object_has_relationship_with_stored_object";
+                }
+                
+                // This condition is disabled due to enable lazy swap
+                /*if($this->getStandort() != null){
+                    $valid = false;
+                    $reason = "object_is_stored_in_another_object %context%";
+                    $contextreason = $this->getStandort()." | ".$this->getStandort()->getName();
+                    
+                }*/
+                
+                // Container has to be also valid
+                
+                if($contextparameter->getStatus() == Objekt::STATUS_VERNICHTET ||
+                   $contextparameter->getStatus() == Objekt::STATUS_VERLOREN){
+                    $valid = false;
+                    $reason = "to_be_added_container_is_destroyed_or_lost";
+                }
+                
+                
+            }
+            
+            
+            // when a image has to stored in HDD
+            if($contextparameter instanceof \App\Entity\Objekt &&
+                  $newstatus == Objekt::STATUS_FESTPLATTENIMAGE_GESPEICHERT){
+                
+                
+                if($contextparameter->getKategorie() != Objekt::KATEGORIE_ASSERVAT_DATENTRAEGER){
+                    $valid = false;
+                    $reason = "object_is_no_exhibit_hdd";
+                }
+                
+                if($this->getImages()->contains($contextparameter)){
+                    $valid = false;
+                    
+                    $reason = "image_is_already_in_hdd %context%";
+                    $contextreason = $contextparameter->getBarcode()." | ".$contextparameter->getName();
+                    
+                }
+                
+                // Container has to be also valid
+                
+                if($contextparameter->getStatus() == Objekt::STATUS_VERNICHTET ||
+                   $contextparameter->getStatus() == Objekt::STATUS_VERLOREN){
+                    $valid = false;
+                    $reason = "exhibit_hdd_is_destroyed_or_lost";
+                }
+                
+                
+            }
+            
+
+            if($contextparameter instanceof \App\Entity\Fall){
+                if($this->getFall() != null){
+                    $valid = false;
+                    $reason = "object_is_already_in_a_other_case %context%";
+                    $contextreason = $this->getFall()->getId();
+                }
+            }
+
+        }
+        
+        return $valid;
+    }
+
+
+    // Überprüfung, ob das einzulagernde Objekt bereits mit den Behaeltern
+    // in einer Weise verbunden sind
+    public function has_object_relationship_with_store_object(\App\Entity\Objekt $store_object){
+        // Ein Objekt darf sich nicht selbst einlagern duerfen
+        if($this->getBarcode() == $store_object->getBarcode()){
+            return true;
+        }
+        
+        if($this->getStandort() != null){
+            if($this->getStandort()->getBarcode() == 
+                 $store_object->getBarcode()){
+                return true;
+            }
+        }
+        
+        $temp_object = clone $store_object;
+        while($temp_object->getStandort() != null){
+            if($temp_object->getStandort()->getBarcode() == $this->getBarcode()){
+                return true;
+            }
+            else{
+                $temp_object = $temp_object->getStandort();
+            }
+        }
+        return false;
+    }
+
 }
