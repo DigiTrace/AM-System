@@ -499,12 +499,13 @@ class ObjectDetailController extends AbstractController{
         if($object == null){
             $this->addFlash('danger','object_was_not_found');
             
+            // redirect to overview page
             return $this->forward('App\Controller\ObjectOverviewController::search_objects', array());
         }
         $em = $doctrine->getManager();
 
         
-        
+        // query object history
         $query = $em->createQuery('SELECT o '
                     . 'FROM App:Historie_Objekt o '
                     . "WHERE o.Barcode_id = :barcode " 
@@ -513,10 +514,7 @@ class ObjectDetailController extends AbstractController{
         $history_entrys = $query->getResult();
         
         $stored_objects = null;
-        /*
-         * Wenn es sich um einen Behaelter handelt, sollen die
-         * eingelagerten Objekte angeziegt werden.
-         */
+        // if object is a container, show stored objects
         if($object->getKategorie() == Objekt::KATEGORIE_BEHAELTER){
             
             $query = $em->createQuery('SELECT o '
@@ -528,6 +526,7 @@ class ObjectDetailController extends AbstractController{
             $stored_objects = $query->getResult();
         }
         
+        // render object detail view
         return $this->render('default/detail_object.html.twig', [
             'id' => $object->getBarcode(),
             'objekt' => $object ,

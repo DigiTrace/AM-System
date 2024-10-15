@@ -258,6 +258,10 @@
                 <source>desc.size</source>
                 <target>Size:</target>
             </trans-unit>
+            <trans-unit id="desc_size.postfix">
+                <source>desc.size.postfix</source>
+                <target>GB</target>
+            </trans-unit>
             <trans-unit id="desc_bsize">
                 <source>desc.bsize</source>
                 <target>Special size</target>
@@ -421,7 +425,7 @@
             </trans-unit>
             <trans-unit id="hddinfos">
                 <source>hddinfos</source>
-                <target>Specific informations for disk medium</target>
+                <target>Specific information for disk medium</target>
             </trans-unit>
             <trans-unit id="label.do.action">
                 <source>label.do.action</source>
@@ -903,9 +907,9 @@
                 <target>Upload picture:</target>
             </trans-unit>
             
-            <trans-unit id="additional.informations">
-                <source>additional.informations</source>
-                <target>Additional informations</target>
+            <trans-unit id="additional.information">
+                <source>additional.information</source>
+                <target>Additional information</target>
             </trans-unit>
             
             <trans-unit id="currentsavedexhibithdd">

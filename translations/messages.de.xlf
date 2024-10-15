@@ -258,6 +258,10 @@
                 <source>desc.size</source>
                 <target>Größe:</target>
             </trans-unit>
+            <trans-unit id="desc_size.postfix">
+                <source>desc.size.postfix</source>
+                <target>GB</target>
+            </trans-unit>
             <trans-unit id="desc_bsize">
                 <source>desc.bsize</source>
                 <target>Besondere Größe:</target>
@@ -912,8 +916,8 @@
                 <target>Anzeigebild hochladen:</target>
             </trans-unit>
             
-            <trans-unit id="additional.informations">
-                <source>additional.informations</source>
+            <trans-unit id="additional.information">
+                <source>additional.information</source>
                 <target>Zusätzliche Informationen</target>
             </trans-unit>
             
