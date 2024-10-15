@@ -479,18 +479,23 @@ class ObjectDetailController extends AbstractController{
         ));
         
     }
-    
-    
+
+
     /**
-     * @Route("/objekt/{id}", name="detail_object")
+     * Show details page of a specific object.
+     * 
+     * @param Symfony\Component\HttpFoundation\Request $request  Symfony request
+     * @param Doctrine\Persistence\ManagerRegistry     $doctrine Database interface
+     * @param string                                   $id       DT-ID of object
      */
-    public function details_object(Request $request,ManagerRegistry $doctrine,$id)
-    {        
-        
+    #[Route('/objekt/{id}', name: 'detail_object')]
+    public function details_object(Request $request, ManagerRegistry $doctrine, $id)
+    {
+        // query database for object
         $object = $doctrine->getRepository(Objekt::class)->find($id);
         $datentraeger = $doctrine->getRepository(Datentraeger::class)->find($id);
-        
-        
+
+        // check if object was found
         if($object == null){
             $this->addFlash('danger','object_was_not_found');
             
