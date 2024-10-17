@@ -449,11 +449,10 @@
  {% endblock %}
  {% block content2 %}
      <h2>{% trans %}history{% endtrans %}</h2>       
-                           
+            <div class="container-fluid" id="history">            
              {% if history_entries == false %}
                  <p>{% trans %}message.no.history.available{% endtrans %}</p>   
-             {% else %}
-                <div class="container-fluid" >
+             {% else %}    
                     <div class="row"> 
                         <div class="col-sm-12">
                         <table class="table">
@@ -528,9 +527,10 @@
                         </table>
                         </div>
                     </div>
-                </div>
+                
                  
              {% endif %}
+             </div>
              {% set currentdate = "now"|date('d.m.y') %}
              {% set currenttime = "now"| date('H:i') %}
              

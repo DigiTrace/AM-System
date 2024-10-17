@@ -911,4 +911,30 @@ class Objekt
         return false;
     }
 
+
+    /*
+     * Diese Funktion generiert einen Historieneintrag aus den derzeitigen
+     * Informationen des Objektes. DIES MUSS BEI JEDER AENDERUNG DES OBJEKTES
+     * AUSGEFUEHRT WERDEN
+     */
+    public function createNewHistorieEntry(){  
+        $hist = new \App\Entity\Historie_Objekt($this->getBarcode());
+        
+        $hist->setFall($this->getFall());
+        $hist->setNutzerId($this->getNutzer());
+        $hist->setReserviertVon($this->getreserviertVon());
+        $hist->setStandort($this->getStandort());
+        $hist->setStatusId($this->getStatus());
+        $hist->setVerwendung($this->getVerwendung());
+        $hist->setZeitstempel($this->getZeitstempel());
+        $hist->setZeitstempelumsetzung($this->getZeitstempelumsetzung());
+        $hist->setSystemaktion($this->GetSystemaktion());
+        
+        
+        foreach($this->getImages() as $image){
+            $hist->addImage($image);
+        }
+        return $hist;
+    }
+
 }

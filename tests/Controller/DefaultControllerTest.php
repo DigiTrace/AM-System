@@ -433,24 +433,24 @@ class DefaultControllerTest extends WebTestCase
     private function AddCorrectObject($parameters,$client){
         
         $formname = "add_object";
-        $crawler = $client->request('POST', 'objekt/anlegen');
+        $crawler = $client->request('POST', 'http://localhost/objekt/anlegen');
+
+        $this->assertEquals(200, $client->getResponse()->getStatusCode());
         $form = $crawler->selectButton('add.object')->form();
-        
-        $client->submit($form, array($formname.'[barcode_id]' => $parameters['barcode_id'],
-                                     $formname.'[name]' => $parameters['name'],
-                                     $formname.'[verwendung]' => $parameters['verwendung'],
-                                     $formname.'[kategorie_id]' => $parameters['kategorie_id'],
-                                     $formname.'[bauart]' => $parameters['bauart'],
-                                     $formname.'[formfaktor]' => $parameters['formfaktor'],
-                                     $formname.'[groesse]' => $parameters['groesse'],
-                                     $formname.'[groessealt]' => $parameters['groessealt'],
-                                     $formname.'[anschluss]' => $parameters['anschluss'],
-                                     $formname.'[hersteller]' => $parameters['hersteller'],
-                                     $formname.'[modell]' => $parameters['modell'],
-                                     $formname.'[sn]' => $parameters['sn'],
-                                     $formname.'[pn]' => $parameters['pn'],
-                                     $formname.'[save]' => ""
-            ));
+
+       
+        // Filter for post parameters, which cannot be processed on the creation of a 
+        $blacklistformarray=array("kategorie","dueDateDisplay");
+        foreach ($parameters as $key => $value){
+
+            if(in_array($key, $blacklistformarray)){
+                continue;
+            }
+            $formarray[$formname.'['.$key.']'] = $parameters[$key];
+        }
+        $formarray[$formname.'[save]'] = '';
+
+        $client->submit($form, $formarray);
         
         
         $this->assertTrue($client->getResponse()->isRedirect("/objekt/".$parameters['barcode_id']));
@@ -1796,6 +1796,8 @@ class DefaultControllerTest extends WebTestCase
         $this->searchobjects('mr:true', 1);
     }
     
+
+
     
     // Auxillian Method against boilercode for mass object modification
     public function updateMassObjects($barcodes,
@@ -2178,7 +2180,834 @@ class DefaultControllerTest extends WebTestCase
 	$crawler = $client->request('GET', '/objekt/DTHD00020/upload');
         $this->assertEquals(200, $client->getResponse()->getStatusCode());
     }
+
+// ----------------------------------------------------------------------
+
+    public function testCorrectLoggingHistorie1()
+    {
+        $client = $this->loginWithCorrectCredentials("user","test");
+        
+
+        $parameters['barcode_id']   = "DTHD00500";
+        $parameters['name']         = "(TEST_Historie) Archiv Tape 1";
+        $parameters['verwendung']   = "(TEST_Historie) Wird zum Archivieren von Falldaten verwendet";
+        $parameters['kategorie_id'] = \App\Entity\Objekt::KATEGORIE_DATENTRAEGER;
+        $parameters['kategorie']    = "category.hdd";
+        $parameters['bauart']       = "intern";
+        $parameters['formfaktor']   = "RDX";
+        $parameters['groesse']      = "250";
+        $parameters['groessealt']   = "";
+        $parameters['modell']       = "";
+        $parameters['hersteller']   = "";
+        $parameters['sn']           = "";
+        $parameters['pn']           = "";
+        $parameters['anschluss']    = "";
+        $parameters['dueDate']    = "2024-10-15T11:00:10";
+        $parameters['dueDateDisplay']    = "15.10.24 11:00";
+        
+        $this->AddCorrectObject($parameters,$client);
+
+
+        $newduedate='2024-10-15T12:00:09';
+        $newduedatedisplay='15.10.24 12:00';
+        $newverwendung='Fuer den Test der Historie wurde das Tape ueberschrieben';
+        
+        $crawler = $client->request('POST', '/objekt/'.$parameters['barcode_id'].'/nullen');
+        
+        $formarray=array('form[verwendung]' => $newverwendung,
+        'form[dueDate]' => $newduedate
+        );
+        
+        $form = $crawler->selectButton('label.do.action')->form();
+        $client->submit($form, $formarray);
+        
+        $this->assertTrue($client->getResponse()->isRedirect("/objekt/".$parameters['barcode_id']));     
+        
+        $crawler = $client->request('POST', '/objekt/'.$parameters['barcode_id']);
+        
+        
+        // Check of current status
+        $query = $crawler->filter("#currentstatus")->text();
+        $this->assertStringContainsString($parameters['name'] ,$query);
+        $this->assertStringContainsString($parameters['kategorie'],$query);
+        $this->assertStringContainsString($newduedatedisplay,$query);
+        $this->assertStringContainsString('desc.luser Testuser',$query);
+        $this->assertStringContainsString("status.cleaned",$query);  // <-- is object nulled?
+       
+        // Get list of history
+        $HistoryEntries = $crawler->filter('#history')->filter("tr");
+
+        $this->assertTrue((count($HistoryEntries) != 0), "Count of history entries are zero");
+
+
+        // Select the first history entry
+        $query = $HistoryEntries->eq(count($HistoryEntries)-1)->text();
+        $this->assertStringContainsString($parameters['verwendung'] ,
+                                            $query, 
+                                            "It seems, that the web application did not log the history entry");
+        $this->assertStringContainsString($parameters['dueDateDisplay'],
+                                            $query,
+                                            "It seems, that the web application did not log the history entry");
+
+        $this->assertStringContainsString("status.added",
+                                            $query,
+                                            "It seems, that the web application did not log the history entry");
+
+        $this->logoutCorrect($client);      
+    }
     
+
+
+    public function testCorrectLoggingHistorie2()
+    {
+        $client = $this->loginWithCorrectCredentials("user","test");
+        
+
+        $parameters['barcode_id']   = "DTHD00510";
+        $parameters['name']         = "(TEST_Historie) Archiv Tape 2";
+        $parameters['verwendung']   = "(TEST_Historie) Wird zum Archivieren von Falldaten verwendet";
+        $parameters['kategorie_id'] = \App\Entity\Objekt::KATEGORIE_DATENTRAEGER;
+        $parameters['kategorie']    = "category.hdd";
+        $parameters['bauart']       = "intern";
+        $parameters['formfaktor']   = "RDX";
+        $parameters['groesse']      = "250";
+        $parameters['groessealt']   = "";
+        $parameters['modell']       = "";
+        $parameters['hersteller']   = "";
+        $parameters['sn']           = "";
+        $parameters['pn']           = "";
+        $parameters['anschluss']    = "";
+        $parameters['dueDate']    = "2024-10-13T11:00:10";
+        $parameters['dueDateDisplay']    = "13.10.24 11:00";
+        
+        $this->AddCorrectObject($parameters,$client);
+
+
+
+        $parameters['barcode_id']   = "DTHD00501";
+        $parameters['name']         = "(TEST_Historie) Archiv Tape 2";
+        $parameters['verwendung']   = "(TEST_Historie) Wird zum Archivieren von Falldaten verwendet";
+        $parameters['kategorie_id'] = \App\Entity\Objekt::KATEGORIE_DATENTRAEGER;
+        $parameters['kategorie']    = "category.hdd";
+        $parameters['bauart']       = "intern";
+        $parameters['formfaktor']   = "RDX";
+        $parameters['groesse']      = "250";
+        $parameters['groessealt']   = "";
+        $parameters['modell']       = "";
+        $parameters['hersteller']   = "";
+        $parameters['sn']           = "";
+        $parameters['pn']           = "";
+        $parameters['anschluss']    = "";
+        $parameters['dueDate']    = "2024-10-13T11:00:10";
+        $parameters['dueDateDisplay']    = "13.10.24 11:00";
+        
+        $this->AddCorrectObject($parameters,$client);
+
+        
+        $actioninput=array();
+        $actioninput[0]=array();
+        
+        // Alter object first time
+        $actioninput[0]['newduedate'] ='2024-10-13T14:00:09';
+        $actioninput[0]['newduedatedisplay']='13.10.24 14:00';
+        $actioninput[0]['newverwendung']='Speicherung von Temporaeren verschuesselten Daten';
+        $actioninput[0]['newstatus']='status.used';
+
+        $crawler = $client->request('POST', '/objekt/'.$parameters['barcode_id'].'/verwenden');
+        
+        $formarray=array('form[verwendung]' => $actioninput[0]['newverwendung'],
+        'form[dueDate]' => $actioninput[0]['newduedate']
+        );
+        
+        $form = $crawler->selectButton('label.do.action')->form();
+        $client->submit($form, $formarray);
+        
+        $this->assertTrue($client->getResponse()->isRedirect("/objekt/".$parameters['barcode_id']));     
+        
+
+        // Alter object second time
+        $actioninput[1]['newduedate']='2024-10-14T14:00:09';
+        $actioninput[1]['newduedatedisplay']='14.10.24 14:00';
+        $actioninput[1]['newverwendung']='Fuer den Test der Historie wurde das Tape ueberschrieben';
+        $actioninput[1]['newstatus']='status.cleaned';
+        
+        $crawler = $client->request('POST', '/objekt/'.$parameters['barcode_id'].'/nullen');
+        
+        $formarray=array('form[verwendung]' => $actioninput[1]['newverwendung'],
+        'form[dueDate]' => $actioninput[1]['newduedate']
+        );
+        
+        $form = $crawler->selectButton('label.do.action')->form();
+        $client->submit($form, $formarray);
+        
+        $this->assertTrue($client->getResponse()->isRedirect("/objekt/".$parameters['barcode_id']));     
+        
+
+        /*
+            Expectations:
+            Current Status: Nulled
+            Previous Status: Used
+            Last Status:  Added
+        */
+
+        $crawler = $client->request('POST', '/objekt/'.$parameters['barcode_id']);
+        
+        
+        // Check of current status
+        $query = $crawler->filter("#currentstatus")->text();
+        $this->assertStringContainsString($parameters['name'] ,$query);
+        $this->assertStringContainsString($parameters['kategorie'],$query);
+        $this->assertStringContainsString($actioninput[1]['newduedatedisplay'],$query);
+        $this->assertStringContainsString('desc.luser Testuser',$query);
+        $this->assertStringContainsString("status.cleaned",$query);  // <-- is object nulled?
+       
+        // Get list of history
+        $HistoryEntries = $crawler->filter('#history')->filter("tr");
+
+        $this->assertTrue((count($HistoryEntries) != 0), "Count of history entries are zero");
+
+
+        // Check creation/first history entry
+        $query = $HistoryEntries->eq(count($HistoryEntries)-1)->text();
+        $this->assertStringContainsString($parameters['verwendung'] ,
+                                            $query, 
+                                            "It seems, that the web application did not log the creation of the object");
+        $this->assertStringContainsString($parameters['dueDateDisplay'],
+                                            $query,
+                                            "It seems, that the web application did not log the creation of the object");
+
+        $this->assertStringContainsString("status.added",
+                                            $query,
+                                            "It seems, that the web application did not log the creation of the object");
+
+
+        // Check used action/second history entry
+        $query = $HistoryEntries->eq(count($HistoryEntries)-2)->text();
+        $this->assertStringContainsString($actioninput[0]['newverwendung'] ,
+                                            $query, 
+                                            "It seems, that the web application did not log the alteration of the object");
+        $this->assertStringContainsString($actioninput[0]['newduedatedisplay'],
+                                            $query,
+                                            "It seems, that the web application did not log the alteration of the object");
+
+        $this->assertStringContainsString($actioninput[0]['newstatus'],
+                                            $query,
+                                            "It seems, that the web application did not log the alteration of the object");
+
+
+        $this->logoutCorrect($client);      
+    }
+
+
+
+
+    public function testCorrectLoggingHistorie3()
+    {
+        $client = $this->loginWithCorrectCredentials("user","test");
+        
+
+        $parametersHDD['barcode_id']   = "DTHD00502";
+        $parametersHDD['name']         = "(TEST_Historie) Archiv Tape 3";
+        $parametersHDD['verwendung']   = "(TEST_Historie) Wird zum Archivieren von Falldaten verwendet";
+        $parametersHDD['kategorie_id'] = \App\Entity\Objekt::KATEGORIE_DATENTRAEGER;
+        $parametersHDD['kategorie']    = "category.hdd";
+        $parametersHDD['bauart']       = "intern";
+        $parametersHDD['formfaktor']   = "RDX";
+        $parametersHDD['groesse']      = "250";
+        $parametersHDD['groessealt']   = "";
+        $parametersHDD['modell']       = "";
+        $parametersHDD['hersteller']   = "";
+        $parametersHDD['sn']           = "";
+        $parametersHDD['pn']           = "";
+        $parametersHDD['anschluss']    = "";
+        $parametersHDD['dueDate']    = "2024-10-13T11:00:10";
+        $parametersHDD['dueDateDisplay']    = "13.10.24 11:00";
+        
+        $this->AddCorrectObject($parametersHDD,$client);
+
+       
+
+
+        $parametersContainer['barcode_id']   = "DTHW00500";
+        $parametersContainer['name']         = "(TEST_Historie) Tapedose";
+        $parametersContainer['verwendung']   = "(TEST_Historie) Verwendung zur Lagerung von Tapes im RDX Format";
+        $parametersContainer['kategorie_id'] = \App\Entity\Objekt::KATEGORIE_BEHAELTER;
+        $parametersContainer['kategorie']    = "category.container";
+        $parametersContainer['bauart']       = "";
+        $parametersContainer['formfaktor']   = "";
+        $parametersContainer['groesse']      = "";
+        $parametersContainer['groessealt']   = "";
+        $parametersContainer['modell']       = "";
+        $parametersContainer['hersteller']   = "";
+        $parametersContainer['sn']           = "";
+        $parametersContainer['pn']           = "";
+        $parametersContainer['anschluss']    = "";
+        $parametersContainer['dueDate']    = "2024-10-13T12:00:10";
+        $parametersContainer['dueDateDisplay']    = "13.10.24 12:00";
+        
+       
+        $this->AddCorrectObject($parametersContainer,$client);
+
+        // Note: Actions are only performed on the HDD!
+
+        $actioninput=array();
+        $actioninput[0]=array();
+        
+        // Alter object first time
+        $actioninput[0]['newduedate'] ='2024-10-13T13:15:09';
+        $actioninput[0]['newduedatedisplay']='13.10.24 13:15';
+        $actioninput[0]['newverwendung']='Speicherung von Temporaeren verschuesselten Daten';
+        $actioninput[0]['newstatus']='status.used';
+
+        $crawler = $client->request('POST', '/objekt/'.$parametersHDD['barcode_id'].'/verwenden');
+    
+
+
+        $formarray=array('form[verwendung]' => $actioninput[0]['newverwendung'],
+                         'form[dueDate]' => $actioninput[0]['newduedate']);
+        
+        $form = $crawler->selectButton('label.do.action')->form();
+        $client->submit($form, $formarray);
+        
+        $this->assertTrue($client->getResponse()->isRedirect("/objekt/".$parametersHDD['barcode_id']));     
+        
+
+        // Alter object second time/add to Container
+        $actioninput[1]['newduedate']='2024-10-14T14:00:09';
+        $actioninput[1]['newduedatedisplay']='14.10.24 14:00';
+        $actioninput[1]['newverwendung']='Fuer den Test der Historie wurde das Tape in die Box gelegt';
+        $actioninput[1]['newstatus']='status.stored.in.container';
+        
+        $crawler = $client->request('POST', '/objekt/'.$parametersHDD['barcode_id'].'/einlegen/in/'.$parametersContainer['barcode_id']);
+        
+
+        $this->assertEquals(200, $client->getResponse()->getStatusCode());
+        
+        $formarray=array('form[verwendung]' => $actioninput[1]['newverwendung'],
+                        'form[dueDate]' => $actioninput[1]['newduedate']
+        );
+        
+        $form = $crawler->selectButton('label.do.action')->form();
+        $client->submit($form, $formarray);
+        
+
+        // Alter object third time/remove from Container
+        $actioninput[2]['newduedate']='2024-10-14T14:10:09';
+        $actioninput[2]['newduedatedisplay']='14.10.24 14:10';
+        $actioninput[2]['newverwendung']='Fuer den Test der Historie das Tape wieder aus der Box geholt';
+        $actioninput[2]['newstatus']='status.pulled.out.of.container';
+        
+        $crawler = $client->request('POST', '/objekt/'.$parametersHDD['barcode_id'].'/entnehmen');
+        
+        //echo $crawler->html();
+
+        $this->assertEquals(200, $client->getResponse()->getStatusCode());
+        
+        $formarray=array('form[verwendung]' => $actioninput[2]['newverwendung'],
+                        'form[dueDate]' => $actioninput[2]['newduedate']
+        );
+        
+        $form = $crawler->selectButton('label.do.action')->form();
+        $client->submit($form, $formarray);
+
+
+
+        $this->assertTrue($client->getResponse()->isRedirect("/objekt/".$parametersHDD['barcode_id']));     
+        
+
+        /*
+            Expectations:
+            Current Status: Pulled out of container
+            Previous Status: Stored in a Container
+            Previous Status: Used
+            Last Status:  Added
+        */
+
+        $crawler = $client->request('POST', '/objekt/'.$parametersHDD['barcode_id']);
+        
+        
+        // Check of current status
+        $query = $crawler->filter("#currentstatus")->text();
+        $this->assertStringContainsString($parametersHDD['name'] ,$query);
+        $this->assertStringContainsString($parametersHDD['kategorie'],$query);
+        $this->assertStringContainsString($actioninput[2]['newduedatedisplay'],$query);
+        $this->assertStringContainsString('desc.luser Testuser',$query);
+        $this->assertStringContainsString($actioninput[2]['newstatus'],$query);  // <-- is object pulled out of container?
+       
+        // Get list of history
+        $HistoryEntries = $crawler->filter('#history')->filter("tr");
+
+        $this->assertTrue((count($HistoryEntries) != 0), "Count of history entries are zero");
+
+
+        // Check creation/first history entry
+        $query = $HistoryEntries->eq(count($HistoryEntries)-1)->text();
+        $this->assertStringContainsString($parametersHDD['verwendung'] ,
+                                            $query, 
+                                            "It seems, that the web application did not log the creation of the object");
+        $this->assertStringContainsString($parametersHDD['dueDateDisplay'],
+                                            $query,
+                                            "It seems, that the web application did not log the creation of the object");
+
+        $this->assertStringContainsString("status.added",
+                                            $query,
+                                            "It seems, that the web application did not log the creation of the object");
+
+
+        // Check used action/second history entry
+        $query = $HistoryEntries->eq(count($HistoryEntries)-2)->text();
+        $this->assertStringContainsString($actioninput[0]['newverwendung'] ,
+                                            $query, 
+                                            "It seems, that the web application did not log the alteration of the object");
+        $this->assertStringContainsString($actioninput[0]['newduedatedisplay'],
+                                            $query,
+                                            "It seems, that the web application did not log the alteration of the object");
+
+        $this->assertStringContainsString($actioninput[0]['newstatus'],
+                                            $query,
+                                            "It seems, that the web application did not log the alteration of the object");
+
+        // Check Stored if Container action/third history entry
+        $query = $HistoryEntries->eq(count($HistoryEntries)-3)->text();
+        $this->assertStringContainsString($actioninput[1]['newverwendung'] ,
+                                            $query, 
+                                            "It seems, that the web application did not log the storage of the object to a container");
+        $this->assertStringContainsString($actioninput[1]['newduedatedisplay'],
+                                            $query,
+                                            "It seems, that the web application did not log the storage of the object to a container");
+
+        $this->assertStringContainsString($actioninput[1]['newstatus'],
+                                            $query,
+                                            "It seems, that the web application did not log the storage of the object to a container");
+
+
+
+        $this->logoutCorrect($client);      
+    }
+
+
+
+
+
+
+
+
+
+    public function testCorrectLoggingHistorie4()
+    {
+        $client = $this->loginWithCorrectCredentials("user","test");
+        
+
+        $parametersHDD['barcode_id']   = "DTHD00503";
+        $parametersHDD['name']         = "(TEST_Historie) Archiv Tape 3";
+        $parametersHDD['verwendung']   = "(TEST_Historie) Wird zum Archivieren in einen dedizierten Fall gelegt";
+        $parametersHDD['kategorie_id'] = \App\Entity\Objekt::KATEGORIE_DATENTRAEGER;
+        $parametersHDD['kategorie']    = "category.hdd";
+        $parametersHDD['bauart']       = "intern";
+        $parametersHDD['formfaktor']   = "RDX";
+        $parametersHDD['groesse']      = "250";
+        $parametersHDD['groessealt']   = "";
+        $parametersHDD['modell']       = "";
+        $parametersHDD['hersteller']   = "";
+        $parametersHDD['sn']           = "";
+        $parametersHDD['pn']           = "";
+        $parametersHDD['anschluss']    = "";
+        $parametersHDD['dueDate']    = "2024-10-13T11:00:10";
+        $parametersHDD['dueDateDisplay']    = "13.10.24 11:00";
+        
+        $this->AddCorrectObject($parametersHDD,$client);
+
+    
+        $parametersCase['id']= "AKT89";
+        $parametersCase['desc'] = "(TEST)Manipulation Archivdaten";
+        
+        $this->AddCorrectCase($parametersCase, $client);
+        
+        
+
+        // Note: Actions are only performed on the HDD!
+
+        $actioninput=array();
+        $actioninput[0]=array();
+        
+        // Alter object first time
+        $actioninput[0]['newduedate'] ='2024-10-13T13:00:09';
+        $actioninput[0]['newduedatedisplay']='13.10.24 13:00';
+        $actioninput[0]['newverwendung']='Sichtung der auf dem Datentraeger verfuegbaren Daten';
+        $actioninput[0]['newstatus']='status.used';
+
+        $crawler = $client->request('POST', '/objekt/'.$parametersHDD['barcode_id'].'/verwenden');
+    
+
+
+        $formarray=array('form[verwendung]' => $actioninput[0]['newverwendung'],
+                         'form[dueDate]' => $actioninput[0]['newduedate']);
+        
+        $form = $crawler->selectButton('label.do.action')->form();
+        $client->submit($form, $formarray);
+        
+        $this->assertTrue($client->getResponse()->isRedirect("/objekt/".$parametersHDD['barcode_id']));     
+        
+
+        // Alter object second time/add to Case
+        $actioninput[1]['newduedate']='2024-10-13T16:00:09';
+        $actioninput[1]['newduedatedisplay']='13.10.24 16:00';
+        $actioninput[1]['newverwendung']='Fuer den Test der Historie wurde das Tape in den Fall eingebunden';
+        $actioninput[1]['newstatus']='status.added.to.case';
+    
+
+        $crawler = $client->request('POST', '/objekt/'.$parametersHDD['barcode_id'].'/in/fall/'.$parametersCase['id'].'/hinzufuegen');
+        $form = $crawler->selectButton('label.do.action')->form();
+        $this->assertEquals(200, $client->getResponse()->getStatusCode());
+        
+        $formarray=array('form[verwendung]' => $actioninput[1]['newverwendung'],
+                        'form[dueDate]' => $actioninput[1]['newduedate']
+        );
+        
+        $form = $crawler->selectButton('label.do.action')->form();
+        $client->submit($form, $formarray);
+        
+        
+
+        // Alter object third time/remove from Container
+        $actioninput[2]['newduedate']='2024-10-14T11:10:09';
+        $actioninput[2]['newduedatedisplay']='14.10.24 11:10';
+        $actioninput[2]['newverwendung']='Fuer den Test der Historie das Tape wieder aus dem Fall entfernt';
+        $actioninput[2]['newstatus']='status.removed.from.case';
+        
+        $crawler = $client->request('POST', '/objekt/'.$parametersHDD['barcode_id'].'/aus/Fall/entfernen');
+        
+        //echo $crawler->html();
+
+
+        $this->assertEquals(200, $client->getResponse()->getStatusCode());
+        
+        $formarray=array('form[verwendung]' => $actioninput[2]['newverwendung'],
+                        'form[dueDate]' => $actioninput[2]['newduedate']
+        );
+        
+        $form = $crawler->selectButton('label.do.action')->form();
+        $client->submit($form, $formarray);
+
+
+
+        $this->assertTrue($client->getResponse()->isRedirect("/objekt/".$parametersHDD['barcode_id']));     
+        
+
+        /*
+            Expectations:
+            Current Status: Removed of the Case
+            Previous Status: Added to Case
+            Previous Status: Used
+            Last Status:  Added
+        */
+
+        $crawler = $client->request('POST', '/objekt/'.$parametersHDD['barcode_id']);
+        
+        
+        // Check of current status
+        $query = $crawler->filter("#currentstatus")->text();
+        $this->assertStringContainsString($parametersHDD['name'] ,$query);
+        $this->assertStringContainsString($parametersHDD['kategorie'],$query);
+        $this->assertStringContainsString($actioninput[2]['newduedatedisplay'],$query);
+        $this->assertStringContainsString('desc.luser Testuser',$query);
+        $this->assertStringContainsString($actioninput[2]['newstatus'],$query);  // <-- is object removed from case?
+       
+        // Get list of history
+        $HistoryEntries = $crawler->filter('#history')->filter("tr");
+
+        $this->assertTrue((count($HistoryEntries) != 0), "Count of history entries are zero");
+
+
+        // Check creation/first history entry
+        $query = $HistoryEntries->eq(count($HistoryEntries)-1)->text();
+        $this->assertStringContainsString($parametersHDD['verwendung'] ,
+                                            $query, 
+                                            "It seems, that the web application did not log the creation of the object");
+        $this->assertStringContainsString($parametersHDD['dueDateDisplay'],
+                                            $query,
+                                            "It seems, that the web application did not log the creation of the object");
+
+        $this->assertStringContainsString("status.added",
+                                            $query,
+                                            "It seems, that the web application did not log the creation of the object");
+
+
+        // Check second history entry
+        $query = $HistoryEntries->eq(count($HistoryEntries)-2)->text();
+        $this->assertStringContainsString($actioninput[0]['newverwendung'] ,
+                                            $query, 
+                                            "It seems, that the web application did not log the alteration of the object");
+        $this->assertStringContainsString($actioninput[0]['newduedatedisplay'],
+                                            $query,
+                                            "It seems, that the web application did not log the alteration of the object");
+
+        $this->assertStringContainsString($actioninput[0]['newstatus'],
+                                            $query,
+                                            "It seems, that the web application did not log the alteration of the object");
+
+        // Check third history entry
+        $query = $HistoryEntries->eq(count($HistoryEntries)-3)->text();
+        $this->assertStringContainsString($actioninput[1]['newverwendung'] ,
+                                            $query, 
+                                            "It seems, that the web application did not log the adding of the object to a case");
+        $this->assertStringContainsString($actioninput[1]['newduedatedisplay'],
+                                            $query,
+                                            "It seems, that the web application did not log the adding of the object to a case");
+
+        $this->assertStringContainsString($actioninput[1]['newstatus'],
+                                            $query,
+                                            "It seems, that the web application did not log the adding of the object to a case");
+
+
+
+        $this->logoutCorrect($client);      
+    }
+
+
+
+
+
+
+
+
+
+
+    public function testCorrectLoggingHistorie5()
+    {
+        $client = $this->loginWithCorrectCredentials("user","test");
+        
+
+        $parametersHDD['barcode_id']   = "DTHD00504";
+        $parametersHDD['name']         = "(TEST_Historie) Archiv Tape 4";
+        $parametersHDD['verwendung']   = "(TEST_Historie) Wird zum Speichern von Asservatsdaten verwendet";
+        $parametersHDD['kategorie_id'] = \App\Entity\Objekt::KATEGORIE_DATENTRAEGER;
+        $parametersHDD['kategorie']    = "category.hdd";
+        $parametersHDD['bauart']       = "intern";
+        $parametersHDD['formfaktor']   = "RDX";
+        $parametersHDD['groesse']      = "250";
+        $parametersHDD['groessealt']   = "";
+        $parametersHDD['modell']       = "";
+        $parametersHDD['hersteller']   = "";
+        $parametersHDD['sn']           = "";
+        $parametersHDD['pn']           = "";
+        $parametersHDD['anschluss']    = "";
+        $parametersHDD['dueDate']    = "2024-10-12T11:00:10";
+        $parametersHDD['dueDateDisplay']    = "12.10.24 11:00";
+        
+        $this->AddCorrectObject($parametersHDD,$client);
+
+       
+
+
+        $parametersExhibit['barcode_id']   = "DTAS00500";
+        $parametersExhibit['name']         = "(TEST_Historie) SSD 64GB S/N: JJIU889JK";
+        $parametersExhibit['verwendung']   = "(TEST_Historie) Ausgebaut aus System des Beschuldigten";
+        $parametersExhibit['kategorie_id'] = \App\Entity\Objekt::KATEGORIE_ASSERVAT_DATENTRAEGER;
+        $parametersExhibit['kategorie']    = "category.exhibit.hdd";
+        $parametersExhibit['bauart']       = "intern";
+        $parametersExhibit['formfaktor']   = "2,5";
+        $parametersExhibit['groesse']      = "64";
+        $parametersExhibit['groessealt']   = "";
+        $parametersExhibit['modell']       = "";
+        $parametersExhibit['hersteller']   = "";
+        $parametersExhibit['sn']           = "JJIU889JK";
+        $parametersExhibit['pn']           = "";
+        $parametersExhibit['anschluss']    = "SATA";
+        $parametersExhibit['dueDate']    = "2024-10-11T12:00:10";
+        $parametersExhibit['dueDateDisplay']    = "11.10.24 12:00";
+        
+       
+        $this->AddCorrectObject($parametersExhibit,$client);
+
+        // Note: Actions are only performed on the HDD!
+
+        $actioninput=array();
+        $actioninput[0]=array();
+        
+        // Alter object first time
+        $actioninput[0]['newduedate'] ='2024-10-13T13:13:09';
+        $actioninput[0]['newduedatedisplay']='13.10.24 13:13';
+        $actioninput[0]['newverwendung']='Lagerung des DD-Images auf den Datentraeger unverschuesselt';
+        $actioninput[0]['newstatus']='status.saved.image';
+
+        $crawler = $client->request('POST','/objekt/'.$parametersHDD['barcode_id'].'/Asservatenimage/speichern/von/'.$parametersExhibit['barcode_id'].'/0');
+    
+
+
+        $formarray=array('form[verwendung]' => $actioninput[0]['newverwendung'],
+                         'form[dueDate]' => $actioninput[0]['newduedate']);
+        
+        $form = $crawler->selectButton('label.do.action')->form();
+        $client->submit($form, $formarray);
+        
+        $this->assertTrue($client->getResponse()->isRedirect("/objekt/".$parametersHDD['barcode_id']));     
+        
+
+        // Alter object second time/use the object
+        $actioninput[1]['newduedate']='2024-10-14T14:10:09';
+        $actioninput[1]['newduedatedisplay']='14.10.24 14:10';
+        $actioninput[1]['newverwendung']='Fuer den Test der Historie das Tape das aktiv verwenden';
+        $actioninput[1]['newstatus']='status.used';
+        
+        $crawler = $client->request('POST', '/objekt/'.$parametersHDD['barcode_id'].'/verwenden');
+        
+
+        $this->assertEquals(200, $client->getResponse()->getStatusCode());
+        
+        $formarray=array('form[verwendung]' => $actioninput[1]['newverwendung'],
+                        'form[dueDate]' => $actioninput[1]['newduedate']
+        );
+        
+        $form = $crawler->selectButton('label.do.action')->form();
+        $client->submit($form, $formarray);
+        
+
+        // Alter object third time/null the HDD to erase the contained image
+        $actioninput[2]['newduedate']='2024-10-13T13:30:09';
+        $actioninput[2]['newduedatedisplay']='13.10.24 13:30';
+        $actioninput[2]['newverwendung']='Fuer den Test der Historie wurde das Tape genullt';
+        $actioninput[2]['newstatus']='status.cleaned';
+        
+        $crawler = $client->request('POST', '/objekt/'.$parametersHDD['barcode_id'].'/nullen');
+        
+        
+        //echo $crawler->html();
+
+        $this->assertEquals(200, $client->getResponse()->getStatusCode());
+        
+        $formarray=array('form[verwendung]' => $actioninput[2]['newverwendung'],
+                        'form[dueDate]' => $actioninput[2]['newduedate']
+        );
+        
+        $form = $crawler->selectButton('label.do.action')->form();
+        $client->submit($form, $formarray);
+
+
+
+        // Alter object forth time/use the object
+        $actioninput[3]['newduedate']='2024-10-14T14:12:09';
+        $actioninput[3]['newduedatedisplay']='14.10.24 14:12';
+        $actioninput[3]['newverwendung']='Fuer den Test der Historie das Tape das zweite Mal aktiv verwenden';
+        $actioninput[3]['newstatus']='status.used';
+        
+        $crawler = $client->request('POST', '/objekt/'.$parametersHDD['barcode_id'].'/verwenden');
+        
+        //echo $crawler->html();
+
+        $this->assertEquals(200, $client->getResponse()->getStatusCode());
+        
+        $formarray=array('form[verwendung]' => $actioninput[3]['newverwendung'],
+                        'form[dueDate]' => $actioninput[3]['newduedate']
+        );
+        
+        $form = $crawler->selectButton('label.do.action')->form();
+        $client->submit($form, $formarray);
+
+
+
+        $this->assertTrue($client->getResponse()->isRedirect("/objekt/".$parametersHDD['barcode_id']));     
+        
+
+        /*
+            Expectations:
+            Current Status: Object used
+            Previous Status: Object nulled -> Image of DTAS00500 NOT avaiable
+            Previous Status: Object used  -> Image of DTAS00500 avaiable
+            Previous Status: Image creation -> Image of DTAS00500 avaiable
+            Last Status:  Added
+        */
+
+        $crawler = $client->request('POST', '/objekt/'.$parametersHDD['barcode_id']);
+        
+        
+        // Check of current status
+        $query = $crawler->filter("#currentstatus")->text();
+        $this->assertStringContainsString($parametersHDD['name'] ,$query);
+        $this->assertStringContainsString($parametersHDD['kategorie'],$query);
+        $this->assertStringContainsString($actioninput[3]['newduedatedisplay'],$query);
+        $this->assertStringContainsString('desc.luser Testuser',$query);
+        $this->assertStringContainsString($actioninput[3]['newstatus'],$query);  // <-- is object used?
+       
+        // Get list of history
+        $HistoryEntries = $crawler->filter('#history')->filter("tr");
+
+        $this->assertTrue((count($HistoryEntries) != 0), "Count of history entries are zero");
+
+
+        // Check creation/first history entry
+        $query = $HistoryEntries->eq(count($HistoryEntries)-1)->text();
+        $this->assertStringContainsString($parametersHDD['verwendung'] ,
+                                            $query, 
+                                            "It seems, that the web application did not log the creation of the object");
+        $this->assertStringContainsString($parametersHDD['dueDateDisplay'],
+                                            $query,
+                                            "It seems, that the web application did not log the creation of the object");
+
+        $this->assertStringContainsString("status.added",
+                                            $query,
+                                            "It seems, that the web application did not log the creation of the object");
+
+
+        // Check second history entry
+        $query = $HistoryEntries->eq(count($HistoryEntries)-2)->text();
+        $this->assertStringContainsString($actioninput[0]['newverwendung'] ,
+                                            $query, 
+                                            "It seems, that the web application did not log the creation of the DD-Image of DTAS00500");
+        $this->assertStringContainsString($actioninput[0]['newduedatedisplay'],
+                                            $query,
+                                            "It seems, that the web application did not log the creation of the DD-Image of DTAS00500");
+
+        $this->assertStringContainsString($actioninput[0]['newstatus'],
+                                            $query,
+                                            "It seems, that the web application did not log the creation of the DD-Image of DTAS00500");
+
+        // Check third history entry
+        $query = $HistoryEntries->eq(count($HistoryEntries)-3)->text();
+        $this->assertStringContainsString($actioninput[1]['newverwendung'] ,
+                                            $query, 
+                                            "It seems, that the web application did not log usage of the Object");
+        $this->assertStringContainsString($actioninput[1]['newduedatedisplay'],
+                                            $query,
+                                            "It seems, that the web application did not log usage of the Object");
+
+        $this->assertStringContainsString($actioninput[1]['newstatus'],
+                                            $query,
+                                            "It seems, that the web application did not log usage of the Object");
+        
+        // Check, if the target exhibit is listed on this specific history entry
+        $this->assertStringContainsString('DTAS00500',
+                                            $query,
+                                            "It seems, that the web application did not log the storage of the DD-imaged exhibit");
+
+        // Check fourth history entry
+        $query = $HistoryEntries->eq(count($HistoryEntries)-4)->text();
+        $this->assertStringContainsString($actioninput[2]['newverwendung'] ,
+                                            $query, 
+                                            "It seems, that the web application did not log the nulling of the object");
+        $this->assertStringContainsString($actioninput[2]['newduedatedisplay'],
+                                            $query,
+                                            "It seems, that the web application did not log the nulling of the object");
+
+        $this->assertStringContainsString($actioninput[2]['newstatus'],
+                                            $query,
+                                            "It seems, that the web application did not log the nulling of the object");
+        
+        // Check, if the target exhibit is NOT listed on this specific history entry, due to the nulling process
+        $this->assertStringNotContainsString('DTAS00500',
+                                            $query,
+                                            "It seems, that the web application did log, that the DD-imaged DTAS00500 is still available, which should be cleared due nulling");
+
+
+
+        $this->logoutCorrect($client);      
+    }
+
+
+
+
+
+    //TODO: Tests der Historieneintraege nach der editierung eines Objekts
     // EDIT reset form ansehen
     
     // TODO: Tests zum Upload von Bildern hinzufuegen

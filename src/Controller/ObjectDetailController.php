@@ -684,7 +684,8 @@ class ObjectDetailController extends AbstractController{
                 return $this->redirectToRoute('detail_object',array('id' =>$id) );
             }
             $object->setSystemaktion(true); 
-            $this->createNewHistorieEntry($doctrine,$object);
+            $hist = $object->createNewHistorieEntry();
+
             $object->setSystemaktion(false);
             
             $object->setName($changeform->getData()['name']);
@@ -709,6 +710,7 @@ class ObjectDetailController extends AbstractController{
             
             
             $em->persist($object);
+            $em->persist($hist);
             if($datentraeger != null){
                 $em->persist($datentraeger);
             }
@@ -764,36 +766,7 @@ class ObjectDetailController extends AbstractController{
     }
     
     
-    /*
-     * Diese Funktion generiert einen Historieneintrag aus den derzeitigen
-     * Informationen des Objektes. DIES MUSS BEI JEDER AENDERUNG DES OBJEKTES
-     * AUSGEFUEHRT WERDEN
-     */
-    private function createNewHistorieEntry(ManagerRegistry $doctrine, Objekt $object){
-                
-        $em = $doctrine->getManager();
-  
-        $hist = new \App\Entity\Historie_Objekt($object->getBarcode());
-        
-        $hist->setFall($object->getFall());
-        $hist->setNutzerId($object->getNutzer($doctrine));
-        $hist->setReserviertVon($object->getreserviertVon());
-        $hist->setStandort($object->getStandort());
-        $hist->setStatusId($object->getStatus());
-        $hist->setVerwendung($object->getVerwendung());
-        $hist->setZeitstempel($object->getZeitstempel());
-        $hist->setZeitstempelumsetzung($object->getZeitstempelumsetzung());
-        $hist->setSystemaktion($object->GetSystemaktion());
-        
-        
-        foreach($object->getImages() as $image){
-            $hist->addImage($image);
-        }
-        
-        $em->persist($hist);
-        //$em->flush();
-        return 0;
-    }
+    
     
     
     /**
@@ -1079,8 +1052,10 @@ class ObjectDetailController extends AbstractController{
         $usr= $this->getUser();
         $em = $doctrine->getManager();
            
-        $this->createNewHistorieEntry($doctrine,$object);
+        $hist = $object->createNewHistorieEntry();
         
+        $em->persist($hist);
+
         $new_status = $status_id;
         
         $object->setSystemaktion($isSystemaktion);
@@ -1225,11 +1200,13 @@ class ObjectDetailController extends AbstractController{
                 true);
         }
         
-        
-        
-        $this->createNewHistorieEntry($doctrine,$object);
-        $object->setSystemaktion(false); 
         $em = $doctrine->getManager();
+        
+        $hist = $object->createNewHistorieEntry();
+        $em->persist($hist);
+
+        $object->setSystemaktion(false); 
+        
         $new_status = Objekt::STATUS_IN_EINEM_BEHAELTER_GELEGT;
 
         $object->setZeitstempel(new \DateTime('now'));
@@ -1372,7 +1349,8 @@ class ObjectDetailController extends AbstractController{
         $object = $em->getRepository(Objekt::class)->find($objectid);         
         $case = $em->getRepository(Fall::class)->find($caseid);
         
-        $this->createNewHistorieEntry($doctrine,$object);
+        $hist = $object->createNewHistorieEntry();
+        $em->persist($hist);
             
         $new_status = Objekt::STATUS_EINEM_FALL_HINZUGEFUEGT;
 
@@ -1787,10 +1765,11 @@ class ObjectDetailController extends AbstractController{
         $changeform->handleRequest($request);
         
         if ($changeform->isSubmitted() && $changeform->isValid()) {
-            
-            $this->createNewHistorieEntry($doctrine,$object);
-            
-            $em = $doctrine->getManager();
+            $em = $doctrine->getManager(); 
+            $hist = $object->createNewHistorieEntry();
+            $em->persist($hist);
+
+           
             $new_status = Objekt::STATUS_FESTPLATTENIMAGE_GESPEICHERT;
             
             $object->setZeitstempel(new \DateTime('now'));
