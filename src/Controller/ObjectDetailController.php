@@ -479,27 +479,33 @@ class ObjectDetailController extends AbstractController{
         ));
         
     }
-    
-    
+
+
     /**
-     * @Route("/objekt/{id}", name="detail_object")
+     * Show details page of a specific object.
+     * 
+     * @param Symfony\Component\HttpFoundation\Request $request  Symfony request
+     * @param Doctrine\Persistence\ManagerRegistry     $doctrine Database interface
+     * @param string                                   $id       DT-ID of object
      */
-    public function details_object(Request $request,ManagerRegistry $doctrine,$id)
-    {        
-        
+    #[Route('/objekt/{id}', name: 'detail_object')]
+    public function details_object(Request $request, ManagerRegistry $doctrine, $id)
+    {
+        // query database for object
         $object = $doctrine->getRepository(Objekt::class)->find($id);
         $datentraeger = $doctrine->getRepository(Datentraeger::class)->find($id);
-        
-        
+
+        // check if object was found
         if($object == null){
             $this->addFlash('danger','object_was_not_found');
             
+            // redirect to overview page
             return $this->forward('App\Controller\ObjectOverviewController::search_objects', array());
         }
         $em = $doctrine->getManager();
 
         
-        
+        // query object history
         $query = $em->createQuery('SELECT o '
                     . 'FROM App:Historie_Objekt o '
                     . "WHERE o.Barcode_id = :barcode " 
@@ -508,10 +514,7 @@ class ObjectDetailController extends AbstractController{
         $history_entrys = $query->getResult();
         
         $stored_objects = null;
-        /*
-         * Wenn es sich um einen Behaelter handelt, sollen die
-         * eingelagerten Objekte angeziegt werden.
-         */
+        // if object is a container, show stored objects
         if($object->getKategorie() == Objekt::KATEGORIE_BEHAELTER){
             
             $query = $em->createQuery('SELECT o '
@@ -523,6 +526,7 @@ class ObjectDetailController extends AbstractController{
             $stored_objects = $query->getResult();
         }
         
+        // render object detail view
         return $this->render('default/detail_object.html.twig', [
             'id' => $object->getBarcode(),
             'objekt' => $object ,

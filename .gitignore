@@ -24,3 +24,6 @@
 !/migrations/.gitkeep
 /public/uploads/pic/*
 !/public/uploads/pic/.gitkeep
+
+# VS Code
+/.vscode/

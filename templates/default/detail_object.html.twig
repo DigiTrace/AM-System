@@ -20,9 +20,12 @@
 #}
 {% extends 'base.html.twig' %}
 
+{# Main content block #}
 {% block content1 %}
  
+    {# Caption #}
     <h2>{% trans %}detailsto{% endtrans %} {{ categorytemp[objekt.getKategorie] |trans }}: {{ id }} </h2>
+    {# Alert messages / flashes #}
     {% for label, messages in app.flashes %}
         {% for message in messages %}
             <div class="alert alert-{{ label }}">
@@ -31,9 +34,11 @@
         {% endfor %}
     {% endfor %}
     
+    {# Object details #}
     <div class="container-fluid" >
         <div class="row">
             
+            {# Picture #}
             <div class="col-sm-5 col-xs-8 col-xs-offset-2 col-sm-offset-0" style="align:center" >
                 {% if objekt.getPic is not null %}
                 <img  src="data:image/jpg;base64,{{ objekt.getPic }}"  class="img-thumbnail" style="max-height: 400px;display:block;margin-left: auto;margin-right:auto;" >
@@ -43,6 +48,7 @@
                 <img  src="{{asset('img/no_image.jpeg')}}"  class="img-thumbnail" style="max-height: 400px;display:block;margin-left: auto;margin-right:auto;" >
                 {% endif %}
             </div>
+            {# Status #}
             <div class="col-sm-7 col-xs-12" id="currentstatus" >
                 <div class="panel panel-default">
                     <div class="panel-heading">
@@ -223,10 +229,10 @@
             </div>  
         </div>
            
-                                       
+        {# Additional information #}              
         <div class="panel panel-default">
             <div class="panel-heading">
-                {% trans %}additional.informations{% endtrans %}:
+                {% trans %}additional.information{% endtrans %}:
                 <a href="#additionalinformation" data-toggle="collapse" class="btn btn-xs pull-right hidden-print">
                     <span class="glyphicon glyphicon-menu-hamburger "></span>
                 </a>
@@ -258,7 +264,7 @@
                                 <div class="col-sm-3 col-xs-6">
                                     <dl>
                                        <dt>{% trans %}desc.size{% endtrans %}</dt>
-                                       <dd>{{ datentraeger.getGroesse }}</dd>
+                                       <dd>{{ datentraeger.getGroesse }}{% if datentraeger.getGroesse %}{% trans %}desc.size.postfix{% endtrans %}{% endif %}</dd> 
                                     </dl>
                                 </div>
                                 <div class="col-sm-3 col-xs-6">
@@ -447,6 +453,7 @@
      
                     
  {% endblock %}
+{# Object history #}
  {% block content2 %}
      <h2>{% trans %}history{% endtrans %}</h2>       
             <div class="container-fluid" id="history">            
