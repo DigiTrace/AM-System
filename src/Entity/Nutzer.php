@@ -187,7 +187,13 @@ class Nutzer implements UserInterface, PasswordAuthenticatedUserInterface
     }
     
     public function getLanguage(){
-        return $this->language;
+        // If no language is set by the user
+        // The fallback language should be used
+        if($this->language == null){
+            return 'en';
+        }else{
+            return $this->language;
+        }        
     }
     
     

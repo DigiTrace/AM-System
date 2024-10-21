@@ -238,46 +238,44 @@ class CaseOverviewController extends AbstractController
         
         // Get User who created the Case
         $em = $doctrine->getManager();
-        #$usr= $this->get('security.token_storage')->getToken()->getUser();
-        
         $usertoken = $security->getToken();
         
         
-        # TEMPORAR, da FOS nicht funktioniert
-        if($usertoken  != null )
-        {
-            $usr = $usertoken->getUser();
-            $calleduser  =  $em->getRepository(Nutzer::class)->findOneBy(array('id' => $usr->getId())); 
-            
-            
-            // Get Users to Notify
-            $query =  $em->createQuery("select u from App:Nutzer u "
-                                    . "where u.notifyCaseCreation = true");
-            $users = $query->getResult();
-            //$bcclist = array();
-            
-            $subject = $this->translator->trans("email_case_was_created_subject");
-            
-            
-            foreach($users as $tonotifyuser){
-                
-                $message = (new TemplatedEmail())
-                ->subject($subject)
-                ->from($_ENV["mailer_resetting_host"])
-                ->to($tonotifyuser->getEmail());
-                
+        $usr = $usertoken->getUser();
+        $calleduser  =  $em->getRepository(Nutzer::class)->findOneBy(array('id' => $usr->getId())); 
+        
+        
+        // Get Users to Notify
+        $query =  $em->createQuery("select u from App:Nutzer u "
+                                . "where u.notifyCaseCreation = true");
+        $users = $query->getResult();
+        
 
-                $message->htmlTemplate('emails/notifyCaseCreation.html.twig');
-                $message->context([
-                    'name' => $tonotifyuser->getFullname(),
-                    'calleduser' => $calleduser->getFullname(),
-                    'caseid' => $new_case->getCaseId()
-                ]);
+        foreach($users as $tonotifyuser){
+
+            $subject = $this->translator->trans("email_case_was_created_subject", locale:$tonotifyuser->getLanguage());
+        
+            $message = (new TemplatedEmail())
+            ->subject($subject)
+            ->from($_ENV["mailer_resetting_host"])
+            ->to($tonotifyuser->getEmail());
             
-                $mailer->send($message);
-            }
+
+            $message->htmlTemplate('emails/notifyCaseCreation.html.twig');
+            $message->context([
+                'name' => $tonotifyuser->getFullname(),
+                'calleduser' => $calleduser->getFullname(),
+                'caseid' => $new_case->getCaseId(),
+                'user_locale' => $tonotifyuser->getLanguage()
+            ]);
+        
+            $mailer->send($message);
         }
     }
+
+
+    
+
     
     
     
