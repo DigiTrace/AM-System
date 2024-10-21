@@ -31,8 +31,13 @@ use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 
 
 # Neu
+use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Contracts\Translation\TranslatorInterface;
+use Symfony\Component\Security\Core\Security;
+use Symfony\Component\Mailer\MailerInterface;
+use Symfony\Component\Mime\Email;
+use Symfony\Bridge\Twig\Mime\TemplatedEmail;
 // Include the requires classes of Phpword
 
 
@@ -95,6 +100,55 @@ class CaseDetailController extends AbstractController {
         
     }
 
+    public function notifyUserAboutCaseAlteration(ManagerRegistry $doctrine,$case,$mailer,$security){
+        
+        // Get User who created the Case
+        $em = $doctrine->getManager();
+        $usertoken = $security->getToken();
+        
+        
+        $usr = $usertoken->getUser();
+        $calleduser  =  $em->getRepository(Nutzer::class)->findOneBy(array('id' => $usr->getId())); 
+        
+        
+        // Get Users to Notify
+        $query =  $em->createQuery("select u from App:Nutzer u "
+                                . "where u.notifyCaseCreation = true");
+        $users = $query->getResult();
+        
+        
+        
+        foreach($users as $tonotifyuser){
+            $subject = $this->translator->trans("email_case_was_altered_subject", locale:$tonotifyuser->getLanguage());
+        
+            $message = (new TemplatedEmail())
+            ->subject($subject)
+            ->from($_ENV["mailer_resetting_host"])
+            ->to($tonotifyuser->getEmail());
+            
+
+            $message->htmlTemplate('emails/notifyCaseAlteration.html.twig');
+            $message->context([
+                'name' => $tonotifyuser->getFullname(),
+                'calleduser' => $calleduser->getFullname(),
+                'caseid' => $case->getCaseId(),
+                'user_locale' => $tonotifyuser->getLanguage()
+            ]);
+        
+            $mailer->send($message);
+        }
+        
+    }
+
+
+
+
+
+
+
+
+
+
     /**
      * @Route("/fall/{id}/anzeigen/", name="detail_case", requirements={"id"=".+"})
      */
@@ -138,7 +192,7 @@ class CaseDetailController extends AbstractController {
     /**
      * @Route("/fall/{id}/aktualisieren/", name="update_case", requirements={"id"=".+"})
      */
-    public function update_case(Request $request, $id) {
+    public function update_case(Request $request, $id,Security $security, MailerInterface $mailer,ManagerRegistry $doctrine) {
        
         $case = $this->get_case($id);
         
@@ -146,6 +200,7 @@ class CaseDetailController extends AbstractController {
             $this->addFlash('danger','case_not_found');
              return $this->redirectToRoute('search_case');
         }
+
         
 
         $changeform = $this->createFormBuilder($case, array('attr' => array('onsubmit' => "return alertbeforesubmit()")))
@@ -158,7 +213,8 @@ class CaseDetailController extends AbstractController {
         $changeform->handleRequest($request);
 
         if ($changeform->isSubmitted() && $changeform->isValid()) {
-                $em = $this->getDoctrine()->getManager();
+                $this->notifyUserAboutCaseAlteration($doctrine,$case,$mailer,$security);
+                $em = $doctrine->getManager();
                 $em->flush();
                 
                 return $this->redirectToRoute('detail_case',array('id' =>$id) );

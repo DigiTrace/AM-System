@@ -999,6 +999,25 @@ Viele Grüße
 AM-System
                 </target>
             </trans-unit>
+
+            <trans-unit id="email_case_was_altered_subject">
+                <source>email_case_was_altered_subject</source>
+                <target>Die Informationen eines Falles wurden im AM-System veraendert</target>
+            </trans-unit>
+            
+            <trans-unit id="email_case_was_altered_body">
+                <source>email_case_was_altered_body %name% %caseid% %calleduser%</source>
+                <target>Sehr geehrter User %name%,
+Der Fall mit der ID %caseid% vom User %calleduser% veraendert.
+
+Viele Grüße
+AM-System
+                </target>
+            </trans-unit>
+
+
+
+
             
             
             <trans-unit id="case_isactiv">

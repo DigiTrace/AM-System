@@ -983,10 +983,27 @@
                 <target>Dear User %name%,
 A Case with the ID %caseid% was created by User %calleduser%.
 
-Kind rewards
+Kind regards
 AM-System
                 </target>
             </trans-unit>
+
+
+            <trans-unit id="email_case_was_altered_subject">
+                <source>email_case_was_altered_subject</source>
+                <target> The Case dataset on the AM-System was altered</target>
+            </trans-unit>
+            
+            <trans-unit id="email_case_was_altered_body">
+                <source>email_case_was_altered_body %name% %caseid% %calleduser%</source>
+                <target>Dear User %name%,
+The Case with the ID %caseid% was altered by User %calleduser%.
+
+Kind regards
+AM-System
+                </target>
+            </trans-unit>
+
             
             
             <trans-unit id="case_isactiv">
