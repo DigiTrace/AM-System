@@ -44,7 +44,7 @@ use App\Entity\Datentraeger;
 use App\Entity\Nutzer;
 use App\Controller\helper;
 use Symfony\Component\Validator\Constraints\NotBlank;
-use Symfony\Component\Validator\Constraints\GreaterThan;
+use Symfony\Component\Validator\Constraints\GreaterThanOrEqual;
 # zu entfernen
 #use Symfony\Component\HttpFoundation\Session\SessionInterface;
 
@@ -1815,7 +1815,7 @@ class ObjectDetailController extends AbstractController{
             'data'         => new \Datetime(),
             'widget'       => 'single_text',
             'with_seconds' => true,
-            'constraints'  => $notBefore ? new GreaterThan($notBefore) : [],
+            'constraints'  => $notBefore ? new GreaterThanOrEqual($notBefore) : [],
         ]);
 
         // add submit button
