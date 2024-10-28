@@ -43,6 +43,8 @@ use App\Entity\Fall;
 use App\Entity\Datentraeger;
 use App\Entity\Nutzer;
 use App\Controller\helper;
+use Symfony\Component\Validator\Constraints\NotBlank;
+use Symfony\Component\Validator\Constraints\GreaterThanOrEqual;
 # zu entfernen
 #use Symfony\Component\HttpFoundation\Session\SessionInterface;
 
@@ -484,9 +486,9 @@ class ObjectDetailController extends AbstractController{
     /**
      * Show details page of a specific object.
      * 
-     * @param Symfony\Component\HttpFoundation\Request $request  Symfony request
-     * @param Doctrine\Persistence\ManagerRegistry     $doctrine Database interface
-     * @param string                                   $id       DT-ID of object
+     * @param Request         $request  Symfony request
+     * @param ManagerRegistry $doctrine Database interface
+     * @param string          $id       DT-ID of object
      */
     #[Route('/objekt/{id}', name: 'detail_object')]
     public function details_object(Request $request, ManagerRegistry $doctrine, $id)
@@ -932,120 +934,7 @@ class ObjectDetailController extends AbstractController{
                                         array(array('info','action.description.neutralize.object'),));
        
     }
-    
-    /*
-     *  Ueber diese Funktion wird ein neuer eine Seite mit einer Form ausgegeben.
-     *  Die Form enthält nur ein Textfeld, um den neuen Status zu begruenden.
-     */
-    private function changeVeraenderung(Request $request,
-                                ManagerRegistry $doctrine,
-                                    $id, // Barcode_ID
-                             $status_id, // Der neue Status des Objektes
-                                $verwendungNullable,// Ob das Textfeld im Formular auch leer sein darf
-                                $javascriptalert,
-                                $infotext = null){
-        
-        /*
-         *  Es muss bei jedem Aufruf das Objekt geladen werden, um festzustellen,
-         *  ob der Status des Objektes nicht bereits geaendert worden ist.
-         *  Dies ist notwendig, um Fehlerhafte doppelte Eintragen(Zuruecktaste)
-         *  zu unterbinden. 
-         */
-        $object = $doctrine->getRepository(Objekt::class)->find($id);
-        
-        if($object == null){
-            $this->addFlash('danger','object_was_not_found');
-            return $this->redirectToRoute('search_objects'); 
-        }
-        
-        if($object->isObjectWithNewStatusValid($status_id, 
-                                            null, 
-                                            $reason) == false){
-            $this->addFlash('danger', $this->translator->trans($reason));
-            return $this->redirectToRoute('detail_object',array('id' =>$id) );
-        }
-        
-        $new_entry = new Objekt();
-        $changeform = $this->get_ChangeVerwendungsForm($verwendungNullable,$javascriptalert,$object->getVerwendung());
-        
-         
-        $changeform->handleRequest($request);
-        
-        if ($changeform->isSubmitted() && $changeform->isValid()) {
-            
-            
-            switch($status_id){
-                case Objekt::VSTATUS_NEUTRALISIERT:
-                    $this->neutralize_object($doctrine,$object,$changeform->getData()['verwendung'],$changeform->getData()['dueDate']);
-                    break;
-                case Objekt::STATUS_AN_PERSON_UEBERGEBEN:
-                    if($object->isObjectWithNewStatusValid(Objekt::STATUS_AUS_DEM_BEHAELTER_ENTFERNT) == true){
-                        $this->alter_object($doctrine, 
-                                    $object,
-                                    Objekt::STATUS_AUS_DEM_BEHAELTER_ENTFERNT,
-                                    "",
-                                    $changeform->getData()['dueDate'],
-                                    true);
-                    }
-                    
-                    $this->alter_object($doctrine,
-                                $object,
-                                Objekt::STATUS_AN_PERSON_UEBERGEBEN,
-                                $changeform->getData()['verwendung'],
-                                $changeform->getData()['dueDate']);
-                    
-                    break;
-                    
-                default:
-                    $this->alter_object($doctrine,
-                                $object,
-                                $status_id,
-                                $changeform->getData()['verwendung'],
-                                $changeform->getData()['dueDate']);
-                    break;
-            }
-            
-            
-            
-            /*
-             * Wenn ein Objekt an eine Person uebergeben werden soll und es
-             * sich noch in einem Behaelter befindet, soll dieser zuvor 
-             * automatisch herausgezogen werden
-             */
-            /*if($status_id == helper::STATUS_AN_PERSON_UEBERGEBEN &&
-                $object->isObjectWithNewStatusValid(helper::STATUS_AUS_DEM_BEHAELTER_ENTFERNT) == true){
-                $this->alter_object($object,
-                                    helper::STATUS_AUS_DEM_BEHAELTER_ENTFERNT,
-                                    "System: Aufgrund von Uebergabe aus dem Behaelter entfernt",
-                                    $changeform->getData()['dueDate']);
-            }*/
-            
-            /*$this->alter_object($object,
-                                $status_id,
-                                $changeform->getData()['verwendung'],
-                                $changeform->getData()['dueDate']);
-            
-            $this->get('session')->getFlashBag()->clear();*/
-            return $this->redirectToRoute('detail_object',array('id' =>$id) );  
-        }
-        elseif($infotext != null){
-            
-            if(!empty($infotext)){
-                
-                foreach($infotext as $text ){
-                   $this->addFlash($text[0],$text[1]); 
-                }
-            }
-            
-        }
-        
-        return $this->render('default/change_object.html.twig', [
-            'id' => $id,
-            'changeform' => $changeform->createView(),
-        ]);
-        
-    }
-    
+
     private function alter_object( ManagerRegistry $doctrine, 
                             \App\Entity\Objekt $object,
                                 $status_id,
@@ -1251,7 +1140,12 @@ class ObjectDetailController extends AbstractController{
         }
         
         
-        $changeform = $this->get_ChangeVerwendungsForm(true,false,$object->getVerwendung());
+        $changeform = $this->getStatusChangeForm(
+            true, 
+            false,
+            $object->getZeitstempelumsetzung(),
+            $object->getVerwendung()
+        );
         
        
         
@@ -1379,7 +1273,12 @@ class ObjectDetailController extends AbstractController{
         
         $object = $em->getRepository(Objekt::class)->find($objectid); // Das Objekt, was dem Fall hinzugefuegt wird
         
-        $changeform = $this->get_ChangeVerwendungsForm(True,TRUE,$object->getVerwendung());
+        $changeform = $this->getStatusChangeForm(
+            true,
+            true,
+            $object->getZeitstempelumsetzung(),
+            $object->getVerwendung()
+        );
         
         // Falls Objekt nicht mehr aenderbar ist, soll die Aktion nicht mittels
         // manipulierten Anfragen ausgeführt werden
@@ -1433,41 +1332,7 @@ class ObjectDetailController extends AbstractController{
         
         
     }
-    
-    
-    
-    
-    /*
-     *  TODO: Eindeutig besseren Namen fuer diese Funktion finden,
-     *        sollte eigentlich nur eine Form zurückgeben, welche nur
-     *        Verwendungen aendert.
-     */
-    
-    private function get_ChangeVerwendungsForm($verwendungNullable,$javascriptalert,$previousdescription){
-            
-        
-        if($javascriptalert){
-            $form = $this->createFormBuilder(null,array('attr' => array('onsubmit' => "return alertbeforesubmit()"))); 
-        }
-        else{
-            $form = $this->createFormBuilder(); 
-        }
-        
-        if($verwendungNullable == false){
-            $form->add('verwendung',  TextareaType::class,array('required' => true,'data' => $previousdescription,'label' => 'desc.usage'));
-        }else{
-            $form->add('verwendung',  TextareaType::class,array('required' => false,'data' => $previousdescription,'label' => 'desc.ousage'));
-        }
-                
-        $form->add('dueDate', DateTimeType::class,array('label' => 'desc.action.done',
-                                                        'required' => true,
-                                                        'widget'=> 'single_text',
-                                                         #'format' => 'dd.MM.yyyy HH:mm',
-                                                        'with_seconds' => true,
-                                                        'data' => new \Datetime(),));
-        return $form->add('save',SubmitType::class,array('label' => 'label.do.action'))
-                    ->getForm();   
-    }
+
     
     private function get_SearchForm(){
         return $this->createFormBuilder(null,array('attr' => array('class' =>'navbar-form navbar-right')))
@@ -1753,7 +1618,12 @@ class ObjectDetailController extends AbstractController{
             return $this->redirectToRoute('detail_object',array('id' =>$callbackid) );
         }
         
-        $changeform = $this->get_ChangeVerwendungsForm(true,false,$object->getVerwendung());
+        $changeform = $this->getStatusChangeForm(
+            true,
+            false,
+            $object->getZeitstempelumsetzung(),
+            $object->getVerwendung()
+        );
         
         // Falls Objekt nicht mehr aenderbar ist, soll die Aktion nicht mittels
         // manipulierten Anfragen ausgeführt werden
@@ -1803,8 +1673,154 @@ class ObjectDetailController extends AbstractController{
         
     }
     
-    
-    
-    
-}
+    //
+    // ====================== Private methods ======================
+    //
 
+
+    /**
+     * Create new page with form to describe new state.
+     * 
+     * @param Request         $request       Symfony request
+     * @param ManagerRegistry $doctrine      Database interface
+     * @param string          $id            Barcode ID
+     * @param int             $statusId      New state ID of object
+     * @param bool            $usageNullable Whether description is optional
+     * @param bool            $alertOnSubmit Whether to show JS alert on confirmation
+     * @param ?array          $infotext      Additional info textes to display
+     * 
+     * @return \Symfony\Component\HttpFoundation\RedirectResponse|\Symfony\Component\HttpFoundation\Response
+     */
+    private function changeVeraenderung(
+        Request $request,
+        ManagerRegistry $doctrine,
+        string $id,
+        int $statusId,
+        bool $usageNullable,
+        bool $alertOnSubmit,
+        ?array $infotext = null
+    ) {
+
+        // load object to verify, that no duplication in state change happended
+        $object = $doctrine->getRepository(Objekt::class)->find($id);
+
+        // check if object was found, otherwise redirect to overview page
+        if ($object == null) {
+            $this->addFlash('danger', 'object_was_not_found');
+            return $this->redirectToRoute('search_objects');
+        }
+
+        // check if object with new proposed state is in a valid state, 
+        // otherwise redirect to objects details page
+        if (!$object->isObjectWithNewStatusValid($statusId, null, $reason)) {
+            $this->addFlash('danger', $this->translator->trans($reason));
+            return $this->redirectToRoute('detail_object', ['id' => $id]);
+        }
+
+        // get form, do not allow changes to be recorded before current last recorded change happend
+        $changeForm = $this->getStatusChangeForm(
+            $usageNullable,
+            $alertOnSubmit,
+            $object->getZeitstempelumsetzung(),
+            $object->getVerwendung()
+        );
+
+        // populate form with request data, if any
+        $changeForm->handleRequest($request);
+
+        // process form
+        if ($changeForm->isSubmitted() && $changeForm->isValid()) {
+
+            #todo put logic in model class
+            switch($statusId){
+                case Objekt::VSTATUS_NEUTRALISIERT:
+                    $this->neutralize_object($doctrine,$object,$changeForm->getData()['verwendung'],$changeForm->getData()['dueDate']);
+                    break;
+                case Objekt::STATUS_AN_PERSON_UEBERGEBEN:
+                    if($object->isObjectWithNewStatusValid(Objekt::STATUS_AUS_DEM_BEHAELTER_ENTFERNT) == true){
+                        $this->alter_object($doctrine, 
+                                    $object,
+                                    Objekt::STATUS_AUS_DEM_BEHAELTER_ENTFERNT,
+                                    "",
+                                    $changeForm->getData()['dueDate'],
+                                    true);
+                    }
+                    
+                    $this->alter_object($doctrine,
+                                $object,
+                                Objekt::STATUS_AN_PERSON_UEBERGEBEN,
+                                $changeForm->getData()['verwendung'],
+                                $changeForm->getData()['dueDate']);
+                    
+                    break;
+                    
+                default:
+                    $this->alter_object($doctrine,
+                                $object,
+                                $statusId,
+                                $changeForm->getData()['verwendung'],
+                                $changeForm->getData()['dueDate']);
+                    break;
+            }
+            
+            // return to detail page
+            return $this->redirectToRoute('detail_object', ['id' => $id]);  
+        }
+        
+        // if present, show additional info texts
+        if(!empty($infotext)){
+            foreach($infotext as $text ){
+                $this->addFlash($text[0],$text[1]); 
+            }
+        }
+        
+        // render form
+        return $this->render('default/change_object.html.twig', [
+            'id' => $id,
+            'changeform' => $changeForm->createView(),
+        ]);
+    }
+    
+
+    /**
+     * Build form for changing state of an object.
+     * 
+     * @param bool       $usageNullable       Whether use case description is optional
+     * @param bool       $alertOnSubmit       Whether to show JS alert before submitting form
+     * @param ?\DateTime $notBefore           Prevent recording changes before specified date.
+     * @param ?string    $previousDescription Previous description of objects use case
+     * 
+     * @todo #todo maybe source out in own lib or helper file?
+     * 
+     * @return \Symfony\Component\Form\FormInterface
+     */
+    private function getStatusChangeForm(bool $usageNullable, bool $alertOnSubmit, ?\DateTime $notBefore, ?string $previousDescription)
+    {
+        // create form builder
+        $form = $this->createFormBuilder(null, $alertOnSubmit ? ['attr' => ['onsubmit' => 'return alertbeforesubmit()']] : []);
+
+        // add use case texet field
+        $form->add('verwendung',  TextareaType::class,[
+            'label'       => $usageNullable ? 'desc.ousage' : 'desc.usage',
+            'required'    => !$usageNullable,
+            'data'        => $previousDescription,
+            'constraints' => !$usageNullable ? new NotBlank() : [],
+        ]);
+                
+        // add due date date time field
+        // add constraint to prevent continuity of recorded changes
+        $form->add('dueDate', DateTimeType::class,[
+            'label'        => 'desc.action.done',
+            'required'     => true,
+            'data'         => new \Datetime(),
+            'widget'       => 'single_text',
+            'with_seconds' => true,
+            'constraints'  => $notBefore ? new GreaterThanOrEqual($notBefore) : [],
+        ]);
+
+        // add submit button
+        $form->add('save',SubmitType::class,['label' => 'label.do.action']);
+        
+        return $form->getForm();   
+    }
+}

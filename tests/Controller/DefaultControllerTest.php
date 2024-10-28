@@ -2073,7 +2073,7 @@ class DefaultControllerTest extends WebTestCase
         $form = $crawler->selectButton('label.do.action')->form();
         $client->submit($form, array('form[verwendung]' => $verwendung));
         
-        $this->assertNotEquals(500, $client->getResponse()->getStatusCode());
+        $this->assertEquals(302, $client->getResponse()->getStatusCode());
         $this->assertTrue($client->getResponse()->isRedirect("/objekt/".$barcode_id));
         
         
@@ -2864,8 +2864,8 @@ class DefaultControllerTest extends WebTestCase
         
 
         // Alter object third time/null the HDD to erase the contained image
-        $actioninput[2]['newduedate']='2024-10-13T13:30:09';
-        $actioninput[2]['newduedatedisplay']='13.10.24 13:30';
+        $actioninput[2]['newduedate']='2024-10-15T13:30:09';
+        $actioninput[2]['newduedatedisplay']='15.10.24 13:30';
         $actioninput[2]['newverwendung']='Fuer den Test der Historie wurde das Tape genullt';
         $actioninput[2]['newstatus']='status.cleaned';
         
@@ -2886,8 +2886,8 @@ class DefaultControllerTest extends WebTestCase
 
 
         // Alter object forth time/use the object
-        $actioninput[3]['newduedate']='2024-10-14T14:12:09';
-        $actioninput[3]['newduedatedisplay']='14.10.24 14:12';
+        $actioninput[3]['newduedate']='2024-10-16T14:12:09';
+        $actioninput[3]['newduedatedisplay']='16.10.24 14:12';
         $actioninput[3]['newverwendung']='Fuer den Test der Historie das Tape das zweite Mal aktiv verwenden';
         $actioninput[3]['newstatus']='status.used';
         
@@ -2982,6 +2982,7 @@ class DefaultControllerTest extends WebTestCase
 
         // Check fourth history entry
         $query = $HistoryEntries->eq(count($HistoryEntries)-4)->text();
+
         $this->assertStringContainsString($actioninput[2]['newverwendung'] ,
                                             $query, 
                                             "It seems, that the web application did not log the nulling of the object");
