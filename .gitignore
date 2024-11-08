@@ -19,6 +19,10 @@
 .phpunit.result.cache
 ###< phpunit/phpunit ###
 
+###> php-cs-fixer ###
+.php-cs-fixer.cache
+###< php-cs-fixer
+
 .env
 /migrations/*
 !/migrations/.gitkeep
@@ -27,3 +31,7 @@
 
 # VS Code
 /.vscode/
+###> friendsofphp/php-cs-fixer ###
+/.php-cs-fixer.php
+/.php-cs-fixer.cache
+###< friendsofphp/php-cs-fixer ###
