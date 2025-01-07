@@ -22,20 +22,97 @@
 {% extends 'base.html.twig' %}
 
 {% block content1 %}
-    <h2>{% trans %} start.page {% endtrans %}</h2>
+
+    <h2>{{ 'start.page'|trans }}</h2>
+    
+    {# Show tables side-by-side #}
+    <div class="row">
+        {# Open cases table #}
+        <div class="col-lg-6">
+            <h4>{{ 'start.open_cases'|trans }}</h4>
+
+            <table class="table">    
+                <thead>
+                    <tr>
+                        <th class="col-md-2 col-sm-2">{{ 'case_id'|trans }}</th>
+                        <th class="col-md-1 col-sm-1">{{ 'case_dos'|trans }}</th>
+                        <th class="col-md-7 col-sm-7">{{ 'case_desc'|trans }}</th>
+                        <th class="col-md-2 col-sm-2">{{ 'desc_timestamp'|trans }}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for case in recentCases %}
+                    <tr>
+                        <td>{{ case.getCaseId }}</td>
+                        <td>
+                        {% if case.getDOS != ""%}
+                            <span 
+                                {% if case.getDOS == "DOS_PUBLIC"%}
+                                    class="label label-success"
+                                {% elseif case.getDOS == "DOS_INTERNAL"%}
+                                    class="label label-primary"
+                                {% elseif case.getDOS == "DOS_CONFIDENTIAL"%}
+                                    class="label label-warning"
+                                {% elseif case.getDOS == "DOS_SECRET"%}
+                                    class="label label-danger"
+                            {% endif %}
+                            >
+                                {{ case.getDOS | trans}}   
+                            </span>
+                        {% endif %}
+                        </td>
+                        <td><a href="{{ path('detail_case', {'id': case.getCaseId}) }}">{{ case.getBeschreibung | nl2br}}</a></td>
+                        <td>{{ case.getZeitstempel|date('d.m.y H:i') }}</td>
+                    </tr>
+                {% else %}
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        {# Reserved objects table #}
+        <div class="col-lg-6">
+            <h4>{{ 'start.reserved_objects'|trans }}</h4>
+
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th class="col-md-2 col-sm-2">{{ 'desc.oid'|trans }}</th>
+                        <th class="col-md-2 col-sm-2">{{ 'desc.category'|trans }}</th>
+                        <th class="col-md-7 col-sm-7">{{ 'desc.name'|trans }}</th>
+                        <th class="col-md-1 col-sm-1">{{ 'table.action'|trans }}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for objekt in reservedObjects %}  
+                    <tr>
+                        <td style='font-family: courier;font-size: large'>{{ objekt.getBarcode }}</td>
+                        <td >{{ categorytemp[objekt.getKategorie]|trans }}</td>
+                        <td>
+                            <a href='{{ path('detail_object', {'id': objekt.getBarcode}) }}'>{{ objekt.getName }}<a/>
+                        </td>
+                        <td>
+                            <a href='{{ path("unreserve_object", {'id': objekt.getBarcode })}}' data-toggle="tooltip" data-placement="top" title="{{ 'action.unbind.reserved'|trans }}">
+                                <span class="glyphicon glyphicon-remove"></span>
+                            </a>
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
 {% endblock %}
 
-
-
 {% block context %}
-    <a href='{{ path('NutzerPasswordAenderung') }}'>{% trans %} action.change.password {% endtrans %}</a><br>
-    <a href='{{ path('Nutzerprofil') }}'>{% trans %} action.show.profile {% endtrans %}</a><br>
-    <a href='{{ path('NutzerAenderung') }}'>{% trans %} action.edit.profile {% endtrans %}</a><br>
+    <a href='{{ path('NutzerPasswordAenderung') }}'>{{ 'action.change.password'|trans }}</a><br>
+    <a href='{{ path('Nutzerprofil') }}'>{{ 'action.show.profile'|trans }}</a><br>
+    <a href='{{ path('NutzerAenderung') }}'>{{ 'action.edit.profile'|trans }}</a><br>
     {% if is_granted('ROLE_ADMIN') %}
-             <a href='{{ path('Nutzerhinzufuegen') }}'>{% trans %} action.add.user {% endtrans %} </a><br>
-             <a href='{{ path('usersummary') }}'>{% trans %} action.show.users {% endtrans %} </a><br>
+             <a href='{{ path('Nutzerhinzufuegen') }}'>{{ 'action.add.user'|trans }} </a><br>
+             <a href='{{ path('usersummary') }}'>{{ 'action.show.users'|trans }} </a><br>
     {% endif %}
-    <a href='{{ path('change_language') }}'>{% trans %} action.change.language {% endtrans %} </a><br>
+    <a href='{{ path('change_language') }}'>{{ 'action.change.language'|trans }} </a><br>
 {% endblock %}
 
 
