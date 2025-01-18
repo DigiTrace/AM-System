@@ -20,12 +20,13 @@
 
 namespace App\Entity;
 
+use App\Repository\FallRepository;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
 use Doctrine\Common\Collections\ArrayCollection;
 
 
-#[ORM\Entity]
+#[ORM\Entity(repositoryClass: FallRepository::class)]
 #[ORM\Table(name: "ams_Fall")]
 class Fall
 {

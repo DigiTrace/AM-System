@@ -20,12 +20,14 @@
 
 namespace App\Entity;
 
+use App\Repository\ObjektRepository;
 use Doctrine\ORM\Mapping as ORM;
 use App\Controller\helper;
 use Symfony\Component\Validator\Constraints as Assert;
 
 
-#[ORM\Entity]
+
+#[ORM\Entity(repositoryClass: ObjektRepository::class)]
 #[ORM\Table(name: "ams_Objekt")]
 class Objekt
 {
