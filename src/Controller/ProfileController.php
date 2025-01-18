@@ -13,6 +13,8 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Doctrine\ORM\EntityManagerInterface;
 
+use App\Entity\Nutzer;
+
 
 
 class ProfileController extends AbstractController
@@ -99,32 +101,64 @@ class ProfileController extends AbstractController
         $changeform->handleRequest($request);
         if ($changeform->isSubmitted() && $changeform->isValid()) {
         
-            
+            $arechangesperformed=0;
+            $invalidInput=0;
+            // If the fullname has changed, it has to validated, if the name is already in use 
+            if($changeform->getData()['fullname'] != $user->getFullname())
+            {
+                $arechangesperformed=1;
+                $query =  $entityManager->createQuery("select u from App:Nutzer u "
+                                    . "where u.fullname like :fullname ");
+                $query->setParameter(":fullname",$changeform->getData()['fullname']);
+                $users = $query->getResult();
+                if (count($users) > 0){
+                    $invalidInput=1;
+                } 
+            }
 
-            # Pruefen, ob der neue Benutzer schon vorhanden ist:
-            
-            $query =  $entityManager->createQuery("select u from App:Nutzer u "
-                                    . "where u.fullname like :fullname "
-                                    . "OR u.email like :email "
-                                    . "OR u.username like :username ");
+            // If the username has changed, it has to validated, if the name is already in use 
+            if($changeform->getData()['username'] != $user->getUsername())
+            {
+                $arechangesperformed=1;
+                $query =  $entityManager->createQuery("select u from App:Nutzer u "
+                                    . "where u.username like :username ");
+                $query->setParameter(":username",$changeform->getData()['username']);
+                $users = $query->getResult();
+                if (count($users) > 0){
+                    $invalidInput=1;
+                } 
+            }
 
-            $query->setParameter(":fullname",$changeform->getData()['fullname']);
-            $query->setParameter(":username",$changeform->getData()['username']);
-            $query->setParameter(":email",$changeform->getData()['email']);
-            $users = $query->getResult();
+
+            // If the email has changed, it has to validated, if the email is already in use 
+            if($changeform->getData()['email'] != $user->getEMail())
+            {
+                $arechangesperformed=1;
+                $query =  $entityManager->createQuery("select u from App:Nutzer u "
+                                    . "where u.email like :email ");
+                $query->setParameter(":email",$changeform->getData()['email']);
+                $users = $query->getResult();
+                if (count($users) > 0){
+                    $invalidInput=1;
+                } 
+            }
 
              
-            if (count($users) > 0){
+            if ( $invalidInput == 1){
                 $this->addFlash('danger',"profile.failed.changed.user.data.taken");
 
             } 
             else{
-                $user->setUsername($changeform->getData()['username']);
-                $user->setFullname($changeform->getData()['fullname']);
-                $user->setEmail($changeform->getData()['email']);
-                $entityManager->persist($user);
-                $entityManager->flush();
-                $this->addFlash('success',"profile.successful.changed");
+                // If changes are avaiable
+                if($arechangesperformed == 1)
+                {
+                    $user->setUsername($changeform->getData()['username']);
+                    $user->setFullname($changeform->getData()['fullname']);
+                    $user->setEmail($changeform->getData()['email']);
+                    $entityManager->persist($user);
+                    $entityManager->flush();
+                    $this->addFlash('success',"profile.successful.changed");
+                }
                 return $this->redirectToRoute('Nutzerprofil');
             }
         }
