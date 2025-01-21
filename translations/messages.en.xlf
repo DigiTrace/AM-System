@@ -258,7 +258,7 @@
                 <source>desc.size</source>
                 <target>Size:</target>
             </trans-unit>
-            <trans-unit id="desc_size.postfix">
+            <trans-unit id="desc_size_postfix">
                 <source>desc.size.postfix</source>
                 <target>GB</target>
             </trans-unit>
@@ -304,7 +304,19 @@
             </trans-unit>
             <trans-unit id="start_page">
                 <source>start.page</source>
-                <target>Start page</target>
+                <target>Dashboard</target>
+            </trans-unit>
+            <trans-unit id="start_reserved_objects">
+                <source>start.reserved_objects</source>
+                <target>Your reserved objects:</target>
+            </trans-unit>
+            <trans-unit id="start_open_cases">
+                <source>start.open_cases</source>
+                <target>Recent open cases:</target>
+            </trans-unit>
+            <trans-unit id="table_action">
+                <source>table.action</source>
+                <target>Action:</target>
             </trans-unit>
             <trans-unit id="profile_page">
                 <source>profile.page</source>

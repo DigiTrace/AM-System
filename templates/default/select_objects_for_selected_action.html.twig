@@ -48,7 +48,20 @@
                 </div>
             {% endfor %}    
     
-            
+
+
+<div class="row">
+  <div class="col-md-6">
+    <textarea id="ClientBarcodeImporter"  rows="10" cols="40"></textarea><br>
+    <button onClick="TransformCopyListToForm()" type="button">Transform to Input</button> 
+  </div>
+  <div class="col-md-6">
+  </div>
+</div>
+
+
+
+
     {{ form_start(chooseform) }}
     {{ form_widget(chooseform) }}
     {{ form_end(chooseform) }}
@@ -96,6 +109,21 @@
             }
             
         }
+
+        // This Function transforms the input in the textarea into the regular form
+        function TransformCopyListToForm(){
+            ListeBarcode=document.getElementById("ClientBarcodeImporter").value.split("\n");
+
+            let i = 0;
+            while (i < ListeBarcode.length)
+            {
+                $("#form_objects input")[$("#form_objects input").length - 1].value=ListeBarcode[i].trim();
+                addTextForm($collectionHolder, $newLinkLi);
+                i++;
+            }
+                        
+        }
+
         
         function checkIfSearchIsRequired(newstatus){
             
