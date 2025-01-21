@@ -58,8 +58,8 @@
             <th class="col-md-7 col-sm-7">
                 {% trans %} case_desc {% endtrans %}
             </th>
-            <th class="col-md-2 col-sm-2">{{ knp_pagination_sortable(pagination, 'desc_timestamp'|trans, 'c.Zeitstempel_beginn') }}
-                {% if pagination.isSorted('c.Zeitstempel_beginn') %}
+            <th class="col-md-2 col-sm-2">{{ knp_pagination_sortable(pagination, 'desc_timestamp'|trans, 'c.zeitstempel_beginn') }}
+                {% if pagination.isSorted('c.zeitstempel_beginn') %}
                 {{ arrow | raw}}
                 {% endif %}
             </th>

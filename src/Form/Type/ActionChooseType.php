@@ -129,11 +129,11 @@ class ActionChooseType extends AbstractType
                 if($this->newstatus == helper::STATUS_IN_EINEM_BEHAELTER_GELEGT){
                     $query = $em->createQuery('SELECT o '
                             . 'FROM App:Objekt o '
-                            . "WHERE (o.Name like :searchword "
-                            . " OR o.Barcode_id like :searchword )"
-                            . " AND o.Kategorie_id =".helper::KATEGORIE_BEHAELTER
-                            . "AND o.Status_id !=".helper::STATUS_VERNICHTET. " "
-                            . "AND o.Status_id !=".helper::STATUS_VERLOREN. " "
+                            . "WHERE (o.name like :searchword "
+                            . " OR o.barcode_id like :searchword )"
+                            . " AND o.kategorie_id =".helper::KATEGORIE_BEHAELTER
+                            . "AND o.status_id !=".helper::STATUS_VERNICHTET. " "
+                            . "AND o.status_id !=".helper::STATUS_VERLOREN. " "
                             )->setParameter('searchword',"%".$searchbox."%")
                             ->setMaxResults(6); 
 
@@ -151,7 +151,7 @@ class ActionChooseType extends AbstractType
                     
                     $query = $em->createQuery('SELECT f '
                         . 'FROM App:Fall f '
-                        . "WHERE f.Beschreibung like :search "
+                        . "WHERE f.beschreibung like :search "
                         . "OR f.case_id like :search ")
                         ->setParameter('search',"%".$searchbox."%")
                         ->setMaxResults(6); 

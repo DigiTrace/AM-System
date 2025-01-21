@@ -510,7 +510,7 @@ class ObjectDetailController extends AbstractController{
         // query object history
         $query = $em->createQuery('SELECT o '
                     . 'FROM App:Historie_Objekt o '
-                    . "WHERE o.Barcode_id = :barcode " 
+                    . "WHERE o.barcode_id = :barcode " 
                     . "ORDER by o.historie_id desc ")
                     ->setParameter("barcode",$object->getBarcode());  
         $history_entrys = $query->getResult();
@@ -521,9 +521,9 @@ class ObjectDetailController extends AbstractController{
             
             $query = $em->createQuery('SELECT o '
                     . 'FROM App:Objekt o '
-                    . 'LEFT JOIN  App:Fall f WITH o.Fall_id = f.id '
-                    . 'WHERE o.Standort = :barcode '
-                    . 'ORDER BY f.case_id desc, o.Barcode_id')
+                    . 'LEFT JOIN  App:Fall f WITH o.fall_id = f.id '
+                    . 'WHERE o.standort = :barcode '
+                    . 'ORDER BY f.case_id desc, o.barcode_id')
                     ->setParameter("barcode",$object->getBarcode());  
             $stored_objects = $query->getResult();
         }
@@ -653,9 +653,9 @@ class ObjectDetailController extends AbstractController{
         
         if ($changeform->isSubmitted() && $changeform->isValid()) {
                   
-            $editablefields = ["Name"       => array($object->getName()      ,$changeform->getData()['name']),
-                               "Verwendung" => array($object->getVerwendung(),$changeform->getData()['verwendung']),
-                               "Notiz"     => array($object->getNotiz() ,$changeform->getData()['notiz'])];
+            $editablefields = ["name"       => array($object->getName()      ,$changeform->getData()['name']),
+                               "verwendung" => array($object->getVerwendung(),$changeform->getData()['verwendung']),
+                               "notiz"     => array($object->getNotiz() ,$changeform->getData()['notiz'])];
             
             
             foreach($editablefields as $fieldname=>$oldAndNewValues){
@@ -668,14 +668,14 @@ class ObjectDetailController extends AbstractController{
             
             if($datentraeger != null)
             {
-                $editablefields = ["Bauart"        => array($datentraeger->getBauart()    ,$changeform->getData()['bauart']),
-                                   "Formfaktor"    => array($datentraeger->getFormfaktor(),$changeform->getData()['formfaktor']),
-                                   "Groesse"       => array($datentraeger->getGroesse()   ,$changeform->getData()['groesse']),
-                                   "Hersteller"    => array($datentraeger->getHersteller(),$changeform->getData()['hersteller']),
-                                   "Modell"        => array($datentraeger->getModell()    ,$changeform->getData()['modell']),
+                $editablefields = ["bauart"        => array($datentraeger->getBauart()    ,$changeform->getData()['bauart']),
+                                   "formfaktor"    => array($datentraeger->getFormfaktor(),$changeform->getData()['formfaktor']),
+                                   "groesse"       => array($datentraeger->getGroesse()   ,$changeform->getData()['groesse']),
+                                   "hersteller"    => array($datentraeger->getHersteller(),$changeform->getData()['hersteller']),
+                                   "modell"        => array($datentraeger->getModell()    ,$changeform->getData()['modell']),
                                    "Seriennummer"  => array($datentraeger->getSN()        ,$changeform->getData()['sn']),
                                    "Produktnummer" => array($datentraeger->getPN()        ,$changeform->getData()['pn']),
-                                   "Anschluss"     => array($datentraeger->getAnschluss() ,$changeform->getData()['anschluss'])];
+                                   "anschluss"     => array($datentraeger->getAnschluss() ,$changeform->getData()['anschluss'])];
             
                 foreach($editablefields as $fieldname=>$oldAndNewValues){
                     $newVerwendung = $this->check_edited_fields($newVerwendung,
@@ -1040,11 +1040,11 @@ class ObjectDetailController extends AbstractController{
             $em = $doctrine->getManager();
             $query = $em->createQuery('SELECT o '
                     . 'FROM App:Objekt o '
-                    . "WHERE o.Kategorie_id =".Objekt::KATEGORIE_BEHAELTER
-                    . " AND o.Barcode_id != :barcode "
-                    . "AND o.Status_id !=".Objekt::STATUS_VERNICHTET. " "
-                    . "AND o.Status_id !=".Objekt::STATUS_VERLOREN. " "
-                    . "AND(o.Standort != :barcode OR o.Standort is null)")
+                    . "WHERE o.kategorie_id =".Objekt::KATEGORIE_BEHAELTER
+                    . " AND o.barcode_id != :barcode "
+                    . "AND o.status_id !=".Objekt::STATUS_VERNICHTET. " "
+                    . "AND o.status_id !=".Objekt::STATUS_VERLOREN. " "
+                    . "AND(o.standort != :barcode OR o.standort is null)")
                     ->setParameter("barcode", $id);  
             $objekte = $query->getResult();
             
@@ -1053,13 +1053,13 @@ class ObjectDetailController extends AbstractController{
             $em = $doctrine->getManager();
             $query = $em->createQuery('SELECT o '
                     . 'FROM App:Objekt o '
-                    . "WHERE (o.Name like :searchword "
-                    . " OR o.Barcode_id like :searchword )"
-                    . " AND o.Kategorie_id =".Objekt::KATEGORIE_BEHAELTER
-                    . " AND o.Barcode_id != :barcode "
-                    . "AND o.Status_id !=".Objekt::STATUS_VERNICHTET. " "
-                    . "AND o.Status_id !=".Objekt::STATUS_VERLOREN. " "
-                    . "AND(o.Standort != :barcode OR o.Standort is null)")
+                    . "WHERE (o.name like :searchword "
+                    . " OR o.barcode_id like :searchword )"
+                    . " AND o.kategorie_id =".Objekt::KATEGORIE_BEHAELTER
+                    . " AND o.barcode_id != :barcode "
+                    . "AND o.status_id !=".Objekt::STATUS_VERNICHTET. " "
+                    . "AND o.status_id !=".Objekt::STATUS_VERLOREN. " "
+                    . "AND(o.standort != :barcode OR o.standort is null)")
                     ->setParameter("searchword","%".$searchword."%")
                     ->setParameter("barcode", $id);  
             $objekte = $query->getResult();
@@ -1214,7 +1214,7 @@ class ObjectDetailController extends AbstractController{
         else{
             $query = $em->createQuery('SELECT f '
                     . 'FROM App:Fall f '
-                    . "WHERE f.Beschreibung like :search "
+                    . "WHERE f.beschreibung like :search "
                     . "OR f.case_id like :search ")
                     ->setParameter('search','%'.$searchword."%");     
             $cases = $query->getResult();
@@ -1223,10 +1223,10 @@ class ObjectDetailController extends AbstractController{
         $query = $em->createQuery('SELECT f '
                     . 'FROM App:Objekt o, '
                     . 'App:Fall f '
-                    . "WHERE (DATE_DIFF(o.Zeitstempel,:time) = 0 and "
-                    . "o.Fall_id = f.id and "
-                    . "o.Status_id = ".Objekt::STATUS_EINEM_FALL_HINZUGEFUEGT .") OR DATE_DIFF(f.Zeitstempel_beginn,:time) = 0 and "
-                    . "o.Nutzer_id = :user ")
+                    . "WHERE (DATE_DIFF(o.zeitstempel,:time) = 0 and "
+                    . "o.fall_id = f.id and "
+                    . "o.status_id = ".Objekt::STATUS_EINEM_FALL_HINZUGEFUEGT .") OR DATE_DIFF(f.zeitstempel_beginn,:time) = 0 and "
+                    . "o.nutzer_id = :user ")
                     ->setParameter("time", new \DateTime('now'))
                     ->setParameter("user", $this->getNutzer($doctrine));
         $todaycases = $query->getResult();
@@ -1545,9 +1545,9 @@ class ObjectDetailController extends AbstractController{
         if($searchword == null){
             $query = $em->createQuery('SELECT o '
                     . 'FROM App:Objekt o '
-                    . "WHERE o.Kategorie_id = :searchkategorie"
-                    . " AND o.Status_id != :status_destroyed"
-                    . " AND o.Status_id != :status_lost"
+                    . "WHERE o.kategorie_id = :searchkategorie"
+                    . " AND o.status_id != :status_destroyed"
+                    . " AND o.status_id != :status_lost"
                     . " AND :object not MEMBER OF o.Images"
                     . " AND :object not MEMBER OF o.HDDs")
                     ->setParameter("searchkategorie",$searchkategorie)
@@ -1558,11 +1558,11 @@ class ObjectDetailController extends AbstractController{
         else{
             $query = $em->createQuery('SELECT o '
                     . 'FROM App:Objekt o '
-                    . "WHERE (o.Name like :searchword"
-                    . " OR o.Barcode_id like :searchword)"
-                    . " AND o.Kategorie_id = :searchkategorie"
-                    . " AND o.Status_id != :status_destroyed"
-                    . " AND o.Status_id != :status_lost"
+                    . "WHERE (o.name like :searchword"
+                    . " OR o.barcode_id like :searchword)"
+                    . " AND o.kategorie_id = :searchkategorie"
+                    . " AND o.status_id != :status_destroyed"
+                    . " AND o.status_id != :status_lost"
                     . " AND :object not MEMBER OF o.Images"
                     . " AND :object not MEMBER OF o.HDDs")
                     ->setParameter("searchword","%".$searchword."%")

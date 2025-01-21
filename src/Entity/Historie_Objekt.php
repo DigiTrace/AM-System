@@ -34,48 +34,48 @@ class Historie_Objekt
     
     
     #[ORM\Column(type:"string",length:9)]
-    protected $Barcode_id;
+    protected $barcode_id;
 
  
     #[ORM\Column(type:"datetime")]
-    protected $Zeitstempel;
+    protected $zeitstempel;
     
     #[ORM\Column(type:"text",nullable:true)]
-    protected $Verwendung;
+    protected $verwendung;
      
     
     #[ORM\ManyToOne(targetEntity:"Nutzer")]
     #[ORM\JoinColumn(name:"nutzer_id",referencedColumnName:"id",nullable:false)]
-    protected $Nutzer_id;
+    protected $nutzer_id;
     
     
     #[ORM\ManyToOne(targetEntity:"Nutzer")]
     #[ORM\JoinColumn(name:"reserviert_von",referencedColumnName:"id",nullable:true)]
-    protected $Reserviert_von;
+    protected $reserviert_von;
     
     
     
     #[ORM\ManyToOne(targetEntity:"Fall")]
     #[ORM\JoinColumn(name:"fall_id",referencedColumnName:"id")]
-    protected $Fall_id;
+    protected $fall_id;
     
     
     #[ORM\Column(type:"integer")]
-    protected $Status_id;
+    protected $status_id;
     
     
     #[ORM\ManyToOne(targetEntity:"Objekt")]
     #[ORM\JoinColumn(name:"standort", referencedColumnName:"barcode_id")]
-    protected $Standort;
+    protected $standort;
     
     
     
     #[ORM\Column(type:"datetime")]
-    protected $Zeitstempelderumsetzung;
+    protected $zeitstempelderumsetzung;
     
     
     #[ORM\Column(type:"boolean")]
-    protected $Systemaktion = false;
+    protected $systemaktion = false;
     
     
     
@@ -87,15 +87,15 @@ class Historie_Objekt
     #[ORM\ManyToMany(targetEntity:"Objekt")]
     #[ORM\JoinTable(name:"ams_image_objekt")]
     #[ORM\JoinColumn(name:"historie_id", referencedColumnName:"historie_id")]
-    #[ORM\InverseJoinColumn(name:"Barcode_id", referencedColumnName:"barcode_id")]    
+    #[ORM\InverseJoinColumn(name:"barcode_id", referencedColumnName:"barcode_id")]    
     private $images;
 
     
     public function __construct($barcode_id) {
-        $this->Barcode_id = $barcode_id;
+        $this->barcode_id = $barcode_id;
         
         $this->images= new \Doctrine\Common\Collections\ArrayCollection();
-        $this->Zeitstempel = new \DateTime();
+        $this->zeitstempel = new \DateTime();
     
     }
     
@@ -109,7 +109,7 @@ class Historie_Objekt
      */
     public function setBarcodeId($barcodeId)
     {
-        $this->Barcode_id = $barcodeId;
+        $this->barcode_id = $barcodeId;
 
         return $this;
     }
@@ -121,12 +121,12 @@ class Historie_Objekt
      */
     public function getBarcodeId()
     {
-        return $this->Barcode_id;
+        return $this->barcode_id;
     }
     //WORKAROUND: TO FIX:
     public function getBarcode()
     {
-        return $this->Barcode_id;
+        return $this->barcode_id;
     }
 
     /**
@@ -138,7 +138,7 @@ class Historie_Objekt
      */
     public function setZeitstempel(\Datetime $zeitstempel)
     {
-        $this->Zeitstempel = $zeitstempel;
+        $this->zeitstempel = $zeitstempel;
 
         return $this;
     }
@@ -150,7 +150,7 @@ class Historie_Objekt
      */
     public function getZeitstempel()
     {
-        return $this->Zeitstempel;
+        return $this->zeitstempel;
     }
     
     
@@ -163,7 +163,7 @@ class Historie_Objekt
      */
     public function setZeitstempelumsetzung($zeitstempel)
     {
-        $this->Zeitstempelderumsetzung = $zeitstempel;
+        $this->zeitstempelderumsetzung = $zeitstempel;
 
         return $this;
     }
@@ -175,7 +175,7 @@ class Historie_Objekt
      */
     public function getZeitstempelumsetzung()
     {
-        return $this->Zeitstempelderumsetzung;
+        return $this->zeitstempelderumsetzung;
     }
     
     
@@ -190,7 +190,7 @@ class Historie_Objekt
      */
     public function setVerwendung($verwendung)
     {
-        $this->Verwendung = $verwendung;
+        $this->verwendung = $verwendung;
 
         return $this;
     }
@@ -202,7 +202,7 @@ class Historie_Objekt
      */
     public function getVerwendung()
     {
-        return $this->Verwendung;
+        return $this->verwendung;
     }
 
     /**
@@ -214,7 +214,7 @@ class Historie_Objekt
      */
     public function setNutzerId(\App\Entity\Nutzer $nutzerId)
     {
-        $this->Nutzer_id = $nutzerId;
+        $this->nutzer_id = $nutzerId;
 
         return $this;
     }
@@ -226,7 +226,7 @@ class Historie_Objekt
      */
     public function getNutzerId()
     {
-        return $this->Nutzer_id;
+        return $this->nutzer_id;
     }
     
     
@@ -240,7 +240,7 @@ class Historie_Objekt
      */
     public function setReserviertVon(\App\Entity\Nutzer $nutzerId = null)
     {
-        $this->Reserviert_von = $nutzerId;
+        $this->reserviert_von = $nutzerId;
 
         return $this;
     }
@@ -252,7 +252,7 @@ class Historie_Objekt
      */
     public function getReserviertVon()
     {
-        return $this->Reserviert_von;
+        return $this->reserviert_von;
     }
 
     
@@ -267,7 +267,7 @@ class Historie_Objekt
      */
     public function setFall(\App\Entity\Fall $fallId = null)
     {
-        $this->Fall_id = $fallId;
+        $this->fall_id = $fallId;
 
         return $this;
     }
@@ -279,7 +279,7 @@ class Historie_Objekt
      */
     public function getFall()
     {
-        return $this->Fall_id;
+        return $this->fall_id;
     }
 
     /**
@@ -289,7 +289,7 @@ class Historie_Objekt
      */
     public function setStatusId( $id)
     {
-        $this->Status_id = $id;
+        $this->status_id = $id;
 
         return $this;
     }
@@ -301,7 +301,7 @@ class Historie_Objekt
      */
     public function getStatusId()
     {
-        return $this->Status_id;
+        return $this->status_id;
     }
 
     /**
@@ -313,7 +313,7 @@ class Historie_Objekt
      */
     public function setStandort(\App\Entity\Objekt $standort = null)
     {
-        $this->Standort = $standort;
+        $this->standort = $standort;
 
         return $this;
     }
@@ -325,15 +325,15 @@ class Historie_Objekt
      */
     public function getStandort()
     {
-        return $this->Standort;
+        return $this->standort;
     }
     
     public function setSystemaktion($status){
-        $this->Systemaktion = $status;
+        $this->systemaktion = $status;
     }
     
     public function GetSystemaktion(){
-        return $this->Systemaktion;
+        return $this->systemaktion;
     }
    
     

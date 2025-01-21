@@ -247,9 +247,9 @@ class AddObjectType extends AbstractType
                
                 $query = $em->createQuery("SELECT f "
                     . "FROM App:Fall f "
-                    . "WHERE f.Beschreibung like :search "
+                    . "WHERE f.beschreibung like :search "
                     . "OR f.case_id like :search "
-                    . "ORDER BY f.Zeitstempel_beginn DESC ")
+                    . "ORDER BY f.zeitstempel_beginn DESC ")
                     ->setParameter('search',"%".$searchbox."%")
                     ->setMaxResults(6); 
 

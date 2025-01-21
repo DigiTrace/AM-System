@@ -84,17 +84,17 @@ class CaseDetailController extends AbstractController {
     
     private function getinvolvedObjectsFromCase($case){
         $em = $this->getDoctrine()->getManager();
-        $query = $em->createQuery("SELECT distinct o.Barcode_id,"
-                . "o.Name,"
-                . "so.Barcode_id AS Standort,"
-                . "o.Status_id,"
-                . "o.Zeitstempelderumsetzung,"
-                . "so.Name AS Standortname  "
+        $query = $em->createQuery("SELECT distinct o.barcode_id,"
+                . "o.name,"
+                . "so.barcode_id AS standort,"
+                . "o.status_id,"
+                . "o.zeitstempelderumsetzung,"
+                . "so.name AS Standortname  "
                     . "FROM App:Objekt o "
-                    . "JOIN App:Historie_Objekt ho with ho.Barcode_id = o.Barcode_id "
-                    . "LEFT JOIN App:Objekt so with so.Barcode_id = o.Standort "
-                    . "WHERE ho.Fall_id = :case AND "
-                    . "(o.Fall_id != :case OR  o.Fall_id is null)")
+                    . "JOIN App:Historie_Objekt ho with ho.barcode_id = o.barcode_id "
+                    . "LEFT JOIN App:Objekt so with so.barcode_id = o.standort "
+                    . "WHERE ho.fall_id = :case AND "
+                    . "(o.fall_id != :case OR  o.fall_id is null)")
                     ->setParameter("case",$case->getId());  
         return $query->getResult();
         
@@ -310,12 +310,12 @@ class CaseDetailController extends AbstractController {
         
         for($i = 1;$i <= $count_HObjects;$i++){
            $currentObject = ($history_entrys[$i-1]);
-           $templateProcessor->setValue("Hdesc.oid.text#".$i             ,$currentObject['Barcode_id']); 
-           $templateProcessor->setValue("Hdesc.name.text#".$i            ,$currentObject['Name']);
-           $templateProcessor->setValue("Hdesc.lstatus.text#".$i         ,$this->translator->trans(\App\Entity\Objekt::getStatusNameFromId($currentObject['Status_id'])) );
-           $templateProcessor->setValue("Hdesc.last.action.done.text#".$i,$currentObject['Zeitstempelderumsetzung']->format("d.m.y H:i") );
-           if($currentObject['Standort'] != null){
-                $templateProcessor->setValue("Hdesc.container.text#".$i       ,$currentObject['Standort']." ".$currentObject['Standortname']);
+           $templateProcessor->setValue("Hdesc.oid.text#".$i             ,$currentObject['barcode_id']); 
+           $templateProcessor->setValue("Hdesc.name.text#".$i            ,$currentObject['name']);
+           $templateProcessor->setValue("Hdesc.lstatus.text#".$i         ,$this->translator->trans(\App\Entity\Objekt::getStatusNameFromId($currentObject['status_id'])) );
+           $templateProcessor->setValue("Hdesc.last.action.done.text#".$i,$currentObject['zeitstempelderumsetzung']->format("d.m.y H:i") );
+           if($currentObject['standort'] != null){
+                $templateProcessor->setValue("Hdesc.container.text#".$i       ,$currentObject['standort']." ".$currentObject['Standortname']);
            }
            else{
                $templateProcessor->setValue("Hdesc.container.text#".$i       , "-");
