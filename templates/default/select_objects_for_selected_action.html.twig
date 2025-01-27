@@ -51,20 +51,24 @@
 
 
 <div class="row">
-  <div class="col-md-6">
-    <textarea id="ClientBarcodeImporter"  rows="10" cols="40"></textarea><br>
-    <button onClick="TransformCopyListToForm()" type="button">Transform to Input</button> 
+  <div class="col-md-8">
+        {{ form_start(chooseform) }}
+        {{ form_widget(chooseform) }}
+        {{ form_end(chooseform) }}
   </div>
-  <div class="col-md-6">
+  <div class="col-md-4">
+    <div class="form-group">
+        <label for="ClientBarcodeImporter">{% trans %}action_description_mass_update_helper_textimport_label_textarea{% endtrans %}</label>
+        <textarea class="form-control" id="ClientBarcodeImporter"  rows="10" cols="40"></textarea><br>
+    <button onClick="TransformCopyListToForm()" class="btn-default btn" type="button">{% trans %}action_description_mass_update_helper_textimport_button{% endtrans %}</button>
+    </div> 
   </div>
 </div>
 
 
 
 
-    {{ form_start(chooseform) }}
-    {{ form_widget(chooseform) }}
-    {{ form_end(chooseform) }}
+
     
     
     
