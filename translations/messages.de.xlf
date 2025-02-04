@@ -659,8 +659,16 @@
             </trans-unit>
             <trans-unit id="action_description_mass_update_part2">
                 <source>action_description_mass_update_part2 %newstatus%</source>
-                <target>Wähle im zweiten Schritt die Objekte aus, welche für den Status [newstatus] verändert werden sollen.
-                Es werden automatisiert neue Felder erzeugt sowie leere Felder ignoriert.</target>
+                <target>Wähle im zweiten Schritt die Objekte aus, welche für den Status [newstatus] verändert werden sollen. Es werden automatisiert neue Felder erzeugt sowie leere Felder ignoriert.
+                Alternativ können Sie die Textimporter-Hilfsfunktion verwenden, um eine Liste von Objekten (zeilengetrennt) zu importieren und das Formular automatisch auszufüllen.</target>
+            </trans-unit>
+            <trans-unit id="action_description_mass_update_helper_textimport_label_textarea">
+                <source>action_description_mass_update_helper_textimport_label_textarea</source>
+                <target>Textimport</target>
+            </trans-unit>
+            <trans-unit id="action_description_mass_update_helper_textimport_button">
+                <source>action_description_mass_update_helper_textimport_button</source>
+                <target>Importiere Objekte</target>
             </trans-unit>
             <trans-unit id="select_objects">
                 <source>Select objects</source>
