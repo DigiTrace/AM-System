@@ -40,9 +40,9 @@ abstract class BaseWebTestCase extends WebTestCase
     protected function seeInDatabase(string $repository, array $matchCriteria, ?int $amount = null) {
         $repo = static::getContainer()->get($repository);
         if(null === $amount)
-            $this->assertNotEmpty($repo->findBy($matchCriteria));
+            $this->assertNotEmpty($repo->findBy($matchCriteria), "Failed asserting that a matching record exists in database.");
         else
-            $this->assertCount($amount, $repo->findBy($matchCriteria));
+            $this->assertCount($amount, $repo->findBy($matchCriteria), "Failed asserting that $amount matching records exists in database.");
 
     }
     
@@ -54,7 +54,7 @@ abstract class BaseWebTestCase extends WebTestCase
      */
     protected function dontSeeInDatabase(string $repository, array $matchCriteria) {
         $repo = static::getContainer()->get($repository);
-        $this->assertEmpty($repo->findBy($matchCriteria));
+        $this->assertEmpty($repo->findBy($matchCriteria), "Failed asserting that no matching records exist in database.");
     }
 
     /**

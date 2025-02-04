@@ -2,16 +2,24 @@
 
 namespace App\Tests\Controller;
 
+use App\Entity\Objekt;
 use App\Repository\DatentraegerRepository;
 use App\Repository\ObjektRepository;
 use App\Tests\_support\BaseWebTestCase;
+use App\Tests\Factory\DatentraegerFactory;
+use App\Tests\Factory\FallFactory;
 use App\Tests\Factory\ObjektFactory;
+use Symfony\Component\DomCrawler\Crawler;
 
 /**
  * @author Ben Brooksnieder
  */
 class ObjektControllerTest extends BaseWebTestCase
 {
+    //
+    // ================ DATA PROVIDERS ================
+    //
+
     public function genericUrlProvider()
     {
         yield ['/objekte/faq'];
@@ -57,7 +65,7 @@ class ObjektControllerTest extends BaseWebTestCase
         yield [[
             'barcode_id' => 'DTHW00007',
             'name' => '(TEST)Thinkpad e330',
-            'verwendung' => '(TEST)Ediscovery',
+            'verwendung' => '(TEST)Edriveovery',
             'kategorie_id' => '1', // 'kategorie' => 'category.equipment',
             // 'status_id' => 0,
         ]];
@@ -113,7 +121,7 @@ class ObjektControllerTest extends BaseWebTestCase
         yield [[
             'barcode_id' => 'DTHW00006',
             'name' => '(TEST)Werkzeugregal',
-            'verwendung' => '(TEST)Von einem Schwedischen Versandhandel besorgt',
+            'verwendung' => '(TEST)Von einem Schwedrivehen Versandhandel besorgt',
             'kategorie_id' => 2, // 'kategorie' => 'category.container',
             // 'status_id' => 0,
         ]];
@@ -293,6 +301,205 @@ class ObjektControllerTest extends BaseWebTestCase
     }
 
     /**
+     * @todo implement history queries
+     */
+    public function simpleSearchParamsProvider()
+    {
+        yield 'Category query' => [
+            'query' => "c:". Objekt::KATEGORIE_ASSERVAT, // 0
+            'expected_results' => 1,
+        ];
+        yield 'Status query' => [
+            'query' => "s:". Objekt::STATUS_GENULLT, // 1
+            'expected_results' => 1,
+        ];
+        yield 'Barcode query' => [
+            'query' => "barcode:DTHD12345",
+            'expected_results' => 1,
+        ];
+        yield 'Name query' => [
+            'query' => "name:name_string",
+            'expected_results' => 1,
+        ];
+        yield 'Note query' => [
+            'query' => "notice:note_string",
+            'expected_results' => 1,
+        ];
+        yield 'Description query' => [
+            'query' => "mdesc:current_description",
+            'expected_results' => 2,
+        ];
+        // yield 'Previous description query' => [
+        //     'query' => "hdesc:current_description",
+        //     'expected_results' => 2,
+        // ];
+        yield 'Reservation query (name)' => [
+            'query' => "mr:current_reservation",
+            'expected_results' => 1,
+        ];
+        yield 'Reservation query (not reserved)' => [
+            'query' => "mr:false",
+            'expected_results' => 4,
+        ];
+        yield 'Reservation query (reserved)' => [
+            'query' => "mr:true",
+            'expected_results' => 1,
+        ];
+        // yield 'Previous reservation query (name)' => [
+        //     'query' => "hr:current_reservation",
+        //     'expected_results' => 1,
+        // ];
+        // yield 'Last update query' => [
+        //     'query' => "mu:?",
+        //     'expected_results' => 1,
+        // ];
+        // yield 'Prior update query' => [
+        //     'query' => "hu:?",
+        //     'expected_results' => 1,
+        // ];
+        yield 'Stored in query' => [
+            'query' => "mstoredin:DTHW33344",
+            'expected_results' => 1,
+        ];
+        // yield 'Previous stored in query' => [
+        //     'query' => "hstoredin:DTHW33344",
+        //     'expected_results' => 1,
+        // ];
+        yield 'Case query' => [
+            'query' => "mcase:case_id",
+            'expected_results' => 1,
+        ];
+        // yield 'Previos case query' => [
+        //     'query' => "hcase:case_id",
+        //     'expected_results' => 1,
+        // ];
+        yield 'Active case query' => [
+            'query' => "caseactive:true",
+            'expected_results' => 1,
+        ];
+        yield 'Drive type query' => [
+            'query' => "type:extern",
+            'expected_results' => 2,
+        ];
+        yield 'Drive form query' => [
+            'query' => "ff:true",
+            'expected_results' => 2,
+        ];
+        yield 'Drive size query' => [
+            'query' => "size:666",
+            'expected_results' => 1,
+        ];
+        yield 'Drive prod query' => [
+            'query' => "prod:prod_string",
+            'expected_results' => 1,
+        ];
+        yield 'Drive model query' => [
+            'query' => "modell:modell_string",
+            'expected_results' => 1,
+        ];
+        yield 'Drive connection query' => [
+            'query' => "connection:SATA",
+            'expected_results' => 1,
+        ];
+        yield 'Drive serial number query' => [
+            'query' => "sn:9988776655_sn",
+            'expected_results' => 1,
+        ];
+        yield 'Drive product number query' => [
+            'query' => "pn:1122334400_pn",
+            'expected_results' => 1,
+        ];
+        yield 'Date query (exact)' => [
+            'query' => "mdate:24.02.2042",
+            'expected_results' => 1,
+        ];
+        yield 'Date query (older)' => [
+            'query' => "mdate:<10.02.1970",
+            'expected_results' => 1,
+        ];
+        yield 'Date query (newer)' => [
+            'query' => "mdate:>17.03.2040",
+            'expected_results' => 2,
+        ];
+    }
+
+    public function complexSearchParamsProvider()
+    {
+        yield 'Join two conditions' => [
+            'query' => "modell:modell_string pn:1122334400_pn",
+            'expected_results' => 1,
+        ];
+    }
+
+    public function validMassUpdateObjektsProvider()
+    {
+        yield 'Move to container' => [
+            'objects' => [[], [],],
+            'query' => [
+                'newstate' => Objekt::STATUS_IN_EINEM_BEHAELTER_GELEGT,
+                'desc' => '(TEST) temporäre Verwahrung',
+                'context' => 'DTHW12345',
+            ]
+        ];
+        yield 'Zero drive' => [
+            'objects' => [[
+                'Barcode' => 'DTHD00020',
+                'Kategorie' => Objekt::KATEGORIE_DATENTRAEGER,
+            ], [
+                'Barcode' => 'DTHD00024',
+                'Kategorie' => Objekt::KATEGORIE_DATENTRAEGER,
+            ],],
+            'query' => [
+                'newstate' => Objekt::STATUS_GENULLT,
+                'desc' => '(TEST) Vorsichtshalber genullt, um Probleme zu vermeiden',
+                ]
+            ];
+        yield 'Use multiple objekts' => [
+            'objects' => [[], [],],
+            'query' => [
+                'newstate' => Objekt::STATUS_IN_VERWENDUNG,
+                'desc' => '(TEST) Analyse einer Festplatte',
+            ]
+        ];
+    }
+
+    public function invalidMassUpdateObjektsProvider()
+    {
+        yield 'Zero exibits' => [
+            'objects' => [[
+                'Barcode' => 'DTAS00020',
+                'Kategorie' => Objekt::KATEGORIE_ASSERVAT,
+            ], [
+                'Barcode' => 'DTAS00024',
+                'Kategorie' => Objekt::KATEGORIE_AKTE,
+            ],],
+            'query' => [
+                'newstate' => Objekt::STATUS_GENULLT,
+                'desc' => '(TEST) Asservate sollten nicht genullt werden können',
+                ]
+            ];
+        yield 'Zero drives again' => [
+            'objects' => [[
+                'Barcode' => 'DTHD00020',
+                'Kategorie' => Objekt::KATEGORIE_DATENTRAEGER,
+                'Status' => Objekt::STATUS_GENULLT,
+            ], [
+                'Barcode' => 'DTHD00024',
+                'Kategorie' => Objekt::KATEGORIE_DATENTRAEGER,
+                'Status' => Objekt::STATUS_GENULLT,
+            ],],
+            'query' => [
+                'newstate' => Objekt::STATUS_GENULLT,
+                'desc' => '(TEST) Festplatten müssen gekaputt genullt werden',
+            ]
+        ];
+    }
+
+    //
+    // ================ TESTS ================
+    //
+
+    /**
      * @dataProvider genericUrlProvider
      * @dataProvider detailUrlProvider
      */
@@ -431,7 +638,7 @@ class ObjektControllerTest extends BaseWebTestCase
             'kategorie_id' => '1',
         ];
 
-        // add case first time successful
+        // add object first time successful
         $client = $this->testAddObjektValid($objekt);
         $crawler = $this->loginUser($client)->request('GET', '/objekt/anlegen');
 
@@ -472,17 +679,739 @@ class ObjektControllerTest extends BaseWebTestCase
         ]);
 
         // test details page
-        $this->assertDetailsPageCorrect($client, [
+        $crawler = $this->assertDetailsPageCorrect($client, [
             'barcode_id' => $objekt->getBarcodeId(),
             'name' => $objekt->getName(),
-            'verwendung' => $objekt->getVerwendung(),
-            'kategorie' => $objekt->getKategorie(),
         ]);
         // also test whether it was nulled
         $this->assertSelectorTextContains('#currentstatus', 'status.cleaned');
     }
 
-    protected function assertInOverviewPageCorrect($client, $objekt)
+    public function testNullObjektIncorrectObjekt()
+    {
+        // setup
+        $factory = ObjektFactory::new();
+        $objekt = $factory->exhibit()->create();
+
+        $client = static::createClient();
+        $crawler = $this->loginUser($client)->request('POST', "/objekt/{$objekt->getBarcodeId()}/nullen");
+        $this->assertResponseRedirects("/objekt/{$objekt->getBarcodeId()}");
+
+        // test overview page
+        $this->assertInOverviewPageCorrect($client, [
+            'barcode_id' => $objekt->getBarcodeId(),
+            'name' => $objekt->getName(),
+        ]);
+
+        // test details page
+        $crawler = $this->assertDetailsPageCorrect($client, [
+            'barcode_id' => $objekt->getBarcodeId(),
+            'name' => $objekt->getName(),
+        ]);
+        // also test whether it was nulled
+        $this->assertSelectorTextNotContains('#currentstatus', 'status.cleaned');
+    }
+
+    public function testDestroyObjekt()
+    {
+        // setup
+        $factory = ObjektFactory::new();
+        $objekt = $factory->hdd()->create();
+
+        $client = static::createClient();
+        $crawler = $this->loginUser($client)->request('POST', "/objekt/{$objekt->getBarcodeId()}/vernichtet");
+        $form = $crawler->selectButton('label.do.action')->form();
+        $client->submit($form, ['form[verwendung]' => 'Aus Testzwecken wird dieses Objekt zerstört deklariert']);
+        $this->assertResponseRedirects("/objekt/{$objekt->getBarcodeId()}");
+
+        // test overview page
+        $this->assertInOverviewPageCorrect($client, [
+            'barcode_id' => $objekt->getBarcodeId(),
+            'name' => $objekt->getName(),
+        ]);
+
+        // test details page
+        $crawler = $this->assertDetailsPageCorrect($client, [
+            'barcode_id' => $objekt->getBarcodeId(),
+            'name' => $objekt->getName(),
+        ]);
+        // also test whether it was nulled
+        $this->assertSelectorTextContains('#currentstatus', 'status.destroyed');
+    }
+
+    public function testLostObjekt()
+    {
+        // setup
+        $factory = ObjektFactory::new();
+        $objekt = $factory->hdd()->create();
+
+        $client = static::createClient();
+        $crawler = $this->loginUser($client)->request('POST', "/objekt/{$objekt->getBarcodeId()}/verloren");
+        $form = $crawler->selectButton('label.do.action')->form();
+        $client->submit($form, ['form[verwendung]' => 'Aus Testzwecken wird dieses Objekt verloren deklariert']);
+        $this->assertResponseRedirects("/objekt/{$objekt->getBarcodeId()}");
+
+        // test overview page
+        $this->assertInOverviewPageCorrect($client, [
+            'barcode_id' => $objekt->getBarcodeId(),
+            'name' => $objekt->getName(),
+        ]);
+
+        // test details page
+        $crawler = $this->assertDetailsPageCorrect($client, [
+            'barcode_id' => $objekt->getBarcodeId(),
+            'name' => $objekt->getName(),
+        ]);
+        // also test whether it was nulled
+        $this->assertSelectorTextContains('#currentstatus', 'status.lost');
+    }
+
+    /**
+     * @todo check case for assigning to case
+     */
+    public function testChangeDestroyedObjekts()
+    {
+        // setup
+        $factory = ObjektFactory::new();
+        $objs = [
+            $factory->hdd()->destroyed()->create(),
+            $factory->hdd()->lost()->create(),
+        ];
+        // $caseFactory = CaseFactory::new();
+        // $case = $caseFactory->create();
+
+        $client = static::createClient();
+        $client = $this->loginUser($client);
+
+        foreach ($objs as $objekt) {   
+            $client->request('POST', "/objekt/{$objekt->getBarcodeId()}/verwenden");
+            $this->assertResponseRedirects("/objekt/{$objekt->getBarcodeId()}");
+            
+            $client->request('POST', "/objekt/{$objekt->getBarcodeId()}/editieren");
+            $this->assertResponseRedirects("/objekt/{$objekt->getBarcodeId()}");
+            
+            $client->request('POST', "/objekt/{$objekt->getBarcodeId()}/einlegen/in");
+            $this->assertResponseRedirects("/objekt/{$objekt->getBarcodeId()}");
+            
+            $storage = $factory->container()->create();        
+            $client->request('POST', "/objekt/{$objekt->getBarcodeId()}/einlegen/in/{$storage->getBarcodeId()}");
+            $this->assertResponseRedirects("/objekt/{$objekt->getBarcodeId()}");
+            
+            // $client->request('POST', "/objekt/{$objekt->getBarcodeId()}/in/fall/{$case->getId()}/hinzufuegen");
+            // $this->assertResponseRedirects("/objekt/{$objekt->getBarcodeId()}");
+        }
+    }
+    
+    public function testReserveObjekt()
+    {
+        // setup
+        $factory = ObjektFactory::new();
+        $objekt = $factory->hdd()->create();
+
+        $client = static::createClient();
+        $crawler = $this->loginUser($client)->request('POST', "/objekt/{$objekt->getBarcodeId()}/reservieren");
+        $form = $crawler->selectButton('label.do.action')->form();
+        $client->submit($form, ['form[verwendung]' => 'Es wird für einen Penetrationstests temporär reserviert']);
+        $this->assertResponseRedirects("/objekt/{$objekt->getBarcodeId()}");
+
+        // test overview page
+        $this->assertInOverviewPageCorrect($client, [
+            'barcode_id' => $objekt->getBarcodeId(),
+            'name' => $objekt->getName(),
+        ]);
+
+        // test details page
+        $this->assertDetailsPageCorrect($client, [
+            'barcode_id' => $objekt->getBarcodeId(),
+            'name' => $objekt->getName(),
+        ]);
+        // also test whether it was reserved
+        $this->assertSelectorTextContains('#currentstatus', 'status.reserved');
+    }
+    
+    public function testStoreObjekt()
+    {
+        // setup
+        $factory = ObjektFactory::new();
+        $objekt = $factory->hdd()->create();
+        $storage = $factory->container()->create();
+
+        $client = static::createClient();
+        $crawler = $this->loginUser($client)->request('POST', "/objekt/{$objekt->getBarcodeId()}/einlegen/in/{$storage->getBarcodeId()}");
+        $form = $crawler->selectButton('label.do.action')->form();
+        $client->submit($form, ['form[verwendung]' => 'Aus Testzwecken wird dieses Objekt in den Schrank gelegt']);
+        $this->assertResponseRedirects("/objekt/{$objekt->getBarcodeId()}");
+
+        // test overview page
+        $this->assertInOverviewPageCorrect($client, [
+            'barcode_id' => $objekt->getBarcodeId(),
+            'name' => $objekt->getName(),
+        ]);
+
+        // test details page
+        $this->assertDetailsPageCorrect($client, [
+            'barcode_id' => $objekt->getBarcodeId(),
+            'name' => $objekt->getName(),
+        ]);
+        // also test whether it is in storage
+        $this->assertSelectorTextContains('#currentstatus', $storage->getBarcode());
+
+        // test details page
+        $this->assertDetailsPageCorrect($client, [
+            'barcode_id' => $storage->getBarcodeId(),
+            'name' => $storage->getName(),
+        ]);
+        // also test whether storage lists item
+        $this->assertSelectorTextContains('#additionalinformation', $objekt->getBarcode());
+    }
+
+    /**
+     * @depends testStoreObjekt
+     */
+    public function testStoreObjektInvalidSelfStore()
+    {
+        // setup
+        $factory = ObjektFactory::new();
+        $objekt = $factory->container()->create();
+
+        $client = static::createClient();
+        $this->loginUser($client)->request('POST', "/objekt/{$objekt->getBarcodeId()}/einlegen/in/{$objekt->getBarcodeId()}");
+        $this->assertResponseRedirects("/objekt/{$objekt->getBarcodeId()}");
+
+        // test overview page
+        $this->assertInOverviewPageCorrect($client, [
+            'barcode_id' => $objekt->getBarcodeId(),
+            'name' => $objekt->getName(),
+        ]);
+
+        // test details page
+        $this->assertDetailsPageCorrect($client, [
+            'barcode_id' => $objekt->getBarcodeId(),
+            'name' => $objekt->getName(),
+        ]);
+        // also test whether object is not self stored
+        $this->assertSelectorExists('#currentstatus');
+        $this->assertSelectorTextNotContains('#currentstatus', $objekt->getBarcode());
+        // also test whether storage doesnt list item
+        $this->assertSelectorExists('#additionalinformation', $objekt->getBarcode());
+        $this->assertSelectorTextNotContains('#additionalinformation', $objekt->getBarcode());
+    }
+
+    /**
+     * @todo improve test
+     * @depends testStoreObjektInvalidSelfStore
+     */
+    public function testStoreObjektInvalidStoreAgain()
+    {
+        // setup
+        $factory = ObjektFactory::new();
+        $storage = $factory->container()->create();
+        // create object which is in storage
+        $objekt = $factory->hdd()->create(['standort' => $storage, 'status' => Objekt::STATUS_IN_EINEM_BEHAELTER_GELEGT]);
+
+        $client = static::createClient();
+        $this->loginUser($client)->request('POST', "/objekt/{$objekt->getBarcodeId()}/einlegen/in/{$storage->getBarcodeId()}");
+        $this->assertResponseRedirects("/objekt/{$objekt->getBarcodeId()}");
+
+        // test overview page
+        $this->assertInOverviewPageCorrect($client, [
+            'barcode_id' => $objekt->getBarcodeId(),
+            'name' => $objekt->getName(),
+        ]);
+
+        // test details page
+        $this->assertDetailsPageCorrect($client, [
+            'barcode_id' => $objekt->getBarcodeId(),
+            'name' => $objekt->getName(),
+        ]);
+        // also test whether error message is shown
+        $this->assertSelectorTextContains('#currentstatus', $storage->getBarcode());
+
+        // test details page
+        $this->assertDetailsPageCorrect($client, [
+            'barcode_id' => $storage->getBarcodeId(),
+            'name' => $storage->getName(),
+        ]);
+        // also test whether storage lists item
+        $this->assertSelectorTextContains('#additionalinformation', $objekt->getBarcode());
+    }
+
+    /**
+     * @depends testStoreObjektInvalidStoreAgain
+     */
+    public function testStoreObjektInvalidCyclicStore()
+    {
+        // setup
+        $factory = ObjektFactory::new();
+        $container1 = $factory->container()->create();
+        // container2 stored in container1
+        $container2 = $factory->container()->create(['standort' => $container1, 'status' => Objekt::STATUS_IN_EINEM_BEHAELTER_GELEGT]);
+
+        $client = static::createClient();
+        $this->loginUser($client)->request('POST', "/objekt/{$container1->getBarcodeId()}/einlegen/in/{$container2->getBarcodeId()}");
+        $this->assertResponseRedirects("/objekt/{$container1->getBarcodeId()}");
+
+        // test overview page
+        $this->assertInOverviewPageCorrect($client, [
+            'barcode_id' => $container1->getBarcodeId(),
+            'name' => $container1->getName(),
+        ]);
+        $this->assertInOverviewPageCorrect($client, [
+            'barcode_id' => $container2->getBarcodeId(),
+            'name' => $container2->getName(),
+        ]);
+
+        // test details page
+        $this->assertDetailsPageCorrect($client, [
+            'barcode_id' => $container1->getBarcodeId(),
+            'name' => $container1->getName(),
+        ]);
+        // also test whether error message is shown
+        $this->assertSelectorExists('#currentstatus');
+        $this->assertSelectorTextNotContains('#currentstatus', $container2->getBarcode());
+        $this->assertSelectorTextContains('#additionalinformation', $container2->getBarcode());
+        
+
+        // test details page
+        $this->assertDetailsPageCorrect($client, [
+            'barcode_id' => $container2->getBarcodeId(),
+            'name' => $container2->getName(),
+        ]);
+        // also test whether storage lists item
+        $this->assertSelectorExists('#additionalinformation');
+        $this->assertSelectorTextContains('#currentstatus', $container1->getBarcode());
+        $this->assertSelectorTextNotContains('#additionalinformation', $container1->getBarcode());
+    }
+
+    /**
+     * @depends testStoreObjektInvalidCyclicStore
+     */
+    public function testStoreObjektInvalidCyclicStoreThreeItems()
+    {
+        // setup
+        $factory = ObjektFactory::new();
+        $container1 = $factory->container()->create();
+        // container2 stored in container1
+        $container2 = $factory->container()->create(['standort' => $container1, 'status' => Objekt::STATUS_IN_EINEM_BEHAELTER_GELEGT]);
+        // container3 stored in container2
+        $container3 = $factory->container()->create(['standort' => $container2, 'status' => Objekt::STATUS_IN_EINEM_BEHAELTER_GELEGT]);
+
+        $client = static::createClient();
+        $this->loginUser($client)->request('POST', "/objekt/{$container1->getBarcodeId()}/einlegen/in/{$container3->getBarcodeId()}");
+        $this->assertResponseRedirects("/objekt/{$container1->getBarcodeId()}");
+
+        // test overview page
+        $this->assertInOverviewPageCorrect($client, [
+            'barcode_id' => $container1->getBarcodeId(),
+            'name' => $container1->getName(),
+        ]);
+        $this->assertInOverviewPageCorrect($client, [
+            'barcode_id' => $container2->getBarcodeId(),
+            'name' => $container2->getName(),
+        ]);
+        $this->assertInOverviewPageCorrect($client, [
+            'barcode_id' => $container3->getBarcodeId(),
+            'name' => $container3->getName(),
+        ]);
+
+        // test details page
+        $this->assertDetailsPageCorrect($client, [
+            'barcode_id' => $container1->getBarcodeId(),
+            'name' => $container1->getName(),
+        ]);
+        // also test whether error message is shown
+        $this->assertSelectorExists('#currentstatus');
+        $this->assertSelectorTextNotContains('#currentstatus', $container3->getBarcode());
+        $this->assertSelectorTextContains('#additionalinformation', $container2->getBarcode());
+        
+        // test details page
+        $this->assertDetailsPageCorrect($client, [
+            'barcode_id' => $container2->getBarcodeId(),
+            'name' => $container2->getName(),
+        ]);
+        // also test whether storage lists item
+        $this->assertSelectorTextContains('#currentstatus', $container1->getBarcode());
+        $this->assertSelectorTextContains('#additionalinformation', $container3->getBarcode());
+        $this->assertSelectorTextNotContains('#currentstatus', $container3->getBarcode());
+        $this->assertSelectorTextNotContains('#additionalinformation', $container1->getBarcode());
+        
+        // test details page
+        $this->assertDetailsPageCorrect($client, [
+            'barcode_id' => $container3->getBarcodeId(),
+            'name' => $container3->getName(),
+        ]);
+        // also test whether storage lists item
+        $this->assertSelectorTextContains('#currentstatus', $container2->getBarcode());
+        $this->assertSelectorTextNotContains('#currentstatus', $container1->getBarcode());
+        $this->assertSelectorExists('#additionalinformation');
+        $this->assertSelectorTextNOTContains('#additionalinformation', $container1->getBarcode());
+        $this->assertSelectorTextNotContains('#additionalinformation', $container2->getBarcode());
+    }
+    
+    /**
+     * @depends testStoreObjekt
+     */
+    public function testStoreObjektInvalidDestroyedContainer()
+    {
+        // setup
+        $factory = ObjektFactory::new();
+        $objekt = $factory->hdd()->create();
+        $storage = $factory->container()->destroyed()->create();
+
+        $client = static::createClient();
+        $this->loginUser($client)->request('POST', "/objekt/{$objekt->getBarcodeId()}/einlegen/in/{$storage->getBarcodeId()}");
+        $this->assertResponseRedirects("/objekt/{$objekt->getBarcodeId()}");
+
+        // test overview page
+        $this->assertInOverviewPageCorrect($client, [
+            'barcode_id' => $objekt->getBarcodeId(),
+            'name' => $objekt->getName(),
+        ]);
+
+        // test details page
+        $this->assertDetailsPageCorrect($client, [
+            'barcode_id' => $objekt->getBarcodeId(),
+            'name' => $objekt->getName(),
+        ]);
+        // also test whether it is in storage
+        $this->assertSelectorExists('#currentstatus');
+        $this->assertSelectorTextNotContains('#currentstatus', $storage->getBarcode());
+    }
+    
+    /**
+     * @depends testStoreObjekt
+     */
+    public function testStoreObjektInvalidContainer()
+    {
+        // setup
+        $factory = ObjektFactory::new();
+        $objekt = $factory->hdd()->create();
+        $storage = $factory->container()->create();
+
+        $client = static::createClient();
+        // reverse order
+        $this->loginUser($client)->request('POST', "/objekt/{$storage->getBarcodeId()}/einlegen/in/{$objekt->getBarcodeId()}");
+        $this->assertResponseRedirects("/objekt/{$storage->getBarcodeId()}");
+
+        // test overview page
+        $this->assertInOverviewPageCorrect($client, [
+            'barcode_id' => $objekt->getBarcodeId(),
+            'name' => $objekt->getName(),
+        ]);
+        $this->assertInOverviewPageCorrect($client, [
+            'barcode_id' => $storage->getBarcodeId(),
+            'name' => $storage->getName(),
+        ]);
+
+        // test details page
+        $this->assertDetailsPageCorrect($client, [
+            'barcode_id' => $storage->getBarcodeId(),
+            'name' => $storage->getName(),
+        ]);
+        // also test whether it is in storage
+        $this->assertSelectorExists('#currentstatus');
+        $this->assertSelectorTextNotContains('#currentstatus', $objekt->getBarcode());
+    }
+
+    public function testAssignToCaseObjekt()
+    {
+        // setup
+        $factory = ObjektFactory::new();
+        $objekt = $factory->create();
+        $caseFactory = FallFactory::new();
+        $case = $caseFactory->create();
+
+        $client = static::createClient();
+        $crawler = $this->loginUser($client)->request('POST', "/objekt/{$objekt->getBarcodeId()}/in/fall/{$case->getCaseId()}/hinzufuegen");
+        $form = $crawler->selectButton('label.do.action')->form();
+        $client->submit($form, ['form[verwendung]' => 'Musste beim Fall hinzugezogen werden']);
+        $this->assertResponseRedirects("/objekt/{$objekt->getBarcodeId()}");
+
+        // test overview page
+        $this->assertInOverviewPageCorrect($client, [
+            'barcode_id' => $objekt->getBarcodeId(),
+            'name' => $objekt->getName(),
+        ]);
+
+        // test details page
+        $this->assertDetailsPageCorrect($client, [
+            'barcode_id' => $objekt->getBarcodeId(),
+            'name' => $objekt->getName(),
+        ]);
+        // also test whether it was reserved
+        $this->assertSelectorTextContains('#currentstatus', $case->getCaseId());
+    }
+
+    /**
+     * @dataProvider simpleSearchParamsProvider
+     * @dataProvider complexSearchParamsProvider
+     */
+    public function testSearchObjekts($query, $expectedResults)
+    {
+        $factory = ObjektFactory::new();
+        $driveFactory = DatentraegerFactory::new();
+        $userFactory = \App\Tests\Factory\NutzerFactory::new();
+        $caseFactory = FallFactory::new();
+
+        $samples = [
+            [
+                'Barcode' => ObjektFactory::generateBarcode('DTAS'),
+                'Kategorie' => Objekt::KATEGORIE_ASSERVAT,
+                'Status' => Objekt::STATUS_EINGETRAGEN,
+                'Name' => 'name_string',
+                'Notiz' => 'note_string',
+                'Zeitstempel' => date_create_from_format('d.m.Y', "24.02.2042"),
+            ],
+            [
+                'Barcode' => 'DTHD12345',
+                'Kategorie' => Objekt::KATEGORIE_DATENTRAEGER,
+                'Status' => Objekt::STATUS_IN_EINEM_BEHAELTER_GELEGT,
+                'Verwendung' => 'current_description',
+                'Standort' => $factory->create([
+                    'Barcode' => 'DTHW33344',
+                    'Kategorie' => Objekt::KATEGORIE_BEHAELTER,
+                    'Status' => Objekt::STATUS_EINGETRAGEN,
+                ]),
+                'Zeitstempel' => date_create_from_format('d.m.Y', "01.01.1970"),
+                'hdd' => [
+                    'bauart' => 'extern', 
+                    'formfaktor' => '2,5', 
+                    'groesse' => '666', 
+                    'anschluss' => 'USB', 
+                    'hersteller' => 'prod_string',
+                    'SN' => '9988776655_sn',
+                ]
+            ],
+            [
+                'Barcode' => ObjektFactory::generateBarcode('DTHD'),
+                'Kategorie' => Objekt::KATEGORIE_DATENTRAEGER,
+                'Status' => Objekt::STATUS_GENULLT,
+                'Verwendung' => 'current_description',
+                'Fall' => $caseFactory->create([
+                    'case_id' => 'case_id',
+                    'istAktiv' => true,
+                ]),
+                'Zeitstempel' => date_create_from_format('d.m.Y', "25.05.2255"),
+                'hdd' => [
+                    'bauart' => 'extern', 
+                    'formfaktor' => '3,5', 
+                    'groesse' => '128', 
+                    'anschluss' => 'SATA', 
+                    'modell' => 'modell_string',
+                    'PN' => '1122334400_pn',
+                ]
+            ],
+            [
+                'Barcode' => ObjektFactory::generateBarcode('DTHW'),
+                'Kategorie' => Objekt::KATEGORIE_AUSRUESTUNG,
+                'Status' => Objekt::STATUS_RESERVIERT,
+                'ReserviertVon' => $userFactory->create([
+                    'username' => 'current_reservation',
+                    'fullname' => 'current_reservation'
+                ]),
+            ],
+        ];
+
+        // setup
+        $factory->disableAutomaticDriveGeneration();
+        foreach ($samples as $entry) {
+            $hdd = $entry['hdd'] ?? false;
+            unset($entry['hdd']);
+
+            $obj = $factory->create($entry);
+            // create drive if required
+            if($hdd){
+                $hdd['barcode'] = $obj->getBarcode();
+                $driveFactory->create($hdd);
+            }
+        }
+        $factory->enableAutomaticDriveGeneration();
+
+
+        $client = static::createClient();
+        $crawler = $this->loginUser($client)->request('POST', "/objekte");
+        $form = $crawler->selectButton('Suchen')->form();
+        $crawler = $client->submit($form, [
+            'form[suchwort]' => $query,
+            'form[anzahleintraege]' => '1000'
+        ]);
+        $this->assertResponseIsSuccessful();
+        $this->assertEquals($expectedResults, $crawler->filter("tbody tr")->count(), "Unexpected number of search results"); 
+    }
+
+    /**
+     * @dataProvider validMassUpdateObjektsProvider
+     */
+    public function testMassUpdateObjekts($objekts, $query)
+    {
+        // setup
+        $factory = ObjektFactory::new();
+        $factory->container()->create(['Barcode' => 'DTHW12345']);
+
+        // create objecs
+        foreach ($objekts as $key => $value) {
+            $objekts[$key] = $factory->create($objekts[$key])->_real();
+        }
+
+
+        $client = static::createClient();
+        $crawler = $this->loginUser($client)->request("POST",
+            '/objekte/aendern/', 
+            isset($query['context']) ? [
+                'action_choose' => [
+                    'searchbox' => $query['context'],
+                    'newstatus' => $query['newstate']
+                ]
+            ]: [],
+            [], 
+            ['HTTP_X-Requested-With' => 'XMLHttpRequest'],
+        );
+        $form = $crawler->selectButton('Select objects')->form();
+        // dueDate has to be set manually, cause of the indirect submit of the page
+        $crawler = $client->submit($form, isset($query['context']) ? [
+                'action_choose[newdescription]' => $query['desc'],
+                'action_choose[newstatus]' => $query['newstate'],
+                'action_choose[contextthings]' => $query['context'],
+                'action_choose[dueDate]' => '2018-10-12T10:00:00'
+            ] : [
+                'action_choose[newdescription]' => $query['desc'],
+                'action_choose[newstatus]' => $query['newstate']   
+            ]
+        );
+
+        $this->assertResponseRedirects('/objekte/aendern/in');
+
+        // follow redirect and set values
+        $form = $client->followRedirect()->selectButton('label.do.action')->form();
+        $formdata = $form->getPhpValues();
+        
+        // add objects to be altered
+        foreach($objekts as $key => $obj){
+            $formdata['form']['objects'][$key] = $obj->getBarcode();
+            
+        }
+
+        // make request
+        $crawler = $client->request($form->getMethod(), 
+        $form->getUri(), $formdata, $form->getPhpFiles());
+        $this->assertResponseRedirects('/objekte');
+
+        // verify changes on objects
+        foreach ($objekts as $obj) {
+            $this->seeInDatabase(ObjektRepository::class, [
+                'barcode_id' => $obj->getBarcode(),
+                'status_id' => $query['newstate'],
+            ]);
+        }
+    }
+
+    /**
+     * @dataProvider invalidMassUpdateObjektsProvider
+     */
+    public function testMassUpdateObjektsInvalidChanges($objekts, $query)
+    {
+        // setup
+        $factory = ObjektFactory::new();
+        $factory->container()->create(['Barcode' => 'DTHW12345']);
+
+        // create objecs
+        foreach ($objekts as $key => $value) {
+            $objekts[$key] = $factory->create($objekts[$key])->_real();
+        }
+
+
+        $client = static::createClient();
+        $crawler = $this->loginUser($client)->request("POST",
+            '/objekte/aendern/', 
+            isset($query['context']) ? [
+                'action_choose' => [
+                    'searchbox' => $query['context'],
+                    'newstatus' => $query['newstate']
+                ]
+            ]: [],
+            [], 
+            ['HTTP_X-Requested-With' => 'XMLHttpRequest'],
+        );
+        $form = $crawler->selectButton('Select objects')->form();
+        // dueDate has to be set manually, cause of the indirect submit of the page
+        $crawler = $client->submit($form, isset($query['context']) ? [
+                'action_choose[newdescription]' => $query['desc'],
+                'action_choose[newstatus]' => $query['newstate'],
+                'action_choose[contextthings]' => $query['context'],
+                'action_choose[dueDate]' => '2018-10-12T10:00:00'
+            ] : [
+                'action_choose[newdescription]' => $query['desc'],
+                'action_choose[newstatus]' => $query['newstate']   
+            ]
+        );
+
+        $this->assertResponseRedirects('/objekte/aendern/in');
+
+        // follow redirect and set values
+        $form = $client->followRedirect()->selectButton('label.do.action')->form();
+        $formdata = $form->getPhpValues();
+        
+        // add objects to be altered
+        foreach($objekts as $key => $obj){
+            $formdata['form']['objects'][$key] = $obj->getBarcode();
+            
+        }
+
+        // make request
+        $crawler = $client->request($form->getMethod(), 
+        $form->getUri(), $formdata, $form->getPhpFiles());
+
+        // verify no changes on objects
+        foreach ($objekts as $obj) {
+            $this->seeInDatabase(ObjektRepository::class, [
+                'barcode_id' => $obj->getBarcode(),
+                'status_id' => $obj->getStatus(),
+            ]);
+        }
+    }
+
+
+    public function testAddImageToHDD()
+    {
+        // setup
+        $factory = ObjektFactory::new();
+        $exhibitHdd = $factory->exhibitHdd()->create();
+        $objekt = $factory->hdd()->create();
+
+        $client = static::createClient();
+        $crawler = $this->loginUser($client)->request('POST', "/objekt/{$objekt->getBarcodeId()}/Asservatenimage/speichern/von/{$exhibitHdd->getBarcodeId()}/0");
+        $form = $crawler->selectButton('label.do.action')->form();
+        $client->submit($form, ['form[verwendung]' => 'Eine Bitweise Kopie erstellt. Beim Kopieren wurden jedoch fehlerhafte Sektoren übersprungen']);
+        $this->assertResponseRedirects("/objekt/{$objekt->getBarcodeId()}");
+
+        // test overview page
+        $this->assertInOverviewPageCorrect($client, [
+            'barcode_id' => $objekt->getBarcodeId(),
+            'name' => $objekt->getName(),
+        ]);
+
+        // test details page
+        $this->assertDetailsPageCorrect($client, [
+            'barcode_id' => $objekt->getBarcodeId(),
+            'name' => $objekt->getName(),
+        ]);
+        $this->assertSelectorTextContains('#images', $exhibitHdd->getBarcode());
+        $this->assertSelectorTextContains('#images_info', $exhibitHdd->getBarcode());
+
+        // test details page
+        $this->assertDetailsPageCorrect($client, [
+            'barcode_id' => $exhibitHdd->getBarcodeId(),
+            'name' => $exhibitHdd->getName(),
+        ]);
+        $this->assertSelectorTextContains('#image_locations', $objekt->getBarcode());
+        $this->assertSelectorTextContains('#image_locations_info', $objekt->getBarcode());
+    }
+
+    //
+    // ================ HELPER METHODS ================
+    //
+
+    protected function assertInOverviewPageCorrect($client, $objekt): Crawler
     {
         $crawler = $client->request('GET', '/objekte');
         $this->assertSelectorTextContains("tr:contains('{$objekt['barcode_id']}')", $objekt['barcode_id']);
@@ -491,7 +1420,7 @@ class ObjektControllerTest extends BaseWebTestCase
         return $crawler;
     }
 
-    protected function assertDetailsPageCorrect($client, $objekt, $datentraeger = null)
+    protected function assertDetailsPageCorrect($client, $objekt, $datentraeger = null): Crawler
     {
         $crawler = $client->request('GET', "/objekt/{$objekt['barcode_id']}");
         foreach (['verwendung', 'name', 'kategorie'] as $index) {
