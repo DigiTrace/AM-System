@@ -609,8 +609,8 @@
                 <source>count.objects.are.changed %counts%</source>
                 <target>Es wurden counts Objekte verändert</target>
             </trans-unit>
-            <trans-unit id="objects_action_not_correkt">
-                <source>objects.action.not.correkt %counts%</source>
+            <trans-unit id="objects_action_not_correct">
+                <source>objects.action.not.correct %counts%</source>
                 <target>Bei folgenden Objekten kann die Aktion nicht durchgeführt werden:
                     counts
                 </target>

@@ -13,3 +13,25 @@ if (file_exists(dirname(__DIR__).'/config/bootstrap.php')) {
 if ($_SERVER['APP_DEBUG']) {
     umask(0000);
 }
+
+// $env = 'test';
+// passthru(
+//     sprintf(
+//         'php bin/console doctrine:database:drop --if-exists --force --env=%s',
+//         $env
+//     )
+// );
+
+// passthru(
+//     sprintf(
+//         'php bin/console doctrine:database:create --if-not-exists --env=%s',
+//         $env
+//     )
+// );
+
+// passthru(
+//     sprintf(
+//         'php bin/console doctrine:schema:create --env=%s',
+//         $env
+//     )
+// );

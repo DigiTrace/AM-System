@@ -39,7 +39,7 @@ class Fall
     
     public function __construct() {
         $time = new \DateTime('NOW');
-        $this->Zeitstempel_beginn = $time;
+        $this->zeitstempel_beginn = $time;
     }
     
 
@@ -94,21 +94,21 @@ class Fall
     
     #[ORM\Column(type: "text")]
     #[Assert\NotBlank] 
-    protected $Beschreibung;
+    protected $beschreibung;
     
     
     
     #[ORM\Column(type: "datetime")]
-    protected $Zeitstempel_beginn;
+    protected $zeitstempel_beginn;
 
     
     #[ORM\Column(type:"datetime",nullable:true)]
-    protected $Zeitstempel_ende;
+    protected $zeitstempel_ende;
 
   
 
     
-    #[ORM\OneToMany(targetEntity: "Objekt", mappedBy: "Fall_id")]
+    #[ORM\OneToMany(targetEntity: "Objekt", mappedBy: "fall_id")]
     protected $objekte;
     
     
@@ -146,11 +146,11 @@ class Fall
     
     
     public function getBeschreibung() {
-        return $this->Beschreibung;
+        return $this->beschreibung;
     }
         
     public function getZeitstempel(){
-        return $this->Zeitstempel_beginn;
+        return $this->zeitstempel_beginn;
     }
 
     public function istAktiv(){
@@ -176,7 +176,7 @@ class Fall
      */
    /* public function getFallId()
     {
-        return $this->Fall_id;
+        return $this->fall_id;
     }*/
 
     /**
@@ -188,7 +188,7 @@ class Fall
      */
     public function setBeschreibung($beschreibung)
     {
-        $this->Beschreibung = $beschreibung;
+        $this->beschreibung = $beschreibung;
 
         return $this;
     }
@@ -202,7 +202,7 @@ class Fall
      */
     public function setZeitstempel($zeitstempel)
     {
-        $this->Zeitstempel_beginn = $zeitstempel;
+        $this->zeitstempel_beginn = $zeitstempel;
 
         return $this;
     }

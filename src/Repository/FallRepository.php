@@ -31,7 +31,7 @@ class FallRepository extends ServiceEntityRepository
         // create query builder
         $builder = $this->createQueryBuilder('f')
             ->where('f.istAktiv = 1')
-            ->orderBy('f.Zeitstempel_beginn', 'DESC');
+            ->orderBy('f.zeitstempel_beginn', 'DESC');
 
         if (null !== $limit) {
             $builder->setMaxResults($limit);

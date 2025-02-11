@@ -127,7 +127,7 @@ class ObjectOverviewController extends AbstractController{
             $request->query->getInt('page', 1)/*page number*/,
             $session->get('anzahleintraege')/*limit per page*/,
             array(
-                'defaultSortFieldName' => 'o.Barcode_id',
+                'defaultSortFieldName' => 'o.barcode_id',
                 'defaultSortDirection' => 'asc',
             )
         );
@@ -147,16 +147,16 @@ class ObjectOverviewController extends AbstractController{
       $repository = $doctrine->getRepository(Objekt::class); 
       
       $query = $repository->createQueryBuilder('o');
-      $query->leftjoin("App:Historie_Objekt", "ho","WITH","o.Barcode_id = ho.Barcode_id");
-      $query->leftjoin("App:Datentraeger"   , "d" ,"WITH","o.Barcode_id =  d.Barcode_id");
-      $query->leftjoin("App:Nutzer"         , "n" ,"WITH","o.Nutzer_id =  n.id");
-      $query->leftjoin("App:Nutzer"         , "hn" ,"WITH","ho.Nutzer_id =  hn.id");
-      $query->leftjoin("App:Nutzer"         , "r" ,"WITH","o.Reserviert_von = r.id");
-      $query->leftjoin("App:Nutzer"         , "rh","WITH","ho.Reserviert_von = rh.id");
-      $query->leftjoin("App:Objekt "        , "so","WITH","so.Barcode_id = o.Standort");
-      $query->leftjoin("App:Objekt "        , "hso","WITH","hso.Barcode_id = ho.Standort");
-      $query->leftjoin("App:Fall"           , "c","WITH" ,"c.id = o.Fall_id");
-      $query->leftjoin("App:Fall"           , "hc","WITH","hc.id = ho.Fall_id ");
+      $query->leftjoin("App:HistorieObjekt", "ho","WITH","o.barcode_id = ho.barcode_id");
+      $query->leftjoin("App:Datentraeger"   , "d" ,"WITH","o.barcode_id =  d.barcode_id");
+      $query->leftjoin("App:Nutzer"         , "n" ,"WITH","o.nutzer_id =  n.id");
+      $query->leftjoin("App:Nutzer"         , "hn" ,"WITH","ho.nutzer_id =  hn.id");
+      $query->leftjoin("App:Nutzer"         , "r" ,"WITH","o.reserviert_von = r.id");
+      $query->leftjoin("App:Nutzer"         , "rh","WITH","ho.reserviert_von = rh.id");
+      $query->leftjoin("App:Objekt "        , "so","WITH","so.barcode_id = o.standort");
+      $query->leftjoin("App:Objekt "        , "hso","WITH","hso.barcode_id = ho.standort");
+      $query->leftjoin("App:Fall"           , "c","WITH" ,"c.id = o.fall_id");
+      $query->leftjoin("App:Fall"           , "hc","WITH","hc.id = ho.fall_id ");
       
       
 
@@ -180,24 +180,24 @@ class ObjectOverviewController extends AbstractController{
                             PREG_SET_ORDER);
                 
         
-        $simplewhereconditions= array("name" => "o.Name",
-                                "mdesc" => "o.Verwendung",
-                                "barcode" => "o.Barcode_id",
-                                "notice" => "o.Notiz",
-                                "hdesc" => "ho.Verwendung",
+        $simplewhereconditions= array("name" => "o.name",
+                                "mdesc" => "o.verwendung",
+                                "barcode" => "o.barcode_id",
+                                "notice" => "o.notiz",
+                                "hdesc" => "ho.verwendung",
                                 "mu" => "n.fullname",
                                 "hu" => "hn.fullname",
-                                "mstoredin" => "so.Barcode_id",
-                                "hstoredin" => "hso.Barcode_id",
+                                "mstoredin" => "so.barcode_id",
+                                "hstoredin" => "hso.barcode_id",
                                 "mcase" => "c.case_id",
                                 "hcase" => "hc.case_id",
-                                "type" => "d.Bauart",
-                                "ff" => "d.Formfaktor",
-                                "prod" => "d.Hersteller",
-                                "modell" => "d.Modell",
-                                "pn" => "d.PN",
-                                "sn" => "d.SN",
-                                "connection" => "d.Anschluss",
+                                "type" => "d.bauart",
+                                "ff" => "d.formfaktor",
+                                "prod" => "d.hersteller",
+                                "modell" => "d.modell",
+                                "pn" => "d.pn",
+                                "sn" => "d.sn",
+                                "connection" => "d.anschluss",
                                 "mr" => "r.fullname",
                                 "hr" => "hr.fullname");
 
@@ -298,9 +298,9 @@ class ObjectOverviewController extends AbstractController{
                            $generalmatch['value'] < Objekt::getCountCategories()){
                             
                             if($generalmatch['operator'] != "!")
-                                    $query->andwhere("o.Kategorie_id = :parameter".$indexparameter);
+                                    $query->andwhere("o.kategorie_id = :parameter".$indexparameter);
                                 else
-                                    $query->andwhere("o.Kategorie_id != :parameter".$indexparameter);
+                                    $query->andwhere("o.kategorie_id != :parameter".$indexparameter);
                                
                             $parameters["parameter".$indexparameter] = $generalmatch['value'];
                             array_push($usedSearchParameters,
@@ -329,9 +329,9 @@ class ObjectOverviewController extends AbstractController{
                            $generalmatch['value'] < Objekt::getCountStatues()){
                             
                             if($generalmatch['operator'] != "!")
-                                    $query->andwhere("o.Status_id = :parameter".$indexparameter);
+                                    $query->andwhere("o.status_id = :parameter".$indexparameter);
                                 else
-                                    $query->andwhere("o.Status_id != :parameter".$indexparameter);
+                                    $query->andwhere("o.status_id != :parameter".$indexparameter);
                                
                             $parameters["parameter".$indexparameter] = $generalmatch['value'];
                             array_push($usedSearchParameters,
@@ -358,13 +358,13 @@ class ObjectOverviewController extends AbstractController{
                         switch ($sizematch['operator']):
                             case "<":
                             case ">":
-                                $query->andwhere("d.Groesse ".$sizematch['operator']." :parameter".$indexparameter);
+                                $query->andwhere("d.groesse ".$sizematch['operator']." :parameter".$indexparameter);
                                 break;
                             case "!":
-                                $query->andwhere("d.Groesse != :parameter".$indexparameter);
+                                $query->andwhere("d.groesse != :parameter".$indexparameter);
                                 break;
                             case "":
-                                $query->andwhere("d.Groesse = :parameter".$indexparameter);
+                                $query->andwhere("d.groesse = :parameter".$indexparameter);
                                 break;
                         endswitch;
                         $parameters["parameter".$indexparameter] = $generalmatch['value'];
@@ -392,13 +392,13 @@ class ObjectOverviewController extends AbstractController{
                             switch ($mdatematch['operator']):
                             case "<":
                             case ">":
-                                $query->andwhere("DATE_DIFF(o.Zeitstempel,:parameter".$indexparameter.") ".$mdatematch['operator']." 0 ");
+                                $query->andwhere("DATE_DIFF(o.zeitstempel,:parameter".$indexparameter.") ".$mdatematch['operator']." 0 ");
                                 break;
                             case "!":
-                                $query->andwhere("DATE_DIFF(o.Zeitstempel,:parameter".$indexparameter.") != 0 ");
+                                $query->andwhere("DATE_DIFF(o.zeitstempel,:parameter".$indexparameter.") != 0 ");
                                 break;
                             case "":
-                                $query->andwhere("DATE_DIFF(o.Zeitstempel,:parameter".$indexparameter.") = 0 ");
+                                $query->andwhere("DATE_DIFF(o.zeitstempel,:parameter".$indexparameter.") = 0 ");
                                 break;
                             endswitch;
                             $parameters["parameter".$indexparameter] = new \DateTime($mdatematch['day']."-".$mdatematch['month']."-".$mdatematch['year']);
@@ -473,15 +473,15 @@ class ObjectOverviewController extends AbstractController{
             $em =$doctrine->getManager();
             $query = $em->createQuery('SELECT o '
                     . 'FROM App:Objekt o '
-                    . 'LEFT JOIN App:Historie_Objekt ho '
-                    . 'WITH o.Barcode_id = ho.Barcode_id '
+                    . 'LEFT JOIN App:HistorieObjekt ho '
+                    . 'WITH o.barcode_id = ho.barcode_id '
                     . 'LEFT JOIN App:Datentraeger d '
-                    . 'WITH o.Barcode_id = d.Barcode_id '
-                    . "WHERE o.Name like :searchword "
-                    . "OR o.Verwendung like :searchword "
-		    . "OR o.Notiz like :searchword "
-                    . "OR o.Barcode_id like :searchword "
-                    . "OR d.SN like :searchword ")
+                    . 'WITH o.barcode_id = d.barcode_id '
+                    . "WHERE o.name like :searchword "
+                    . "OR o.verwendung like :searchword "
+		    . "OR o.notiz like :searchword "
+                    . "OR o.barcode_id like :searchword "
+                    . "OR d.sn like :searchword ")
                     ->setParameter(":searchword" , "%".$searchword."%");  
         }
         return $query;

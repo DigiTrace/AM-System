@@ -28,6 +28,8 @@ use Doctrine\ORM\Mapping as ORM;
 class Datentraeger
 {
     public function __construct($info = null) {
+        if(null === $info) 
+            return;
         $this->setBarcode($info['barcode_id']);
         $this->setBauart($info['bauart']);
         $this->setFormfaktor($info['formfaktor']);
@@ -49,36 +51,36 @@ class Datentraeger
     #[ORM\Id]
     #[ORM\ManyToOne(targetEntity: "Objekt")]
     #[ORM\JoinColumn(name:"reserviert_von",referencedColumnName:"id",nullable:true)]
-    protected $Barcode_id;
+    protected $barcode_id;
 
     
     #[ORM\Column(type:"text",nullable:true)]
-    protected $Formfaktor;
+    protected $formfaktor;
     
     #[ORM\Column(type:"text",nullable:true)]
-    protected $Bauart;
+    protected $bauart;
     
     
     #[ORM\Column(type:"integer",nullable:true)]
-    protected $Groesse;
+    protected $groesse;
     
     
     #[ORM\Column(type:"text",nullable: true)]
-    protected $Hersteller;
+    protected $hersteller;
     
     #[ORM\Column(type:"text",nullable: true)]
-    protected $Modell;
+    protected $modell;
     
     #[ORM\Column(type:"text",nullable: true)]
-    protected $SN;
+    protected $sn;
 
     
     #[ORM\Column(type:"text",nullable: true)]
-    protected $PN;
+    protected $pn;
     
     
     #[ORM\Column(type:"text",nullable: true)]
-    protected $Anschluss;
+    protected $anschluss;
     
     
     
@@ -90,7 +92,7 @@ class Datentraeger
      */
     public function getBarcode()
     {
-        return $this->Barcode_id;
+        return $this->barcode_id;
     }
      
     /**
@@ -102,7 +104,7 @@ class Datentraeger
      */
     public function setBarcode($barcodeId)
     {
-        $this->Barcode_id = $barcodeId;
+        $this->barcode_id = $barcodeId;
 
         return $this;
     }
@@ -110,26 +112,26 @@ class Datentraeger
     
     
     /**
-     * Get Bauart
+     * Get bauart
      *
      * @return string
      */
     public function getBauart()
     {
-        return $this->Bauart;
+        return $this->bauart;
     }
     
     
     /**
-     * Set Bauart
+     * Set bauart
      *
-     * @param string $Bauart
+     * @param string $bauart
      *
      * @return Datentraeger
      */
-    public function setBauart($Bauart)
+    public function setBauart($bauart)
     {
-        $this->Bauart = $Bauart;
+        $this->bauart = $bauart;
 
         return $this;
     }
@@ -137,179 +139,179 @@ class Datentraeger
     
     
     /**
-     * Get Formfaktor
+     * Get formfaktor
      *
      * @return string
      */
     public function getFormfaktor()
     {
-        return $this->Formfaktor;
+        return $this->formfaktor;
     }
     
     
     /**
-     * Set Formfaktor
+     * Set formfaktor
      *
-     * @param string $Formfaktor
+     * @param string $formfaktor
      *
      * @return Datentraeger
      */
-    public function setFormfaktor($Formfaktor)
+    public function setFormfaktor($formfaktor)
     {
-        $this->Formfaktor = $Formfaktor;
+        $this->formfaktor = $formfaktor;
 
         return $this;
     }
     
     
     /**
-     * Get Groesse
+     * Get groesse
      *
      * @return integer
      */
     public function getGroesse()
     {
-        return $this->Groesse;
+        return $this->groesse;
     }
     
     /**
-     * Set Groesse
+     * Set groesse
      *
-     * @param integer $Groesse
+     * @param integer $groesse
      *
      * @return Datentraeger
      */
-    public function setGroesse($Groesse)
+    public function setGroesse($groesse)
     {
-        $this->Groesse = $Groesse;
+        $this->groesse = $groesse;
 
         return $this;
     }
     
     
      /**
-     * Get Hersteller
+     * Get hersteller
      *
      * @return string
      */
     public function getHersteller()
     {
-        return $this->Hersteller;
+        return $this->hersteller;
     }
     
     
     /**
-     * Set Hersteller
+     * Set hersteller
      *
-     * @param string $Hersteller
+     * @param string $hersteller
      *
      * @return Datentraeger
      */
-    public function setHersteller($Hersteller)
+    public function setHersteller($hersteller)
     {
-        $this->Hersteller = $Hersteller;
+        $this->hersteller = $hersteller;
 
         return $this;
     }
     
     
     /**
-     * Get Modell
+     * Get modell
      *
      * @return string
      */
     public function getModell()
     {
-        return $this->Modell;
+        return $this->modell;
     }
     
     
     /**
-     * Set Modell
+     * Set modell
      *
-     * @param string $Modell
+     * @param string $modell
      *
      * @return Datentraeger
      */
-    public function setModell($Modell)
+    public function setModell($modell)
     {
-        $this->Modell = $Modell;
+        $this->modell = $modell;
 
         return $this;
     }
     
     
     /**
-     * Get SN
+     * Get sn
      *
      * @return string
      */
     public function getSN()
     {
-        return $this->SN;
+        return $this->sn;
     }   
     
     
     /**
-     * Set SN
+     * Set sn
      *
-     * @param string $SN
+     * @param string $sn
      *
      * @return Datentraeger
      */
-    public function setSN($SN)
+    public function setSN($sn)
     {
-        $this->SN = $SN;
+        $this->sn = $sn;
 
         return $this;
     }
     
     
     /**
-     * Get PN
+     * Get pn
      *
      * @return string
      */
     public function getPN()
     {
-        return $this->PN;
+        return $this->pn;
     } 
     
     /**
-     * Set PN
+     * Set pn
      *
-     * @param string $PN
+     * @param string $pn
      *
      * @return Datentraeger
      */
-    public function setPN($PN)
+    public function setPN($pn)
     {
-        $this->PN = $PN;
+        $this->pn = $pn;
 
         return $this;
     }
     
     
     /**
-     * Get Anschluss
+     * Get anschluss
      *
      * @return string
      */
     public function getAnschluss()
     {
-        return $this->Anschluss;
+        return $this->anschluss;
     } 
     
     /**
-     * Set Anschluss
+     * Set anschluss
      *
-     * @param string $Anschluss
+     * @param string $anschluss
      *
      * @return Datentraeger
      */
-    public function setAnschluss($Anschluss)
+    public function setAnschluss($anschluss)
     {
-        $this->Anschluss = $Anschluss;
+        $this->anschluss = $anschluss;
 
         return $this;
     }

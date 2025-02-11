@@ -106,7 +106,7 @@ class CaseOverviewController extends AbstractController
             $request->query->getInt('page', 1)/*page number*/,
             $session->get('anzahleintraege')/*limit per page*/ ,
             array(
-                'defaultSortFieldName' => 'c.Zeitstempel_beginn',
+                'defaultSortFieldName' => 'c.zeitstempel_beginn',
                 'defaultSortDirection' => 'desc',
             )
         );
@@ -286,8 +286,8 @@ class CaseOverviewController extends AbstractController
       $repository = $doctrine->getRepository(Fall::class); 
       
       $query = $repository->createQueryBuilder('c');
-      $query->leftjoin("App:Objekt"         , "o","WITH" ,"c.id = o.Fall_id");
-      $query->leftjoin("App:Historie_Objekt", "ho","WITH","c.id = ho.Fall_id ");
+      $query->leftjoin("App:Objekt"         , "o","WITH" ,"c.id = o.fall_id");
+      $query->leftjoin("App:HistorieObjekt", "ho","WITH","c.id = ho.fall_id ");
       
       
 
@@ -312,7 +312,7 @@ class CaseOverviewController extends AbstractController
                 
         
         $simplewhereconditions= array("caseid" => "c.case_id",
-                                "desc" => "c.Beschreibung");
+                                "desc" => "c.beschreibung");
 
 
         
@@ -393,13 +393,13 @@ class CaseOverviewController extends AbstractController
                             switch ($mdatematch['operator']):
                             case "<":
                             case ">":
-                                $query->andwhere("DATE_DIFF(c.Zeitstempel_beginn,:parameter".$indexparameter.") ".$mdatematch['operator']." 0 ");
+                                $query->andwhere("DATE_DIFF(c.zeitstempel_beginn,:parameter".$indexparameter.") ".$mdatematch['operator']." 0 ");
                                 break;
                             case "!":
-                                $query->andwhere("DATE_DIFF(c.Zeitstempel_beginn,:parameter".$indexparameter.") != 0 ");
+                                $query->andwhere("DATE_DIFF(c.zeitstempel_beginn,:parameter".$indexparameter.") != 0 ");
                                 break;
                             case "":
-                                $query->andwhere("DATE_DIFF(c.Zeitstempel_beginn,:parameter".$indexparameter.") = 0 ");
+                                $query->andwhere("DATE_DIFF(c.zeitstempel_beginn,:parameter".$indexparameter.") = 0 ");
                                 break;
                             endswitch;
                             $parameters["parameter".$indexparameter] = new \DateTime($mdatematch['day']."-".$mdatematch['month']."-".$mdatematch['year']);
@@ -475,7 +475,7 @@ class CaseOverviewController extends AbstractController
             $em = $doctrine->getManager();
             $query = $em->createQuery('SELECT c '
                     . 'FROM App:Fall c '
-                    . "WHERE c.Beschreibung like :search "
+                    . "WHERE c.beschreibung like :search "
                     . "OR c.case_id like :search ")
                     ->setParameter('search',"%".$searchword."%");  
         }

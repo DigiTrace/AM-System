@@ -610,8 +610,8 @@
                 <source>count.objects.are.changed %counts%</source>
                 <target>counts objects were changed</target>
             </trans-unit>
-            <trans-unit id="objects_action_not_correkt">
-                <source>objects.action.not.correkt %counts%</source>
+            <trans-unit id="objects_action_not_correct">
+                <source>objects.action.not.correct %counts%</source>
                 <target>The chosen action cant be made by following objects:
                     counts
                 </target>
