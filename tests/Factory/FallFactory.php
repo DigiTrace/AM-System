@@ -51,11 +51,16 @@ final class FallFactory extends PersistentProxyObjectFactory
     protected function defaults(): array|callable
     {
         return [
-            'beschreibung' => self::faker()->text(),
-            'DOS' => self::faker()->text(255),
+            'beschreibung' => self::faker()->text(40),
+            'DOS' => array_rand([
+                Fall::DEGREE_OF_SECRECY_PUBLIC,
+                Fall::DEGREE_OF_SECRECY_INTERNAL,
+                Fall::DEGREE_OF_SECRECY_CONFIDENTIAL,
+                Fall::DEGREE_OF_SECRECY_SECRET,
+            ]),
             'zeitstempel' => self::faker()->dateTime(),
-            'case_id' => self::faker()->text(255),
-            'istAktiv' => self::faker()->boolean(),
+            'case_id' => self::faker()->randomLetter() . self::faker()->randomNumber(4),
+            'istAktiv' => true,
         ];
     }
 

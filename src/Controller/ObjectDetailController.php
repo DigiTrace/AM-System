@@ -129,7 +129,7 @@ class ObjectDetailController extends AbstractController{
                 if(($em->getRepository(Objekt::class)->find($addform->getData()['barcode_id'])) == null){
                    $new_object->setStatus(Objekt::STATUS_EINGETRAGEN);
                    $new_object->setBarcode($info['barcode_id']);
-                   $new_object->setName($info['name']);
+                   $new_object->setName($info['name'] ?? '');
                    $new_object->setVerwendung($info['verwendung']);
                    $new_object->setNotiz($info['notiz']);
                    $new_object->setKategorie($info['kategorie_id']);
@@ -387,7 +387,7 @@ class ObjectDetailController extends AbstractController{
             }
             
             if($errorActionOnObject != ""){
-                $message= $this->translator->trans('objects.action.not.correkt %counts%',array("counts" => $errorActionOnObject));
+                $message= $this->translator->trans('objects.action.not.correct %counts%',array("counts" => $errorActionOnObject));
                 $this->addFlash('danger',$message);
                 
             }
@@ -509,7 +509,7 @@ class ObjectDetailController extends AbstractController{
         
         // query object history
         $query = $em->createQuery('SELECT o '
-                    . 'FROM App:Historie_Objekt o '
+                    . 'FROM App:HistorieObjekt o '
                     . "WHERE o.barcode_id = :barcode " 
                     . "ORDER by o.historie_id desc ")
                     ->setParameter("barcode",$object->getBarcode());  
@@ -739,7 +739,7 @@ class ObjectDetailController extends AbstractController{
     private function admiteditedObject(ManagerRegistry $doctrine, $object, $newVerwendung){
         $em = $doctrine->getManager();
         
-        $hist = new \App\Entity\Historie_Objekt($object->getBarcode());
+        $hist = new \App\Entity\HistorieObjekt($object->getBarcode());
 
         $hist->setFall($object->getFall());
         $hist->setNutzerId($this->getNutzer($doctrine));

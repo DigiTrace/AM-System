@@ -27,7 +27,6 @@ class ObjektControllerTest extends BaseWebTestCase
         yield ['/objekt-scanner'];
         yield ['/objekt/anlegen'];
         yield ['/objekte/aendern/'];
-        // yield ['/objekte/aendern/in'];
     }
 
     public function detailUrlProvider()
@@ -40,17 +39,11 @@ class ObjektControllerTest extends BaseWebTestCase
         yield ['/objekt/%s/uebergeben'];
         yield ['/objekt/%s/verloren'];
         yield ['/objekt/%s/reservieren'];
-        // yield ['/objekt/%s/reservierung/aufheben'];
-        // yield ['/objekt/%s/entnehmen'];
-        // yield ['/objekt/%s/aus/Fall/entfernen'];
         yield ['/objekt/%s/neutralisieren'];
         yield ['/objekt/%s/einlegen/in'];
         yield ['/objekt/%s/in/fall'];
         yield ['/objekt/%s/upload'];
-        // yield ['/objekt/%s/Asservatenimage/speichern/'];
-        // yield ['/objekt/{fromid}/einlegen/in/{toid}'];
-        // yield ['/objekt/{objectid}/in/fall/{caseid}/hinzufuegen'];
-        // yield ['/objekt/{fromid}/Asservatenimage/speichern/von/{toid}/{returnid}'];
+        yield ['/objekt/%s/Asservatenimage/speichern/'];
     }
 
     public function validObjektProvider()
@@ -292,12 +285,12 @@ class ObjektControllerTest extends BaseWebTestCase
             'verwendung' => '(TEST)Es wäre nicht gut, wenn dies so umgesetzt wird',
             'kategorie_id' => '1',
         ]];
-        // yield 'Missing name' => [[
-        //     'barcode_id' => 'DTHD00004',
-        //     'name' => '',
-        //     'verwendung' => '(TEST)Verwendungszweck ist nicht nötigt',
-        //     'kategorie_id' => '3',
-        // ]];
+        yield 'Missing name' => [[
+            'barcode_id' => 'DTHD00004',
+            'name' => '',
+            'verwendung' => '(TEST)Verwendungszweck ist nicht nötigt',
+            'kategorie_id' => '3',
+        ]];
     }
 
     /**
@@ -443,11 +436,11 @@ class ObjektControllerTest extends BaseWebTestCase
         ];
         yield 'Zero drive' => [
             'objects' => [[
-                'Barcode' => 'DTHD00020',
-                'Kategorie' => Objekt::KATEGORIE_DATENTRAEGER,
+                'barcode' => 'DTHD00020',
+                'kategorie' => Objekt::KATEGORIE_DATENTRAEGER,
             ], [
-                'Barcode' => 'DTHD00024',
-                'Kategorie' => Objekt::KATEGORIE_DATENTRAEGER,
+                'barcode' => 'DTHD00024',
+                'kategorie' => Objekt::KATEGORIE_DATENTRAEGER,
             ],],
             'query' => [
                 'newstate' => Objekt::STATUS_GENULLT,
@@ -467,30 +460,59 @@ class ObjektControllerTest extends BaseWebTestCase
     {
         yield 'Zero exibits' => [
             'objects' => [[
-                'Barcode' => 'DTAS00020',
-                'Kategorie' => Objekt::KATEGORIE_ASSERVAT,
+                'barcode' => 'DTAS00020',
+                'kategorie' => Objekt::KATEGORIE_ASSERVAT,
             ], [
-                'Barcode' => 'DTAS00024',
-                'Kategorie' => Objekt::KATEGORIE_AKTE,
+                'barcode' => 'DTAS00024',
+                'kategorie' => Objekt::KATEGORIE_AKTE,
             ],],
             'query' => [
                 'newstate' => Objekt::STATUS_GENULLT,
                 'desc' => '(TEST) Asservate sollten nicht genullt werden können',
-                ]
-            ];
+            ], 
+            'expected' => [
+                'message' => 'object_is_not_a_hdd',
+            ]
+        ];
         yield 'Zero drives again' => [
             'objects' => [[
-                'Barcode' => 'DTHD00020',
-                'Kategorie' => Objekt::KATEGORIE_DATENTRAEGER,
-                'Status' => Objekt::STATUS_GENULLT,
+                'barcode' => 'DTHD00020',
+                'kategorie' => Objekt::KATEGORIE_DATENTRAEGER,
+                'status' => Objekt::STATUS_GENULLT,
             ], [
-                'Barcode' => 'DTHD00024',
-                'Kategorie' => Objekt::KATEGORIE_DATENTRAEGER,
-                'Status' => Objekt::STATUS_GENULLT,
+                'barcode' => 'DTHD00024',
+                'kategorie' => Objekt::KATEGORIE_DATENTRAEGER,
+                'status' => Objekt::STATUS_GENULLT,      
             ],],
             'query' => [
                 'newstate' => Objekt::STATUS_GENULLT,
                 'desc' => '(TEST) Festplatten müssen gekaputt genullt werden',
+            ], 
+            'expected' => [
+                'message' => 'object_already_in_this_status',
+            ]
+        ];
+        yield 'Non-existant object' => [
+            'objects' => [[
+                'barcode' => 'DTHD00020',
+                'kategorie' => Objekt::KATEGORIE_DATENTRAEGER,
+                'status' => Objekt::STATUS_GENULLT,
+            ], [
+                'barcode' => 'DTHD00024',
+                'kategorie' => Objekt::KATEGORIE_DATENTRAEGER,
+                'status' => Objekt::STATUS_GENULLT,
+            ], [
+                'volatile' => true,
+                'barcode' => 'DTHD99999',
+                'kategorie' => Objekt::KATEGORIE_DATENTRAEGER,
+                'status' => Objekt::STATUS_GENULLT,
+            ],],
+            'query' => [
+                'newstate' => Objekt::STATUS_IN_VERWENDUNG,
+                'desc' => '(TEST) DTHD99999 existiert natürlich',
+            ], 
+            'expected' => [
+                'message' => 'objects.not.found',
             ]
         ];
     }
@@ -665,7 +687,9 @@ class ObjektControllerTest extends BaseWebTestCase
         // setup
         $factory = ObjektFactory::new();
         $objekt = $factory->hdd()->create();
+        $prevState = $objekt->getStatus();
 
+        // do request
         $client = static::createClient();
         $crawler = $this->loginUser($client)->request('POST', "/objekt/{$objekt->getBarcodeId()}/nullen");
         $form = $crawler->selectButton('label.do.action')->form();
@@ -679,12 +703,16 @@ class ObjektControllerTest extends BaseWebTestCase
         ]);
 
         // test details page
-        $crawler = $this->assertDetailsPageCorrect($client, [
+        $this->assertDetailsPageCorrect($client, [
             'barcode_id' => $objekt->getBarcodeId(),
             'name' => $objekt->getName(),
         ]);
         // also test whether it was nulled
-        $this->assertSelectorTextContains('#currentstatus', 'status.cleaned');
+        $this->assertSelectorTextContains('#state', 'status.cleaned');
+        $this->assertSelectorTextContains('#last_action_user', 'user');
+
+        // test history
+        $this->assertSelectorTextContains('#history', Objekt::getStatusNameFromId($prevState));
     }
 
     public function testNullObjektIncorrectObjekt()
@@ -692,9 +720,11 @@ class ObjektControllerTest extends BaseWebTestCase
         // setup
         $factory = ObjektFactory::new();
         $objekt = $factory->exhibit()->create();
+        $prevState = $objekt->getStatus();
 
+        // do request
         $client = static::createClient();
-        $crawler = $this->loginUser($client)->request('POST', "/objekt/{$objekt->getBarcodeId()}/nullen");
+        $this->loginUser($client)->request('POST', "/objekt/{$objekt->getBarcodeId()}/nullen");
         $this->assertResponseRedirects("/objekt/{$objekt->getBarcodeId()}");
 
         // test overview page
@@ -704,12 +734,15 @@ class ObjektControllerTest extends BaseWebTestCase
         ]);
 
         // test details page
-        $crawler = $this->assertDetailsPageCorrect($client, [
+        $this->assertDetailsPageCorrect($client, [
             'barcode_id' => $objekt->getBarcodeId(),
             'name' => $objekt->getName(),
         ]);
         // also test whether it was nulled
-        $this->assertSelectorTextNotContains('#currentstatus', 'status.cleaned');
+        $this->assertSelectorTextNotContains('#state', 'status.cleaned');
+
+        // test history
+        $this->assertSelectorTextNotContains('#history', Objekt::getStatusNameFromId($prevState));
     }
 
     public function testDestroyObjekt()
@@ -717,7 +750,9 @@ class ObjektControllerTest extends BaseWebTestCase
         // setup
         $factory = ObjektFactory::new();
         $objekt = $factory->hdd()->create();
+        $prevState = $objekt->getStatus();
 
+        // do request
         $client = static::createClient();
         $crawler = $this->loginUser($client)->request('POST', "/objekt/{$objekt->getBarcodeId()}/vernichtet");
         $form = $crawler->selectButton('label.do.action')->form();
@@ -731,12 +766,16 @@ class ObjektControllerTest extends BaseWebTestCase
         ]);
 
         // test details page
-        $crawler = $this->assertDetailsPageCorrect($client, [
+        $this->assertDetailsPageCorrect($client, [
             'barcode_id' => $objekt->getBarcodeId(),
             'name' => $objekt->getName(),
         ]);
-        // also test whether it was nulled
-        $this->assertSelectorTextContains('#currentstatus', 'status.destroyed');
+        // also test whether it was destroyed
+        $this->assertSelectorTextContains('#state', 'status.destroyed');
+        $this->assertSelectorTextContains('#last_action_user', 'user');
+
+        // test history
+        $this->assertSelectorTextContains('#history', Objekt::getStatusNameFromId($prevState));
     }
 
     public function testLostObjekt()
@@ -744,7 +783,9 @@ class ObjektControllerTest extends BaseWebTestCase
         // setup
         $factory = ObjektFactory::new();
         $objekt = $factory->hdd()->create();
+        $prevState = $objekt->getStatus();
 
+        // do request
         $client = static::createClient();
         $crawler = $this->loginUser($client)->request('POST', "/objekt/{$objekt->getBarcodeId()}/verloren");
         $form = $crawler->selectButton('label.do.action')->form();
@@ -762,13 +803,14 @@ class ObjektControllerTest extends BaseWebTestCase
             'barcode_id' => $objekt->getBarcodeId(),
             'name' => $objekt->getName(),
         ]);
-        // also test whether it was nulled
-        $this->assertSelectorTextContains('#currentstatus', 'status.lost');
+        // also test whether it was lost
+        $this->assertSelectorTextContains('#state', 'status.lost');
+        $this->assertSelectorTextContains('#last_action_user', 'user');
+
+        // test history
+        $this->assertSelectorTextContains('#history', Objekt::getStatusNameFromId($prevState));
     }
 
-    /**
-     * @todo check case for assigning to case
-     */
     public function testChangeDestroyedObjekts()
     {
         // setup
@@ -777,8 +819,6 @@ class ObjektControllerTest extends BaseWebTestCase
             $factory->hdd()->destroyed()->create(),
             $factory->hdd()->lost()->create(),
         ];
-        // $caseFactory = CaseFactory::new();
-        // $case = $caseFactory->create();
 
         $client = static::createClient();
         $client = $this->loginUser($client);
@@ -786,19 +826,32 @@ class ObjektControllerTest extends BaseWebTestCase
         foreach ($objs as $objekt) {   
             $client->request('POST', "/objekt/{$objekt->getBarcodeId()}/verwenden");
             $this->assertResponseRedirects("/objekt/{$objekt->getBarcodeId()}");
+            $this->seeInDatabase(ObjektRepository::class, [
+                'barcode_id' => $objekt->getBarcode(),
+                'status_id' => $objekt->getStatus(),
+            ]);
             
             $client->request('POST', "/objekt/{$objekt->getBarcodeId()}/editieren");
             $this->assertResponseRedirects("/objekt/{$objekt->getBarcodeId()}");
+            $this->seeInDatabase(ObjektRepository::class, [
+                'barcode_id' => $objekt->getBarcode(),
+                'status_id' => $objekt->getStatus(),
+            ]);
             
             $client->request('POST', "/objekt/{$objekt->getBarcodeId()}/einlegen/in");
             $this->assertResponseRedirects("/objekt/{$objekt->getBarcodeId()}");
+            $this->seeInDatabase(ObjektRepository::class, [
+                'barcode_id' => $objekt->getBarcode(),
+                'status_id' => $objekt->getStatus(),
+            ]);
             
             $storage = $factory->container()->create();        
             $client->request('POST', "/objekt/{$objekt->getBarcodeId()}/einlegen/in/{$storage->getBarcodeId()}");
             $this->assertResponseRedirects("/objekt/{$objekt->getBarcodeId()}");
-            
-            // $client->request('POST', "/objekt/{$objekt->getBarcodeId()}/in/fall/{$case->getId()}/hinzufuegen");
-            // $this->assertResponseRedirects("/objekt/{$objekt->getBarcodeId()}");
+            $this->seeInDatabase(ObjektRepository::class, [
+                'barcode_id' => $objekt->getBarcode(),
+                'status_id' => $objekt->getStatus(),
+            ]);
         }
     }
     
@@ -807,7 +860,9 @@ class ObjektControllerTest extends BaseWebTestCase
         // setup
         $factory = ObjektFactory::new();
         $objekt = $factory->hdd()->create();
+        $prevState = $objekt->getStatus();
 
+        // do request
         $client = static::createClient();
         $crawler = $this->loginUser($client)->request('POST', "/objekt/{$objekt->getBarcodeId()}/reservieren");
         $form = $crawler->selectButton('label.do.action')->form();
@@ -826,7 +881,11 @@ class ObjektControllerTest extends BaseWebTestCase
             'name' => $objekt->getName(),
         ]);
         // also test whether it was reserved
-        $this->assertSelectorTextContains('#currentstatus', 'status.reserved');
+        $this->assertSelectorTextContains('#state', 'status.reserved');
+        $this->assertSelectorTextContains('#last_action_user', 'user');
+
+        // test history
+        $this->assertSelectorTextContains('#history', Objekt::getStatusNameFromId($prevState));
     }
     
     public function testStoreObjekt()
@@ -835,7 +894,9 @@ class ObjektControllerTest extends BaseWebTestCase
         $factory = ObjektFactory::new();
         $objekt = $factory->hdd()->create();
         $storage = $factory->container()->create();
+        $prevState = $objekt->getStatus();
 
+        // do request
         $client = static::createClient();
         $crawler = $this->loginUser($client)->request('POST', "/objekt/{$objekt->getBarcodeId()}/einlegen/in/{$storage->getBarcodeId()}");
         $form = $crawler->selectButton('label.do.action')->form();
@@ -854,15 +915,20 @@ class ObjektControllerTest extends BaseWebTestCase
             'name' => $objekt->getName(),
         ]);
         // also test whether it is in storage
-        $this->assertSelectorTextContains('#currentstatus', $storage->getBarcode());
+        $this->assertSelectorTextContains('#location', $storage->getBarcode());
+        $this->assertSelectorTextContains('#state', 'status.stored.in.container');
+        $this->assertSelectorTextContains('#last_action_user', 'user');
 
-        // test details page
+        // test history
+        $this->assertSelectorTextContains('#history', Objekt::getStatusNameFromId($prevState));
+
+        // test details page of storage
         $this->assertDetailsPageCorrect($client, [
             'barcode_id' => $storage->getBarcodeId(),
             'name' => $storage->getName(),
         ]);
         // also test whether storage lists item
-        $this->assertSelectorTextContains('#additionalinformation', $objekt->getBarcode());
+        $this->assertSelectorTextContains('#container_info', $objekt->getBarcode());
     }
 
     /**
@@ -873,7 +939,9 @@ class ObjektControllerTest extends BaseWebTestCase
         // setup
         $factory = ObjektFactory::new();
         $objekt = $factory->container()->create();
+        $prevState = $objekt->getStatus();
 
+        // do request
         $client = static::createClient();
         $this->loginUser($client)->request('POST', "/objekt/{$objekt->getBarcodeId()}/einlegen/in/{$objekt->getBarcodeId()}");
         $this->assertResponseRedirects("/objekt/{$objekt->getBarcodeId()}");
@@ -889,12 +957,15 @@ class ObjektControllerTest extends BaseWebTestCase
             'barcode_id' => $objekt->getBarcodeId(),
             'name' => $objekt->getName(),
         ]);
+        // test object not altered
+        $this->assertSelectorTextContains('#state', Objekt::getStatusNameFromId($prevState));
+
         // also test whether object is not self stored
-        $this->assertSelectorExists('#currentstatus');
-        $this->assertSelectorTextNotContains('#currentstatus', $objekt->getBarcode());
+        $this->assertSelectorTextNotContains('#location', $objekt->getBarcode());
         // also test whether storage doesnt list item
-        $this->assertSelectorExists('#additionalinformation', $objekt->getBarcode());
-        $this->assertSelectorTextNotContains('#additionalinformation', $objekt->getBarcode());
+        $this->assertSelectorTextNotContains('#container_info', $objekt->getBarcode());
+        // test history
+        $this->assertSelectorTextNotContains('#history', Objekt::getStatusNameFromId($prevState));
     }
 
     /**
@@ -908,7 +979,9 @@ class ObjektControllerTest extends BaseWebTestCase
         $storage = $factory->container()->create();
         // create object which is in storage
         $objekt = $factory->hdd()->create(['standort' => $storage, 'status' => Objekt::STATUS_IN_EINEM_BEHAELTER_GELEGT]);
+        $prevState = $objekt->getStatus();
 
+        // do request
         $client = static::createClient();
         $this->loginUser($client)->request('POST', "/objekt/{$objekt->getBarcodeId()}/einlegen/in/{$storage->getBarcodeId()}");
         $this->assertResponseRedirects("/objekt/{$objekt->getBarcodeId()}");
@@ -924,8 +997,14 @@ class ObjektControllerTest extends BaseWebTestCase
             'barcode_id' => $objekt->getBarcodeId(),
             'name' => $objekt->getName(),
         ]);
-        // also test whether error message is shown
-        $this->assertSelectorTextContains('#currentstatus', $storage->getBarcode());
+        $this->assertSelectorTextContains('#location', $storage->getBarcode());
+        $this->assertSelectorTextContains('#state', Objekt::getStatusNameFromId($prevState));
+        $this->assertSelectorTextNotContains('#last_action_user', 'user'); // no action was recorded
+
+        $this->assertSelectorTextContains('#state', 'status.stored.in.container');
+        
+        // test history
+        $this->assertSelectorTextNotContains('#history', Objekt::getStatusNameFromId($prevState));
 
         // test details page
         $this->assertDetailsPageCorrect($client, [
@@ -933,7 +1012,7 @@ class ObjektControllerTest extends BaseWebTestCase
             'name' => $storage->getName(),
         ]);
         // also test whether storage lists item
-        $this->assertSelectorTextContains('#additionalinformation', $objekt->getBarcode());
+        $this->assertSelectorTextContains('#container_info', $objekt->getBarcode());
     }
 
     /**
@@ -967,10 +1046,12 @@ class ObjektControllerTest extends BaseWebTestCase
             'name' => $container1->getName(),
         ]);
         // also test whether error message is shown
-        $this->assertSelectorExists('#currentstatus');
-        $this->assertSelectorTextNotContains('#currentstatus', $container2->getBarcode());
-        $this->assertSelectorTextContains('#additionalinformation', $container2->getBarcode());
-        
+        $this->assertSelectorTextNotContains('#location', $container2->getBarcode());
+        $this->assertSelectorTextNotContains('#last_action_user', 'user'); // no action was recorded
+        $this->assertSelectorTextContains('#container_info', $container2->getBarcode());
+        // test history
+        $this->assertSelectorTextNotContains('#history', 'status.stored.in.container');
+    
 
         // test details page
         $this->assertDetailsPageCorrect($client, [
@@ -978,9 +1059,9 @@ class ObjektControllerTest extends BaseWebTestCase
             'name' => $container2->getName(),
         ]);
         // also test whether storage lists item
-        $this->assertSelectorExists('#additionalinformation');
-        $this->assertSelectorTextContains('#currentstatus', $container1->getBarcode());
-        $this->assertSelectorTextNotContains('#additionalinformation', $container1->getBarcode());
+        $this->assertSelectorTextContains('#location', $container1->getBarcode());
+        $this->assertSelectorTextNotContains('#last_action_user', 'user'); // no action was recorded
+        $this->assertSelectorTextNotContains('#container_info', $container1->getBarcode());
     }
 
     /**
@@ -1020,10 +1101,12 @@ class ObjektControllerTest extends BaseWebTestCase
             'name' => $container1->getName(),
         ]);
         // also test whether error message is shown
-        $this->assertSelectorExists('#currentstatus');
-        $this->assertSelectorTextNotContains('#currentstatus', $container3->getBarcode());
-        $this->assertSelectorTextContains('#additionalinformation', $container2->getBarcode());
-        
+        $this->assertSelectorTextNotContains('#location', $container3->getBarcode());
+        $this->assertSelectorTextNotContains('#last_action_user', 'user'); // no action was recorded
+        $this->assertSelectorTextContains('#container_info', $container2->getBarcode());
+        // test history
+        $this->assertSelectorTextNotContains('#history', 'status.stored.in.container');
+
         // test details page
         $this->assertDetailsPageCorrect($client, [
             'barcode_id' => $container2->getBarcodeId(),
@@ -1057,7 +1140,9 @@ class ObjektControllerTest extends BaseWebTestCase
         $factory = ObjektFactory::new();
         $objekt = $factory->hdd()->create();
         $storage = $factory->container()->destroyed()->create();
+        $prevState = $objekt->getStatus();
 
+        // do request
         $client = static::createClient();
         $this->loginUser($client)->request('POST', "/objekt/{$objekt->getBarcodeId()}/einlegen/in/{$storage->getBarcodeId()}");
         $this->assertResponseRedirects("/objekt/{$objekt->getBarcodeId()}");
@@ -1074,8 +1159,11 @@ class ObjektControllerTest extends BaseWebTestCase
             'name' => $objekt->getName(),
         ]);
         // also test whether it is in storage
-        $this->assertSelectorExists('#currentstatus');
-        $this->assertSelectorTextNotContains('#currentstatus', $storage->getBarcode());
+        $this->assertSelectorTextNotContains('#location', $storage->getBarcode());
+        $this->assertSelectorTextContains('#state', Objekt::getStatusNameFromId($prevState));
+        $this->assertSelectorTextNotContains('#last_action_user', 'user'); // no action was recorded
+        // test history
+        $this->assertSelectorTextNotContains('#history', Objekt::getStatusNameFromId($prevState));
     }
     
     /**
@@ -1087,7 +1175,9 @@ class ObjektControllerTest extends BaseWebTestCase
         $factory = ObjektFactory::new();
         $objekt = $factory->hdd()->create();
         $storage = $factory->container()->create();
+        $prevState = $storage->getStatus();
 
+        // do request
         $client = static::createClient();
         // reverse order
         $this->loginUser($client)->request('POST', "/objekt/{$storage->getBarcodeId()}/einlegen/in/{$objekt->getBarcodeId()}");
@@ -1109,8 +1199,11 @@ class ObjektControllerTest extends BaseWebTestCase
             'name' => $storage->getName(),
         ]);
         // also test whether it is in storage
-        $this->assertSelectorExists('#currentstatus');
-        $this->assertSelectorTextNotContains('#currentstatus', $objekt->getBarcode());
+        $this->assertSelectorTextNotContains('#location', $storage->getBarcode());
+        $this->assertSelectorTextContains('#state', Objekt::getStatusNameFromId($prevState));
+        $this->assertSelectorTextNotContains('#last_action_user', 'user'); // no action was recorded
+        // test history
+        $this->assertSelectorTextNotContains('#history', Objekt::getStatusNameFromId($prevState));
     }
 
     public function testAssignToCaseObjekt()
@@ -1120,7 +1213,9 @@ class ObjektControllerTest extends BaseWebTestCase
         $objekt = $factory->create();
         $caseFactory = FallFactory::new();
         $case = $caseFactory->create();
+        $prevState = $objekt->getStatus();
 
+        // do request
         $client = static::createClient();
         $crawler = $this->loginUser($client)->request('POST', "/objekt/{$objekt->getBarcodeId()}/in/fall/{$case->getCaseId()}/hinzufuegen");
         $form = $crawler->selectButton('label.do.action')->form();
@@ -1138,8 +1233,12 @@ class ObjektControllerTest extends BaseWebTestCase
             'barcode_id' => $objekt->getBarcodeId(),
             'name' => $objekt->getName(),
         ]);
-        // also test whether it was reserved
-        $this->assertSelectorTextContains('#currentstatus', $case->getCaseId());
+        // also test whether it was added to case
+        $this->assertSelectorTextContains('#state', 'status.added.to.case');
+        $this->assertSelectorTextContains('#case', $case->getCaseId());
+        $this->assertSelectorTextContains('#last_action_user', 'user');
+        // test history
+        $this->assertSelectorTextContains('#history', Objekt::getStatusNameFromId($prevState));
     }
 
     /**
@@ -1250,7 +1349,7 @@ class ObjektControllerTest extends BaseWebTestCase
 
         // create objecs
         foreach ($objekts as $key => $value) {
-            $objekts[$key] = $factory->create($objekts[$key])->_real();
+            $objekts[$key] = $factory->create($objekts[$key]);
         }
 
 
@@ -1308,17 +1407,24 @@ class ObjektControllerTest extends BaseWebTestCase
     /**
      * @dataProvider invalidMassUpdateObjektsProvider
      */
-    public function testMassUpdateObjektsInvalidChanges($objekts, $query)
+    public function testMassUpdateObjektsInvalidChanges($config, $query, $expected)
     {
         // setup
         $factory = ObjektFactory::new();
         $factory->container()->create(['Barcode' => 'DTHW12345']);
+        $objekts = [];
 
         // create objecs
-        foreach ($objekts as $key => $value) {
-            $objekts[$key] = $factory->create($objekts[$key])->_real();
+        foreach ($config as $key => $value) {
+            if (!empty($value['volatile'])) {
+                unset($value['volatile']);
+                $objekts[$key] = $factory->withoutPersisting()->create($value);
+                $value['volatile'] = true;
+            }
+            else {
+                $objekts[$key] = $factory->create($value);
+            }
         }
-
 
         $client = static::createClient();
         $crawler = $this->loginUser($client)->request("POST",
@@ -1358,14 +1464,17 @@ class ObjektControllerTest extends BaseWebTestCase
         }
 
         // make request
-        $crawler = $client->request($form->getMethod(), 
-        $form->getUri(), $formdata, $form->getPhpFiles());
+        $client->request($form->getMethod(), $form->getUri(), $formdata, $form->getPhpFiles());
+        $this->assertSelectorTextContains('div.alert.alert-danger', $expected['message']);
 
         // verify no changes on objects
-        foreach ($objekts as $obj) {
+        foreach ($config as $key => $value) {
+            if(isset($value['volatile'])){
+                continue;
+            }
             $this->seeInDatabase(ObjektRepository::class, [
-                'barcode_id' => $obj->getBarcode(),
-                'status_id' => $obj->getStatus(),
+                'barcode_id' => $objekts[$key]->getBarcode(),
+                'status_id' => $objekts[$key]->getStatus(),
             ]);
         }
     }
@@ -1406,6 +1515,15 @@ class ObjektControllerTest extends BaseWebTestCase
         $this->assertSelectorTextContains('#image_locations', $objekt->getBarcode());
         $this->assertSelectorTextContains('#image_locations_info', $objekt->getBarcode());
     }
+
+
+
+    // TODO: Tests der Historieneintraege nach der editierung eines Objekts
+    // EDIT reset form ansehen
+    
+    // TODO: Tests zum Upload von Bildern hinzufuegen
+    // TODO: Tests zum Word-Export hinzufuegen
+    // TODO: Faelle mit Objekten pruefen
 
     //
     // ================ HELPER METHODS ================

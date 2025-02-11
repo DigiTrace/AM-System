@@ -5,7 +5,6 @@ namespace App\Tests\_support;
 use App\Repository\NutzerRepository;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
-use Symfony\Component\Security\Core\User\UserInterface;
 use Zenstruck\Foundry\Test\ResetDatabase;
 
 /**
@@ -40,9 +39,9 @@ abstract class BaseWebTestCase extends WebTestCase
     protected function seeInDatabase(string $repository, array $matchCriteria, ?int $amount = null) {
         $repo = static::getContainer()->get($repository);
         if(null === $amount)
-            $this->assertNotEmpty($repo->findBy($matchCriteria), "Failed asserting that a matching record exists in database.");
+            $this->assertNotEmpty($repo->findBy($matchCriteria), "Failed asserting that a $repository matching record exists in database.");
         else
-            $this->assertCount($amount, $repo->findBy($matchCriteria), "Failed asserting that $amount matching records exists in database.");
+            $this->assertCount($amount, $repo->findBy($matchCriteria), "Failed asserting that $amount $repository matching records exists in database.");
 
     }
     
@@ -54,7 +53,7 @@ abstract class BaseWebTestCase extends WebTestCase
      */
     protected function dontSeeInDatabase(string $repository, array $matchCriteria) {
         $repo = static::getContainer()->get($repository);
-        $this->assertEmpty($repo->findBy($matchCriteria), "Failed asserting that no matching records exist in database.");
+        $this->assertEmpty($repo->findBy($matchCriteria), "Failed asserting that no $repository matching records exist in database.");
     }
 
     /**

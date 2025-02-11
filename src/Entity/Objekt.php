@@ -413,7 +413,7 @@ class Objekt
      *
      * @param \App\Entity\Nutzer $nutzerId
      *
-     * @return Historie_Objekt
+     * @return HistorieObjekt
      */
     public function setReserviertVon(\App\Entity\Nutzer $nutzerId = null)
     {
@@ -920,7 +920,7 @@ class Objekt
      * AUSGEFUEHRT WERDEN
      */
     public function createNewHistorieEntry(){  
-        $hist = new \App\Entity\Historie_Objekt($this->getBarcode());
+        $hist = new \App\Entity\HistorieObjekt($this->getBarcode());
         
         $hist->setFall($this->getFall());
         $hist->setNutzerId($this->getNutzer());

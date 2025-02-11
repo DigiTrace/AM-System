@@ -2,6 +2,7 @@
 
 namespace App\Tests\Factory;
 
+use App\Entity\Nutzer;
 use App\Entity\Objekt;
 use Doctrine\ORM\EntityRepository;
 use Zenstruck\Foundry\LazyValue;
@@ -107,11 +108,11 @@ final class ObjektFactory extends PersistentProxyObjectFactory
 
         $defaults = [
             'barcode' => $barcode,
-            'Kategorie' => $category,
+            'kategorie' => $category,
             'name' => self::faker()->text(),
-            'Status' => Objekt::STATUS_EINGETRAGEN,
+            'status' => Objekt::STATUS_EINGETRAGEN,
             'zeitstempel' => self::faker()->dateTime(),
-            'Zeitstempelumsetzung' => self::faker()->dateTime(),
+            'zeitstempelumsetzung' => self::faker()->dateTime(),
             'nutzer' => LazyValue::memoize(fn () => NutzerFactory::createOne()),
         ];
 
@@ -127,7 +128,7 @@ final class ObjektFactory extends PersistentProxyObjectFactory
         ->afterPersist(function (Objekt $objekt, array $attributes) {
             if(static::$generateDrive){
                 // if objekt is storage device, add entry for that with given barcode
-                if (Objekt::KATEGORIE_DATENTRAEGER == $attributes['Kategorie'] || Objekt::KATEGORIE_ASSERVAT_DATENTRAEGER == $attributes['Kategorie']) {
+                if (Objekt::KATEGORIE_DATENTRAEGER == $attributes['kategorie'] || Objekt::KATEGORIE_ASSERVAT_DATENTRAEGER == $attributes['kategorie']) {
                     DatentraegerFactory::new()->create([
                         'barcode' => $attributes['barcode'],
                     ]);
@@ -140,7 +141,7 @@ final class ObjektFactory extends PersistentProxyObjectFactory
     {
         return $this->with([
             'barcode' => $this->generateBarcode('DTAS'),
-            'Kategorie' => Objekt::KATEGORIE_ASSERVAT,
+            'kategorie' => Objekt::KATEGORIE_ASSERVAT,
         ]);
     }
 
@@ -148,7 +149,7 @@ final class ObjektFactory extends PersistentProxyObjectFactory
     {
         return $this->with([
             'barcode' => $this->generateBarcode('DTHW'),
-            'Kategorie' => Objekt::KATEGORIE_AUSRUESTUNG,
+            'kategorie' => Objekt::KATEGORIE_AUSRUESTUNG,
         ]);
     }
 
@@ -156,7 +157,7 @@ final class ObjektFactory extends PersistentProxyObjectFactory
     {
         return $this->with([
             'barcode' => $this->generateBarcode('DTHW'),
-            'Kategorie' => Objekt::KATEGORIE_BEHAELTER, 
+            'kategorie' => Objekt::KATEGORIE_BEHAELTER, 
         ]);
     }
 
@@ -164,7 +165,7 @@ final class ObjektFactory extends PersistentProxyObjectFactory
     {
         return $this->with([
             'barcode' => $this->generateBarcode('DTHD'),
-            'Kategorie' => Objekt::KATEGORIE_DATENTRAEGER,
+            'kategorie' => Objekt::KATEGORIE_DATENTRAEGER,
         ]);
     }
 
@@ -172,7 +173,7 @@ final class ObjektFactory extends PersistentProxyObjectFactory
     {
         return $this->with([
             'barcode' => $this->generateBarcode('DTAS'),
-            'Kategorie' => Objekt::KATEGORIE_AKTE,
+            'kategorie' => Objekt::KATEGORIE_AKTE,
         ]);
     }
 
@@ -180,7 +181,7 @@ final class ObjektFactory extends PersistentProxyObjectFactory
     {
         return $this->with([
             'barcode' => $this->generateBarcode('DTAS'),
-            'Kategorie' => Objekt::KATEGORIE_ASSERVAT_DATENTRAEGER,
+            'kategorie' => Objekt::KATEGORIE_ASSERVAT_DATENTRAEGER,
         ]);
     }
 
@@ -195,6 +196,14 @@ final class ObjektFactory extends PersistentProxyObjectFactory
     {
         return $this->with([
             'status' => Objekt::STATUS_VERLOREN,
+        ]);
+    }
+
+    public function reservedBy(Nutzer $user): self
+    {
+        return $this->with([
+            'status' => Objekt::STATUS_RESERVIERT,
+            'reserviert_von' => $user,
         ]);
     }
 }

@@ -91,7 +91,7 @@ class CaseDetailController extends AbstractController {
                 . "o.zeitstempelderumsetzung,"
                 . "so.name AS Standortname  "
                     . "FROM App:Objekt o "
-                    . "JOIN App:Historie_Objekt ho with ho.barcode_id = o.barcode_id "
+                    . "JOIN App:HistorieObjekt ho with ho.barcode_id = o.barcode_id "
                     . "LEFT JOIN App:Objekt so with so.barcode_id = o.standort "
                     . "WHERE ho.fall_id = :case AND "
                     . "(o.fall_id != :case OR  o.fall_id is null)")

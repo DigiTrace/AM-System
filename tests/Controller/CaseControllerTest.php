@@ -84,7 +84,7 @@ class CaseControllerTest extends BaseWebTestCase
     {
         // setup
         $client = static::createClient();
-        $crawler = $this->loginUser($client)->request('POST', '/fall/anlegen');
+        $crawler = $this->loginUser($client)->request('GET', '/fall/anlegen');
 
         // make form request
         $form = $crawler->selectButton('add_new_case')->form();
@@ -92,16 +92,12 @@ class CaseControllerTest extends BaseWebTestCase
             'form[case_id]' => $params['id'],
             'form[beschreibung]' => $params['desc'],
         ]);
-        // $this->assertResponseRedirects("http://localhost/faelle");
-
-        $crawler = $client->request('POST', '/faelle');
+        $this->assertResponseRedirects("/faelle");
+        $client->followRedirect();
+        
 
         // look into hmtl whether case was rendered and processed correctly
-        // $this->assertSelectorTextContains("tr:contains('".$params['id']."')", $params['desc']);
-        $query = $crawler->filter("tr:contains('".$params['id']."')")->text();
-        $this->assertNotFalse($query);
-        $this->assertStringContainsString($params['id'], $query);
-        $this->assertStringContainsString($params['desc'], $query);
+        $this->assertSelectorTextContains("tr:contains('{$params['id']}')", $params['desc']);
 
         $this->seeInDatabase(FallRepository::class, [
             'case_id' => $params['id'],
@@ -120,7 +116,7 @@ class CaseControllerTest extends BaseWebTestCase
     {
         // setup
         $client = static::createClient();
-        $crawler = $this->loginUser($client)->request('POST', '/fall/anlegen');
+        $crawler = $this->loginUser($client)->request('GET', '/fall/anlegen');
 
         // make form request
         $form = $crawler->selectButton('add_new_case')->form();
@@ -128,7 +124,6 @@ class CaseControllerTest extends BaseWebTestCase
             'form[case_id]' => $params['id'],
             'form[beschreibung]' => $params['desc'],
         ]);
-        // $this->assertResponseRedirects("http://localhost/faelle");
         $this->assertResponseIsSuccessful();
         $this->assertSelectorExists('span.glyphicon-exclamation-sign');
         $this->dontSeeInDatabase(FallRepository::class, [
@@ -153,7 +148,7 @@ class CaseControllerTest extends BaseWebTestCase
         $client = $this->testAddCaseValid($params);
 
         // make second entry
-        $crawler = $client->request('POST', '/fall/anlegen');
+        $crawler = $client->request('GET', '/fall/anlegen');
         $form = $crawler->selectButton('add_new_case')->form();
         $client->submit($form, [
             'form[case_id]' => $params['id'],

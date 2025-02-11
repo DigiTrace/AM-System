@@ -17,13 +17,13 @@ final class DefaultUserStory extends Story
         $factory = NutzerFactory::new();
         $factory->enabled()->testPassword()->admin()->with([
             'username' => 'admin',
-            'fullname' => 'Admin',
+            'fullname' => 'admin',
             'email' => 'admin@localhost',
         ])->create();
         
         $factory->enabled()->testPassword()->with([
             'username' => 'user',
-            'fullname' => 'User',
+            'fullname' => 'user',
             'email' => 'user@localhost',
         ])->create();
     }

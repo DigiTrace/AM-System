@@ -147,7 +147,7 @@ class ObjectOverviewController extends AbstractController{
       $repository = $doctrine->getRepository(Objekt::class); 
       
       $query = $repository->createQueryBuilder('o');
-      $query->leftjoin("App:Historie_Objekt", "ho","WITH","o.barcode_id = ho.barcode_id");
+      $query->leftjoin("App:HistorieObjekt", "ho","WITH","o.barcode_id = ho.barcode_id");
       $query->leftjoin("App:Datentraeger"   , "d" ,"WITH","o.barcode_id =  d.barcode_id");
       $query->leftjoin("App:Nutzer"         , "n" ,"WITH","o.nutzer_id =  n.id");
       $query->leftjoin("App:Nutzer"         , "hn" ,"WITH","ho.nutzer_id =  hn.id");
@@ -473,7 +473,7 @@ class ObjectOverviewController extends AbstractController{
             $em =$doctrine->getManager();
             $query = $em->createQuery('SELECT o '
                     . 'FROM App:Objekt o '
-                    . 'LEFT JOIN App:Historie_Objekt ho '
+                    . 'LEFT JOIN App:HistorieObjekt ho '
                     . 'WITH o.barcode_id = ho.barcode_id '
                     . 'LEFT JOIN App:Datentraeger d '
                     . 'WITH o.barcode_id = d.barcode_id '

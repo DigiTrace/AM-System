@@ -35,7 +35,8 @@ use Symfony\Component\Form\Extension\Core\Type\DateTimeType;
 //@Assert\Regex(
 //          pattern="/DT(AS|HW|AK|HD)\\d{5}$/i",
 //          htmlPattern="/DT(AS|HW|AK|HD)\\d{5}$/i",
- use Symfony\Component\Validator\Constraints\Regex;
+use Symfony\Component\Validator\Constraints\Regex;
+use Symfony\Component\Validator\Constraints\NotBlank;
  use Symfony\Component\Validator\Constraints\NotNull;
         
 
@@ -100,7 +101,7 @@ class AddObjectType extends AbstractType
                                                             'constraints' => new Regex(array("pattern"=>"/DT(AS|HW|AK|HD)\\d{5}$/i",
                                                                                              "message" =>"barcode.validation.failed")),
                                                             ))
-                ->add('name',  TextType::class,array('label' => 'desc.name'))
+                ->add('name',  TextType::class,array('label' => 'desc.name', 'required' => true, 'constraints' => new NotBlank(),))
                 ->add('verwendung',  TextareaType::class,array('label'=> 'desc.ousage',
                                                                'required' => false,))
                 ->add('notiz',  TextareaType::class,array('label'=> 'desc.notice',
