@@ -135,6 +135,8 @@ class ObjectOverviewController extends AbstractController{
         
         return $this->render('default/search_objects.html.twig', array(
             'searchform'=> $searchform->createView(),
+            'eas_categories' => Objekt::$kategorienToId,
+            'eas_status' => Objekt::$statusToId,
             'objekte'=> $objekte,
             'pagination' => $pagination
         ));
@@ -146,6 +148,7 @@ class ObjectOverviewController extends AbstractController{
         
       $repository = $doctrine->getRepository(Objekt::class); 
       
+
       $query = $repository->createQueryBuilder('o');
       $query->leftjoin("App:HistorieObjekt", "ho","WITH","o.barcode_id = ho.barcode_id");
       $query->leftjoin("App:Datentraeger"   , "d" ,"WITH","o.barcode_id =  d.barcode_id");
@@ -545,11 +548,11 @@ class ObjectOverviewController extends AbstractController{
         $searchform = $this->createFormBuilder(null,
                         array('method'=>'GET', 
                               'csrf_protection' => false, 
-                              'attr' => array('class' => 'navbar-form navbar-right')))
+                              'attr' => array('class' => 'navbar-form navbar-right', 'id' => 'search_form')))
                 ->add("suchwort", SearchType::class,array(
                         'required' => false,
                         'label'=> false,
-                        'attr' => array('size'=> 30)))
+                        'attr' => array('size'=> 100)))
                 ->setAction($this->generateURL('search_objects'));
         
         $searchform->add("anzahleintraege", ChoiceType::class, array(
