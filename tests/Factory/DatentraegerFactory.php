@@ -55,7 +55,7 @@ final class DatentraegerFactory extends PersistentProxyObjectFactory
         return [
             'bauart' => array_rand(['intern', 'extern']),
             'formfaktor' => array_rand(['2,5', '3,5']),
-            'groesse' => random_int(1, 4) * 10**random_int(0,3),
+            'groesse' => random_int(1, max: 4) * 10**random_int(0,3),
             'hersteller' => self::faker()->company(),
             'modell' => self::faker()->name(),
             'sn' => implode(self::faker()->randomElements(['M', 'S', 'O', 'P'], 2, true)) 
