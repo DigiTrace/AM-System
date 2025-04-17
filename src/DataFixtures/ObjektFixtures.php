@@ -3,6 +3,7 @@
 namespace App\DataFixtures;
 
 use App\Entity\Datentraeger;
+use App\Entity\HistorieObjekt;
 use App\Entity\Nutzer;
 use App\Entity\Objekt;
 use Doctrine\Bundle\FixturesBundle\Fixture;
@@ -312,6 +313,41 @@ class ObjektFixtures extends Fixture implements DependentFixtureInterface
             $manager->persist($hdd);
             $this->addReference(self::DATENTRAEGER_REFERENCE.$id, $hdd);
         }
+        // save all to db
+        $manager->flush();
+
+        // add standort relations
+        $hw2 = $manager->find(Objekt::class, 'DTHW00002');
+        $hw4 = $manager->find(Objekt::class, 'DTHW00004');
+        $hw6 = $manager->find(Objekt::class, 'DTHW00006');
+        $hw2->setStandort($hw6);
+        $hw2->setStatus(7);
+        $hw4->setStandort($hw2);
+        $hw4->setStatus(7);
+
+        $manager->persist($hw2);
+        $manager->persist($hw4);
+
+        // save all to db
+        $manager->flush();
+
+        // Historie objects
+        $his_hw2 = new HistorieObjekt($hw2);
+        $his_hw2->setVerwendung('(TEST)Wird zum Lagern von Asservaten gebraucht');
+        $his_hw2->setSystemaktion(0);
+        $his_hw2->setStatusId(0);
+        $his_hw2->setNutzerId($hw2->getNutzer());
+        $his_hw2->setZeitstempelumsetzung($his_hw2->getZeitstempel());
+        $his_hw4 = new HistorieObjekt($hw4);
+        $his_hw4->setVerwendung('(TEST)Für Mobilen Einsatz');
+        $his_hw4->setSystemaktion(0);
+        $his_hw4->setStatusId(0);
+        $his_hw4->setNutzerId($hw4->getNutzer());
+        $his_hw4->setZeitstempelumsetzung($his_hw4->getZeitstempel());
+
+        $manager->persist($his_hw2);
+        $manager->persist($his_hw4);
+
         // save all to db
         $manager->flush();
     }
