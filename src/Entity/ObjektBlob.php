@@ -35,26 +35,26 @@ class ObjektBlob
      * @param Objekt $o
      */
     public function __construct($o) {
-        $this->Objekt = $o;
+        $this->objekt = $o;
     }
 
     
     
-    #[ORM\OneToOne(targetEntity: "Objekt",inversedBy: "ObjektBlob")]
+    #[ORM\OneToOne(targetEntity: "Objekt",inversedBy: "objektBlob")]
     #[ORM\Id]
     #[ORM\JoinColumn(name:"barcode_id",referencedColumnName:"barcode_id",nullable: false)]
-    protected $Objekt;
+    protected $objekt;
     
    
     
     #[ORM\Column(type: "text",nullable: true)]
     #[Assert\File(mimeTypes: [ "image/jpeg" ])]
-    protected $Bild;
+    protected $bild;
     
     
     #[ORM\Column(type:"string",nullable:true)]
     #[Assert\File(mimeTypes: [ "image/jpeg" ])]
-    private $BildPfad;
+    private $bildPfad;
     
     
     /**
@@ -64,7 +64,7 @@ class ObjektBlob
      */
     public function getBarcode()
     {
-        return $this->Objekt->getBarcodeId();
+        return $this->objekt->getBarcodeId();
     }
   
     public function __toString()
@@ -83,11 +83,11 @@ class ObjektBlob
     public function setPic($Id)
     {
         if($Id == "" || $Id == null){
-            $this->Bild = null;
+            $this->bild = null;
         }
         else{
             $strm = fopen($Id,"rb");
-            $this->Bild = base64_encode(stream_get_contents($strm));
+            $this->bild = base64_encode(stream_get_contents($strm));
         }
         return $this;
     }
@@ -99,7 +99,7 @@ class ObjektBlob
      */
     public function getPic()
     {
-        return $this->Bild;
+        return $this->bild;
     }
     
     
@@ -112,7 +112,7 @@ class ObjektBlob
      */
     public function setPicpath($Id)
     {
-        $this->BildPfad = $Id;
+        $this->bildPfad = $Id;
 
         return $this;
     }
@@ -124,7 +124,7 @@ class ObjektBlob
      */
     public function getPicpath()
     {
-        return $this->BildPfad;
+        return $this->bildPfad;
     }
     
     

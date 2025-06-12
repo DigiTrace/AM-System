@@ -146,24 +146,24 @@
 
          {% for object in historie_objekts %}
 
-         <tr style="cursor:pointer" onclick="window.location.href='{{ path('detail_object', {'id': object['Barcode_id']}) }}'">
+         <tr style="cursor:pointer" onclick="window.location.href='{{ path('detail_object', {'id': object['barcode_id']}) }}'">
             <td style='font-family: courier;font-size: large'>
-                <a href="{{ path('detail_object', {'id': object['Barcode_id']}) }}">
-                {{ object['Barcode_id'] }}
+                <a href="{{ path('detail_object', {'id': object['barcode_id']}) }}">
+                {{ object['barcode_id'] }}
                 </a>
             </td>
             <td>
-                <a href="{{ path('detail_object', {'id': object['Barcode_id']}) }}">
-                    {{ object['Name'] }}
+                <a href="{{ path('detail_object', {'id': object['barcode_id']}) }}">
+                    {{ object['name'] }}
                 </a>
             </td>
-            <td>{{ object['Status_id'] | wrappergetStatusNameFromId | trans }}</td>
-            <td>{{ object['Zeitstempelderumsetzung']|date('d.m.y H:i') }}</td>
+            <td>{{ object['status_id'] | wrappergetStatusNameFromId | trans }}</td>
+            <td>{{ object['zeitstempelderumsetzung']|date('d.m.y H:i') }}</td>
             <td>
-                {% if object['Standort'] == false %}
+                {% if object['standort'] == false %}
                 /
                 {% else %}
-                <a href='{{ path('detail_object', {'id': object['Standort']}) }}' >{{ object['Standort'] }} | {{ object['Standortname'] }} </a></td>
+                <a href='{{ path('detail_object', {'id': object['standort']}) }}' >{{ object['standort'] }} | {{ object['Standortname'] }} </a></td>
                 {% endif %}
             </td>
        </tr>

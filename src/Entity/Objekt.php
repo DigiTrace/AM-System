@@ -93,8 +93,8 @@ class Objekt
     private $translator;
 
     public function __construct() {
-        $this->Zeitstempel = new \DateTime();
-        $this->Zeitstempelderumsetzung = new \DateTime();
+        $this->zeitstempel = new \DateTime();
+        $this->zeitstempelderumsetzung = new \DateTime();
         
         $this->HDDs = new \Doctrine\Common\Collections\ArrayCollection();
         $this->Images = new \Doctrine\Common\Collections\ArrayCollection();
@@ -103,56 +103,56 @@ class Objekt
 
     #[ORM\Column(type: "string",length: 9)]
     #[ORM\Id]
-    #[ORM\OneToMany(targetEntity:"Objekt",mappedBy:"Standort")]
-    protected $Barcode_id;
+    #[ORM\OneToMany(targetEntity:"Objekt",mappedBy:"standort")]
+    protected $barcode_id;
 
     
     #[ORM\Column(type: "text")]
-    protected $Name;
+    protected $name;
     
     
     #[ORM\Column(type: "text",nullable: true)]
-    protected $Verwendung;
+    protected $verwendung;
     
     #[ORM\Column(type: "text",nullable: true)]
-    protected $Notiz;
+    protected $notiz;
     
     
     #[ORM\Column(type: "integer")]
-    protected $Kategorie_id;
+    protected $kategorie_id;
     
     #[ORM\ManyToOne(targetEntity: "Nutzer")]
     #[ORM\JoinColumn(name: "nutzer_id",referencedColumnName: "id",nullable: false)]
-    protected $Nutzer_id;
+    protected $nutzer_id;
     
     
     #[ORM\ManyToOne(targetEntity: "Nutzer")]
     #[ORM\JoinColumn(name:"reserviert_von",referencedColumnName:"id",nullable: true)]
-    protected $Reserviert_von;
+    protected $reserviert_von;
     
      
     #[ORM\ManyToOne(targetEntity: "Fall", inversedBy: "objekte")]
     #[ORM\JoinColumn(name:"fall_id",referencedColumnName:"id")]
-    protected $Fall_id;
+    protected $fall_id;
     
     #[ORM\Column(type: "integer")]
-    protected $Status_id;
+    protected $status_id;
     
     #[ORM\Column(type: "boolean",nullable: true)]
-    protected $Systemaktion = false;
+    protected $systemaktion = false;
     
     
     #[ORM\ManyToOne(targetEntity: "Objekt")]
     #[ORM\JoinColumn(name:"standort", referencedColumnName:"barcode_id")]
-    protected $Standort;
+    protected $standort;
     
     
     #[ORM\Column(type: "datetime")]
-    protected $Zeitstempel;
+    protected $zeitstempel;
     
     
     #[ORM\Column(type: "datetime")]
-    protected $Zeitstempelderumsetzung;
+    protected $zeitstempelderumsetzung;
     
    
      
@@ -172,8 +172,8 @@ class Objekt
     private $HDDs;
     
     
-    #[ORM\OneToOne(targetEntity: "ObjektBlob", mappedBy:"Objekt",cascade: ["persist", "remove"])]
-    protected $ObjektBlob;
+    #[ORM\OneToOne(targetEntity: "ObjektBlob", mappedBy:"objekt",cascade: ["persist", "remove"])]
+    protected $objektBlob;
     
     
 
@@ -195,7 +195,7 @@ class Objekt
      */
     public function setBarcode($barcodeId)
     {
-        $this->Barcode_id = $barcodeId;
+        $this->barcode_id = $barcodeId;
 
         return $this;
     }
@@ -207,7 +207,7 @@ class Objekt
      */
     public function getBarcode()
     {
-        return $this->Barcode_id;
+        return $this->barcode_id;
     }
     
     
@@ -218,7 +218,7 @@ class Objekt
      */
     public function getBarcodeId()
     {
-        return $this->Barcode_id;
+        return $this->barcode_id;
     }
     
 
@@ -231,7 +231,7 @@ class Objekt
      */
     public function setName($name)
     {
-        $this->Name = $name;
+        $this->name = $name;
 
         return $this;
     }
@@ -243,7 +243,7 @@ class Objekt
      */
     public function getName()
     {
-        return $this->Name;
+        return $this->name;
     }
 
     /**
@@ -255,7 +255,7 @@ class Objekt
      */
     public function setVerwendung($verwendung)
     {
-        $this->Verwendung = $verwendung;
+        $this->verwendung = $verwendung;
 
         return $this;
     }
@@ -267,7 +267,7 @@ class Objekt
      */
     public function getVerwendung()
     {
-        return $this->Verwendung;
+        return $this->verwendung;
     }
     
     /**
@@ -279,7 +279,7 @@ class Objekt
      */
     public function setNotiz($notiz)
     {
-        $this->Notiz = $notiz;
+        $this->notiz = $notiz;
 
         return $this;
     }
@@ -291,7 +291,7 @@ class Objekt
      */
     public function getNotiz()
     {
-        return $this->Notiz;
+        return $this->notiz;
     }
 
     /**
@@ -303,7 +303,7 @@ class Objekt
      */
     public function setZeitstempel($zeitstempel)
     {
-        $this->Zeitstempel = $zeitstempel;
+        $this->zeitstempel = $zeitstempel;
 
         return $this;
     }
@@ -315,7 +315,7 @@ class Objekt
      */
     public function getZeitstempel()
     {
-        return $this->Zeitstempel;
+        return $this->zeitstempel;
     }
     
     
@@ -329,7 +329,7 @@ class Objekt
      */
     public function setZeitstempelumsetzung($zeitstempel)
     {
-        $this->Zeitstempelderumsetzung = $zeitstempel;
+        $this->zeitstempelderumsetzung = $zeitstempel;
 
         return $this;
     }
@@ -341,7 +341,7 @@ class Objekt
      */
     public function getZeitstempelumsetzung()
     {
-        return $this->Zeitstempelderumsetzung;
+        return $this->zeitstempelderumsetzung;
     }
     
     
@@ -355,7 +355,7 @@ class Objekt
      */
     public function setKategorie($id)
     {
-        $this->Kategorie_id = $id;
+        $this->kategorie_id = $id;
 
         return $this;
     }
@@ -367,7 +367,7 @@ class Objekt
      */
     public function getKategorie()
     {
-        return $this->Kategorie_id;
+        return $this->kategorie_id;
     }
     
     
@@ -378,7 +378,7 @@ class Objekt
      */
     public function getKategorieName()
     {
-        return $this->getKategorieNameFromId($this->Kategorie_id);
+        return $this->getKategorieNameFromId($this->kategorie_id);
     }
     
     
@@ -392,7 +392,7 @@ class Objekt
      */
     public function setNutzer(\App\Entity\Nutzer $nutzerId)
     {
-        $this->Nutzer_id = $nutzerId;
+        $this->nutzer_id = $nutzerId;
         return $this;
     }
 
@@ -403,7 +403,7 @@ class Objekt
      */
     public function getNutzer()
     {
-        return $this->Nutzer_id;
+        return $this->nutzer_id;
     }
     
     
@@ -413,11 +413,11 @@ class Objekt
      *
      * @param \App\Entity\Nutzer $nutzerId
      *
-     * @return Historie_Objekt
+     * @return HistorieObjekt
      */
     public function setReserviertVon(\App\Entity\Nutzer $nutzerId = null)
     {
-        $this->Reserviert_von = $nutzerId;
+        $this->reserviert_von = $nutzerId;
 
         return $this;
     }
@@ -429,7 +429,7 @@ class Objekt
      */
     public function getreserviertVon()
     {
-        return $this->Reserviert_von;
+        return $this->reserviert_von;
     }
     
     
@@ -443,7 +443,7 @@ class Objekt
      */
     public function setFall(\App\Entity\Fall $fallId = null)
     {
-        $this->Fall_id = $fallId;
+        $this->fall_id = $fallId;
 
         return $this;
     }
@@ -455,7 +455,7 @@ class Objekt
      */
     public function getFall()
     {
-        return $this->Fall_id;
+        return $this->fall_id;
     }
 
      /**
@@ -467,7 +467,7 @@ class Objekt
      */
     public function setStatus($Id)
     {
-        $this->Status_id = $Id;
+        $this->status_id = $Id;
 
         return $this;
     }
@@ -479,7 +479,7 @@ class Objekt
      */
     public function getStatus()
     {
-        return $this->Status_id;
+        return $this->status_id;
     }
     
     
@@ -490,7 +490,7 @@ class Objekt
      */
     public function getStatusName()
     {
-        return $this->getStatusNameFromId($this->Status_id);
+        return $this->getStatusNameFromId($this->status_id);
     }
     
      /**
@@ -501,11 +501,11 @@ class Objekt
      */
     public function setPic($Id)
     {
-        if($this->ObjektBlob == null){
-            $this->ObjektBlob = new ObjektBlob($this);
+        if($this->objektBlob == null){
+            $this->objektBlob = new ObjektBlob($this);
         }
         
-        $this->ObjektBlob->setPic($Id);
+        $this->objektBlob->setPic($Id);
     }
 
     /**
@@ -515,8 +515,8 @@ class Objekt
      */
     public function getPic()
     {
-        if($this->ObjektBlob != null){
-            return $this->ObjektBlob->getPic();
+        if($this->objektBlob != null){
+            return $this->objektBlob->getPic();
         }
         return null;
     }
@@ -529,11 +529,11 @@ class Objekt
      */
     public function setPicpath($Id)
     {
-        if($this->ObjektBlob == null){
-            $this->ObjektBlob = new ObjektBlob($this);
+        if($this->objektBlob == null){
+            $this->objektBlob = new ObjektBlob($this);
         }
         
-        $this->ObjektBlob->setPicpath($Id);
+        $this->objektBlob->setPicpath($Id);
     }
 
     /**
@@ -543,8 +543,8 @@ class Objekt
      */
     public function getPicpath()
     {
-        if($this->ObjektBlob != null){
-            return $this->ObjektBlob->getPicpath();
+        if($this->objektBlob != null){
+            return $this->objektBlob->getPicpath();
         }
         return null;
     }
@@ -559,7 +559,7 @@ class Objekt
      */
     public function setStandort(\App\Entity\Objekt $standort = null)
     {
-        $this->Standort = $standort;
+        $this->standort = $standort;
 
         return $this;
     }
@@ -572,14 +572,14 @@ class Objekt
      */
     public function getStandort()
     {
-        return $this->Standort;
+        return $this->standort;
     }
     
     
     // https://afilina.com/doctrine-not-saving-manytomany
     // https://symfony.com/doc/current/doctrine/associations.html#associations-inverse-side
     public function addImage(Objekt $asservat){
-        if($this->Kategorie_id != helper::KATEGORIE_DATENTRAEGER){
+        if($this->kategorie_id != helper::KATEGORIE_DATENTRAEGER){
             return false;
         }
         else{
@@ -590,7 +590,7 @@ class Objekt
     }
     
     public function removeImage(Objekt $asservat){
-        if($this->Kategorie_id != helper::KATEGORIE_DATENTRAEGER){
+        if($this->kategorie_id != helper::KATEGORIE_DATENTRAEGER){
             return false;
         }
         else{
@@ -601,7 +601,7 @@ class Objekt
     }
     
     public function flushImages(){
-        if($this->Kategorie_id != helper::KATEGORIE_DATENTRAEGER){
+        if($this->kategorie_id != helper::KATEGORIE_DATENTRAEGER){
             return false;
         }
         else{
@@ -624,7 +624,7 @@ class Objekt
     
     
     public function addHdd(Objekt $hdd){
-        if($this->Kategorie_id != helper::KATEGORIE_ASSERVAT_DATENTRAEGER){
+        if($this->kategorie_id != helper::KATEGORIE_ASSERVAT_DATENTRAEGER){
             return false;
         }
         else{
@@ -634,7 +634,7 @@ class Objekt
     }
     
     public function removeHdd(Objekt $hdd){
-        if($this->Kategorie_id != helper::KATEGORIE_ASSERVAT_DATENTRAEGER){
+        if($this->kategorie_id != helper::KATEGORIE_ASSERVAT_DATENTRAEGER){
             return false;
         }
         else{
@@ -644,7 +644,7 @@ class Objekt
     }
     
     public function flushHdds(){
-        if($this->Kategorie_id != helper::KATEGORIE_ASSERVAT_DATENTRAEGER){
+        if($this->kategorie_id != helper::KATEGORIE_ASSERVAT_DATENTRAEGER){
             return false;
         }
         else{
@@ -663,8 +663,8 @@ class Objekt
     
     
     public function isUsable(){
-        if($this->Status_id == helper::STATUS_VERLOREN ||
-           $this->Status_id == helper::STATUS_VERNICHTET ){
+        if($this->status_id == helper::STATUS_VERLOREN ||
+           $this->status_id == helper::STATUS_VERNICHTET ){
             return false;
         }
         return true;
@@ -697,11 +697,11 @@ class Objekt
     }
     
     public function setSystemaktion($status){
-        $this->Systemaktion = $status;
+        $this->systemaktion = $status;
     }
     
     public function GetSystemaktion(){
-        return $this->Systemaktion;
+        return $this->systemaktion;
     }
     
     
@@ -920,7 +920,7 @@ class Objekt
      * AUSGEFUEHRT WERDEN
      */
     public function createNewHistorieEntry(){  
-        $hist = new \App\Entity\Historie_Objekt($this->getBarcode());
+        $hist = new \App\Entity\HistorieObjekt($this->getBarcode());
         
         $hist->setFall($this->getFall());
         $hist->setNutzerId($this->getNutzer());

@@ -36,9 +36,9 @@ class ObjektRepository extends ServiceEntityRepository
 
         // create query builder
         $builder = $this->createQueryBuilder('o')
-            ->where('o.Reserviert_von = :user')
+            ->where('o.reserviert_von = :user')
             ->setParameter('user', $user)
-            ->orderBy('o.Zeitstempel', 'DESC');
+            ->orderBy('o.zeitstempel', 'DESC');
 
         if (null !== $limit) {
             $builder->setMaxResults($limit);

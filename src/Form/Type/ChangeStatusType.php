@@ -182,7 +182,7 @@ class ChangeStatusType extends AbstractType
                
                 $query = $em->createQuery('SELECT f '
                     . 'FROM App:Fall f '
-                    . "WHERE f.Beschreibung like :search "
+                    . "WHERE f.beschreibung like :search "
                     . "OR f.case_id like :search ")
                     ->setParameter('search',"%".$searchbox."%")
                     ->setMaxResults(6); 
