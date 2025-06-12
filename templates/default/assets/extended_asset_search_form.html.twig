@@ -41,8 +41,8 @@
 <script>
     const TEXT_QUERY_FORM = "#{{ search_form }}";
     const EAS_FORM = "#eas_form";
-    const SINGLE_VALUE_REGEX = /(!?\w+)[:=]((?:(?:(["'])[\w <>()\-\.!üÜöÖäÄ]+)\3)|(?:[\w<>()\-\.!üÜöÖäÄ]+))/g;
-    const MULTIPLE_VALUE_REGEX = /(!?\w+)[:=]\[((?:(["\']?)[\w <>()\-\.!üÜöÖäÄ]+\3\|)*(["\']?)[\w <>()\-\.!üÜöÖäÄ]+\4)\]/g;
+    const SINGLE_VALUE_REGEX = /(!?\w+)[:=]((?:(?:(["'])[\w <>()\-\.!üÜöÖäÄ,]+)\3)|(?:[\w<>()\-\.!üÜöÖäÄ,]+))/g;
+    const MULTIPLE_VALUE_REGEX = /(!?\w+)[:=]\[((?:(["\']?)[\w <>()\-\.!üÜöÖäÄ,]+\3\|)*(["\']?)[\w <>()\-\.!üÜöÖäÄ,]+\4)\]/g;
 
     const EAS = (function(){
         // TODO replace this with PHP for dynamic list

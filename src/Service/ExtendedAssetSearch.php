@@ -185,8 +185,8 @@ class ExtendedAssetSearch
             $builder->leftjoin("App:Objekt", "location", "WITH", "location.barcode_id = asset.standort");
         if ($this->historyLocationJoin)
             $builder->leftjoin("App:Objekt", "h_location", "WITH", "h_location.barcode_id = h_asset.standort");
-        if ($this->caseJoin)
-            $builder->leftjoin("App:Fall", "case", "WITH", "case.id = asset.fall_id");
+        if ($this->caseJoin) //  "case" is SQL keyword -> we use "_case"
+            $builder->leftjoin("App:Fall", "_case", "WITH", "_case.id = asset.fall_id");
         if ($this->historyCaseJoin)
             $builder->leftjoin("App:Fall", "h_case", "WITH", "h_case.id = h_asset.fall_id ");
 
@@ -270,7 +270,7 @@ class ExtendedAssetSearch
      * @param array $values Matching values.
      * @return Comparison|Func|string
      */
-    protected function statusQuery(bool $neg, array $values): Comparison|Func|string {
+    protected function statusQuery(bool $neg, array $values): Comparison|Func|string|null {
         // translate all status into status ids
         foreach ($values as $key => $s) {
             if(is_numeric($s) && ($s < 0 || $s >= Objekt::getCountStatues())) {
@@ -293,7 +293,7 @@ class ExtendedAssetSearch
      * @return Comparison|Orx|string
      */
     protected function barcodeQuery(bool $neg, array $values): Comparison|Orx|string { 
-        if (1 == count($values) && $bool = $this->to_bool($values[0])){
+        if (1 == count($values) && ($bool = $this->to_bool($values[0])) !== null){
             return $this->existenceQuery('asset.barcode_id', $neg xor $bool);
         }
 
@@ -307,7 +307,7 @@ class ExtendedAssetSearch
      * @return Comparison|Orx|string
      */
     protected function nameQuery(bool $neg, array $values): Comparison|Orx|string {
-        if (1 == count($values) && $bool = $this->to_bool($values[0])){
+        if (1 == count($values) && ($bool = $this->to_bool($values[0])) !== null){
             return $this->existenceQuery('asset.name', $neg xor $bool);
         }
 
@@ -321,7 +321,7 @@ class ExtendedAssetSearch
      * @return Comparison|Orx|string
      */
     protected function noteQuery(bool $neg, array $values): Comparison|Orx|string {
-        if (1 == count($values) && $bool = $this->to_bool($values[0])){
+        if (1 == count($values) && ($bool = $this->to_bool($values[0])) !== null){
             return $this->existenceQuery('asset.notiz', $neg xor $bool);
         }
 
@@ -335,7 +335,7 @@ class ExtendedAssetSearch
      * @return Comparison|Orx|string
      */
     protected function descriptionQuery(bool $neg, array $values): Comparison|Orx|string {
-        if (1 == count($values) && $bool = $this->to_bool($values[0])){
+        if (1 == count($values) && ($bool = $this->to_bool($values[0])) !== null){
             return $this->existenceQuery('asset.verwendung', $neg xor $bool);
         }
 
@@ -350,7 +350,7 @@ class ExtendedAssetSearch
      */
     protected function historyDescriptionQuery(bool $neg, array $values): Comparison|Orx|string {
         $this->historyJoin = true;
-        if (1 == count($values) && $bool = $this->to_bool($values[0])){
+        if (1 == count($values) && ($bool = $this->to_bool($values[0])) !== null){
             return $this->existenceQuery('h_asset.verwendung', $neg xor $bool);
         }
 
@@ -365,6 +365,7 @@ class ExtendedAssetSearch
      */
     protected function userChangeQuery(bool $neg, array $values): Comparison|Orx {
         $this->userJoin = true;
+        
         return $this->stringQuery('user.fullname', $neg, $values);
     }
 
@@ -389,7 +390,7 @@ class ExtendedAssetSearch
     protected function reservedQuery(bool $neg, array $values): Comparison|Orx|string {
         $this->reservedUserJoin = true;
 
-        if (1 == count($values) && $bool = $this->to_bool($values[0])){
+        if (1 == count($values) && ($bool = $this->to_bool($values[0])) !== null){
             return $this->existenceQuery('reserver.fullname', $neg xor $bool);
         }
 
@@ -406,7 +407,7 @@ class ExtendedAssetSearch
         $this->historyJoin = true;
         $this->historyReservedUserJoin = true;
 
-        if (1 == count($values) && $bool = $this->to_bool($values[0])){
+        if (1 == count($values) && ($bool = $this->to_bool($values[0])) !== null){
             return $this->existenceQuery('h_reserver.fullname', $neg xor $bool);
         }
 
@@ -422,7 +423,7 @@ class ExtendedAssetSearch
     protected function locationQuery(bool $neg, array $values): Comparison|Orx|string {
         $this->locationJoin = true;
 
-        if (1 == count($values) && $bool = $this->to_bool($values[0])){
+        if (1 == count($values) && ($bool = $this->to_bool($values[0])) !== null){
             return $this->existenceQuery('location.barcode_id', $neg xor $bool);
         }
 
@@ -439,7 +440,7 @@ class ExtendedAssetSearch
         $this->historyJoin = true;
         $this->historyLocationJoin = true;
 
-        if (1 == count($values) && $bool = $this->to_bool($values[0])){
+        if (1 == count($values) && ($bool = $this->to_bool($values[0])) !== null){
             return $this->existenceQuery('h_location.barcode_id', $neg xor $bool);
         }
 
@@ -455,11 +456,11 @@ class ExtendedAssetSearch
     protected function caseQuery(bool $neg, array $values): Comparison|Orx|string {
         $this->caseJoin = true;
 
-        if (1 == count($values) && $bool = $this->to_bool($values[0])){
-            return $this->existenceQuery('case.case_id', $neg xor $bool);
+        if (1 == count($values) && ($bool = $this->to_bool($values[0])) !== null){
+            return $this->existenceQuery('_case.case_id', $neg xor $bool);
         }
 
-        return $this->stringQuery('case.case_id', $neg, $values);
+        return $this->stringQuery('_case.case_id', $neg, $values);
     }
 
     /**
@@ -472,24 +473,22 @@ class ExtendedAssetSearch
         $this->historyJoin = true;
         $this->historyCaseJoin = true;
 
-        if (1 == count($values) && $bool = $this->to_bool($values[0])){
+        if (1 == count($values) && ($bool = $this->to_bool($values[0])) !== null){
             return $this->existenceQuery('h_case.case_id', $neg xor $bool);
         }
 
         return $this->stringQuery('h_case.case_id', $neg, $values);
     }
 
-    protected function caseActiveQuery(bool $neg, array $values): Andx|Comparison|Func|Orx|string {
-        if(is_array($values)){
-            return 'assetsearch.mult.invalid';
-        }
-
+    protected function caseActiveQuery(bool $neg, array $values): Andx|Comparison|Func|Orx|string|null {
         $this->caseJoin = true;
 
-        if($neg)    
-            return $this->exprBuilder->eq('case.ist_aktiv', $this->addParam($values[0]));
-        else
-            return $this->exprBuilder->isNull('case.ist_aktiv');
+        if (1 == count($values) && ($bool = $this->to_bool($values[0])) !== null){
+            return $this->equalQuery('_case.istAktiv', $neg, [$bool]);
+        }
+
+        $this->addError('warning', 'eas.error.caseactive.invalid');
+        return null;
     }
 
     /**
@@ -501,10 +500,14 @@ class ExtendedAssetSearch
     protected function typeQuery(bool $neg, array $values): Comparison|Orx|string {
         $this->driveJoin = true;
 
-        if (1 == count($values) && $bool = $this->to_bool($values[0])){
+        if (1 == count($values) && ($bool = $this->to_bool($values[0])) !== null){
             return $this->existenceQuery('drive.bauart', $neg xor $bool);
         }
 
+        // return $this->exprBuilder->andX(
+        //     $this->existenceQuery('drive.bauart', true),
+        //     $this->stringQuery('drive.bauart', $neg, $values)
+        // );
         return $this->stringQuery('drive.bauart', $neg, $values);
     }
 
@@ -517,7 +520,7 @@ class ExtendedAssetSearch
     protected function formFactorQuery(bool $neg, array $values): Comparison|Orx|string {
         $this->driveJoin = true;
 
-        if (1 == count($values) && $bool = $this->to_bool($values[0])){
+        if (1 == count($values) && ($bool = $this->to_bool($values[0])) !== null){
             return $this->existenceQuery('drive.formfaktor', $neg xor $bool);
         }
 
@@ -533,11 +536,39 @@ class ExtendedAssetSearch
     protected function sizeQuery(bool $neg, array $values): Comparison|Orx|string {
         $this->driveJoin = true;
 
-        if (1 == count($values) && $bool = $this->to_bool($values[0])){
-            return $this->existenceQuery('drive.size', $neg xor $bool);
+        if (1 == count($values) && ($bool = $this->to_bool($values[0])) !== null){
+            return $this->existenceQuery('drive.groesse', $neg xor $bool);
         }
 
-        return $this->stringQuery('drive.size', $neg, $values);
+        $expr = [];
+
+        foreach ($values as $value) {
+            $op = substr($value, 0, 1);
+            $val = substr($value, 1);
+
+            if (($op == '>' || $op == '<') && is_numeric($val)) {
+                if ($op == '>')
+                    $expr[] = $this->exprBuilder->gt('drive.groesse', $this->addParam($val));
+                else
+                    $expr[] = $this->exprBuilder->lt('drive.groesse', $this->addParam($val));
+            }
+            else if (is_int($value)){
+                $expr[] = $this->equalQuery('drive.groesse', false, [$value]);
+            }
+            else {
+                $expr[] = $this->stringQuery('drive.groesse', false, [$value]);
+            }
+        }
+
+        // merge expressions
+        if (count($expr) > 1){
+            $expr = $this->exprBuilder->orX(array_shift($expr), ...$expr);
+        }
+        else {
+            $expr = $expr[0];
+        }
+
+        return $neg ? $this->exprBuilder->not($expr) : $expr;
     }
 
     /**
@@ -549,7 +580,7 @@ class ExtendedAssetSearch
     protected function manufacturerQuery(bool $neg, array $values): Comparison|Orx|string {
         $this->driveJoin = true;
 
-        if (1 == count($values) && $bool = $this->to_bool($values[0])){
+        if (1 == count($values) && ($bool = $this->to_bool($values[0])) !== null){
             return $this->existenceQuery('drive.hersteller', $neg xor $bool);
         }
 
@@ -565,7 +596,7 @@ class ExtendedAssetSearch
     protected function modelQuery(bool $neg, array $values): Comparison|Orx|string {
         $this->driveJoin = true;
 
-        if (1 == count($values) && $bool = $this->to_bool($values[0])){
+        if (1 == count($values) && ($bool = $this->to_bool($values[0])) !== null){
             return $this->existenceQuery('drive.modell', $neg xor $bool);
         }
 
@@ -581,7 +612,7 @@ class ExtendedAssetSearch
     protected function productNumberQuery(bool $neg, array $values): Comparison|Orx|string {
         $this->driveJoin = true;
 
-        if (1 == count($values) && $bool = $this->to_bool($values[0])){
+        if (1 == count($values) && ($bool = $this->to_bool($values[0])) !== null){
             return $this->existenceQuery('drive.pn', $neg xor $bool);
         }
 
@@ -597,7 +628,7 @@ class ExtendedAssetSearch
     protected function serialNumberQuery(bool $neg, array $values): Comparison|Orx|string {
         $this->driveJoin = true;
 
-        if (1 == count($values) && $bool = $this->to_bool($values[0])){
+        if (1 == count($values) && ($bool = $this->to_bool($values[0])) !== null){
             return $this->existenceQuery('drive.sn', $neg xor $bool);
         }
 
@@ -613,7 +644,7 @@ class ExtendedAssetSearch
     protected function connectorQuery(bool $neg, array $values): Comparison|Orx|string {
         $this->driveJoin = true;
 
-        if (1 == count($values) && $bool = $this->to_bool($values[0])){
+        if (1 == count($values) && ($bool = $this->to_bool($values[0])) !== null){
             return $this->existenceQuery('drive.anschluss', $neg xor $bool);
         }
 
@@ -685,8 +716,8 @@ class ExtendedAssetSearch
      */
     private function to_bool(string $str): bool|null{
         return match (strtolower($str)) {
-            ''|'0'|'f'|'false'|'falsch' => false,
-            '1'|'t'|'true'|'wahr' => true,
+            'f', 'false', 'falsch' => false,
+            't', 'true', 'wahr' => true,
             default => null,
         };
     } 
@@ -698,7 +729,7 @@ class ExtendedAssetSearch
      * @param array $values         Search values, needs to match at least one
      * @return Comparison|Orx
      */
-    private function stringQuery(string $identifier, bool $neg, array $values): Comparison|Orx {
+    private function stringQuery(string $identifier, bool $neg, array $values): Comparison|Andx|Orx {
         // add "%" to match any characters
         $values = array_map(fn ($val) => "%$val%", $values);
 
@@ -710,15 +741,17 @@ class ExtendedAssetSearch
                 : $this->exprBuilder->like($identifier, $this->addParam($val));
         }
 
-        // if ()
-
-
         // simple like query
         if (1 == count($values)) {
             return $exprs[0];
         }
-        else {            
-            return $this->exprBuilder->orX(array_shift($exprs), ...$exprs);
+        else {
+            if ($neg){
+                return $this->exprBuilder->andX(array_shift($exprs), ...$exprs);
+            }   
+            else {
+                return $this->exprBuilder->orX(array_shift($exprs), ...$exprs);
+            }
         }
     }
 
@@ -792,7 +825,7 @@ class ExtendedAssetSearch
             $res[] = [
                 'neg' => str_starts_with($match['key'], '!'), 
                 'key' => ltrim($match['key'], '!'),
-                'val' => [trim($match['val'], " \n\r\t\v\x00\"'")],
+                'val' => [trim($match['val'], "\n\r\t\v\x00\"'")],
             ];
         }
         // get mult key values
@@ -801,7 +834,8 @@ class ExtendedAssetSearch
             $res[] = [
                 'neg' => str_starts_with($match['key'], '!'), 
                 'key' => ltrim($match['key'], '!'),
-                'val' => array_map(fn($val) => trim($val, " \n\r\t\v\x00\"'"), explode('|', $match['val'], 8)),
+                // max 16 segments
+                'val' => array_map(fn($val) => trim($val, "\n\r\t\v\x00\"'"), explode('|', $match['val'], 16)),
             ];
         }
         return $res;
@@ -815,7 +849,7 @@ class ExtendedAssetSearch
      */
     private function matchKeySingleValue(string $query): array {
         $matches = [];
-        preg_match_all('/(?<key>!?\w+)[:=](?<val>(?:(?:(["\'])[\w <>()\-\.!üÜöÖäÄ]+)\g-1)|(?:[\w<>()\-\.!üÜöÖäÄ]+))/', $query, $matches, PREG_SET_ORDER);
+        preg_match_all('/(?<key>!?\w+)[:=](?<val>(?:(?:(["\'])[\w <>()\-\.!üÜöÖäÄ,]+)\g-1)|(?:[\w<>()\-\.!üÜöÖäÄ,]+))/', $query, $matches, PREG_SET_ORDER);
                 
         return $matches;
     }
@@ -828,7 +862,7 @@ class ExtendedAssetSearch
      */
     private function matchKeyMultipleValue(string $query): array {
         $matches = [];
-        preg_match_all('/(?<key>!?\w+)[:=]\[(?<val>(?:(["\']?)[\w <>()\-\.!üÜöÖäÄ]+\3\|)*(["\']?)[\w <>()\-\.!üÜöÖäÄ]+\4)\]/', $query, $matches, PREG_SET_ORDER);        
+        preg_match_all('/(?<key>!?\w+)[:=]\[(?<val>(?:(["\']?)[\w <>()\-\.!üÜöÖäÄ,]+\3\|)*(["\']?)[\w <>()\-\.!üÜöÖäÄ,]+\4)\]/', $query, $matches, PREG_SET_ORDER);        
         return $matches;
     }
 }
