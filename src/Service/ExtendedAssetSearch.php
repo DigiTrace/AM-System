@@ -13,6 +13,8 @@ use Symfony\Contracts\Translation\TranslatorInterface;
 
 
 /**
+ * Service for parsing complex asset search queries.
+ * 
  * @author Ben Brooksnieder
  */
 class ExtendedAssetSearch
@@ -29,8 +31,8 @@ class ExtendedAssetSearch
     private bool $historyLocationJoin = false;
     private bool $historyCaseJoin = false;
 
-    private array $params;
-    private array $errors; 
+    private array $params = [];
+    private array $errors = []; 
     private Expr $exprBuilder;
 
     private array $categoryNames;
@@ -49,14 +51,68 @@ class ExtendedAssetSearch
         $this->categoryNamesTranslated = array_map(fn($c) => $translator->trans($c), $this->categoryNames);
     }
 
-    public function isExtendedQuery(string $query): bool {
-        # TODO s
-        return !empty($query);
+    /**
+     * Generates either simple or complex search query based on input query.
+     * @param string $query Input query
+     * @return Query|null Search query or `null` on failure
+     */
+    public function generateSearchQuery(string $query): Query|null {
+        if ($this->isExtendedQuery($query)) {            
+            return $this->parseQuery($query);
+        }
+        
+        return $this->simpleSearchQuery($query);
     }
 
-    public function parseQuery(string $query, array &$errors = []): Query|null {
+    /**
+     * Determines whether given query should be processed as a simple or extended search.
+     * @todo make more sophisticated
+     * @param string $query Query to check.
+     * @return bool
+     */
+    public function isExtendedQuery(string $query): bool {
+        $exlusiveChars = '<>[]:|';
+        if (strpbrk($query, $exlusiveChars)){
+            return true;
+        }
+        
+        #TODO make more sophisticated
+        return false;
+    }
+
+    /**
+     * Get error messages
+     * @return array{type: string, message: string}
+     */
+    public function getErrors(): array {
+        return $this->errors;
+    }
+
+    /**
+     * Return simple text based search on selected columns.
+     * @param string $query
+     * @return Query
+     */
+    protected function simpleSearchQuery(string $query): Query {
+        $dql = <<<'DQL'
+        SELECT asset FROM App:Objekt asset 
+            LEFT JOIN App:HistorieObjekt ho 
+                WITH asset.barcode_id = ho.barcode_id 
+            LEFT JOIN App:Datentraeger d 
+                WITH asset.barcode_id = d.barcode_id 
+        WHERE asset.name like :searchword 
+            OR asset.verwendung like :searchword 
+            OR asset.notiz like :searchword 
+            OR asset.barcode_id like :searchword 
+            OR d.sn like :searchword 
+        DQL;
+
+        return $this->entityManagerInterface->createQuery($dql)->setParameter(':searchword', "%$query%");
+    }
+
+    protected function parseQuery(string $query): Query|null {
         $this->params = [];
-        $this->errors = &$errors;
+        $this->errors = [];
 
         // instance of expression builder
         $this->exprBuilder = $this->entityManagerInterface->getExpressionBuilder();
@@ -66,16 +122,18 @@ class ExtendedAssetSearch
         // expression for segments 
         $segmentExprs = [];
 
+        // iterate over all segments divided by '||'
         foreach ($orSegments as $segment) {
             // parse segment for key value pairs
-            $subquery = $this->getQueryValues($segment);
-            if(count($subquery) == 0){
-                $this->errors[] = "empty subquery: $segment";
+            $subqueries = $this->getQueryValues($segment);
+            if(count($subqueries) == 0){
+                $this->addError('warning', 'eas.error.segment.empty', ['segment' => $segment]);
                 continue;
             }
             $subexprs = [];
             
-            foreach ($subquery as $q) {
+            // iterate over all subqueries in segment
+            foreach ($subqueries as $q) {
                 // match each expressions in sub query to sql query string
                 $parsedExpr = $this->matchQueryKey($q['key'], $q);
                 if ($parsedExpr) {
@@ -85,7 +143,7 @@ class ExtendedAssetSearch
 
             // skip if no valid sub expressions were found
             if(count($subexprs) == 0) {
-                $this->errors[] = 'no subqueries';
+                $this->addError('warning', 'eas.error.segment.invalid', ['segment' => $segment]);
                 continue;
             }
 
@@ -97,7 +155,7 @@ class ExtendedAssetSearch
 
         // return if no valid queries
         if(count($segmentExprs) == 0){
-            $this->errors[] = 'empty query';
+            $this->addError('danger', 'eas.error.query.empty');
             return null;
         }
 
@@ -147,13 +205,13 @@ class ExtendedAssetSearch
      * @param array{key: string, neg: bool, val: array} $data Argument data
      * @return Andx|Comparison|Func|Orx|string|null
      */
-    protected function matchQueryKey(string $key, $data): Andx|Comparison|Func|Orx|string|null {
+    protected function matchQueryKey(string $key, $data) {
         return match (strtolower($key)) {
             'c','k','cat','kat','category','kategorie'      => $this->categoryQuery($data['neg'], $data['val']),
             's','status'                                    => $this->statusQuery($data['neg'], $data['val']),
             'b','barcode'                                   => $this->barcodeQuery($data['neg'], $data['val']), 
             'n','name'                                      => $this->nameQuery($data['neg'], $data['val']),
-            'notice','note','notiz'                         => $this->noteQuery($data['neg'], $data['val']),
+            'info','note','notiz'                           => $this->noteQuery($data['neg'], $data['val']),
             'mdesc','desc','description','beschreibung'     => $this->descriptionQuery($data['neg'], $data['val']),
             'hdesc','history_description'                   => $this->historyDescriptionQuery($data['neg'], $data['val']),
             'u','mu','user'                                 => $this->userChangeQuery($data['neg'], $data['val']),
@@ -174,7 +232,7 @@ class ExtendedAssetSearch
             'sn' , 'serial_number','serien_nummer'          => $this->serialNumberQuery($data['neg'], $data['val']),
             'connection','connector','anschluss'            => $this->connectorQuery($data['neg'], $data['val']),
             'd', 'mdate'                                    => $this->dateQuery($data['neg'], $data['val']),
-            default => "unknown: $key",
+            default => $this->addError('danger', 'eas.error.tag.unknown', ['tag' => $key]) && false,
         };
     }
 
@@ -193,12 +251,11 @@ class ExtendedAssetSearch
         // translate all categories into categorie ids
         foreach ($values as $key => $c) {
             if(is_numeric($c) && ($c < 0 || $c >= Objekt::getCountCategories())) {
-                $this->errors[] = 'category.number.is.wrong';
+                $this->addError('danger', 'eas.error.category.invalid', ['category' => $c]);
                 return null;
             }
             else if(!is_numeric($c)){
-                // $categories[$key] = Objekt::$kategorienToId["category.{$category}"];
-                $this->errors[] = 'missing implementation';
+                $this->addError('info', 'not_implemented_yet', ['function' => 'Named category search' ]);
                 return null;
             }
         }
@@ -217,11 +274,11 @@ class ExtendedAssetSearch
         // translate all status into status ids
         foreach ($values as $key => $s) {
             if(is_numeric($s) && ($s < 0 || $s >= Objekt::getCountStatues())) {
-                $this->errors[] = 'status.number.is.wrong';
+                $this->addError('danger', 'eas.error.invalid.status %status%', ['%status%' => $s]);
                 return null;
             }
             else if(!is_numeric($s)){             
-                $this->errors[] = 'missing implementation';
+                $this->addError('info', 'not_implemented_yet');
                 return null;
             }
         }
@@ -577,7 +634,7 @@ class ExtendedAssetSearch
         $values = array_filter($values, function($val) use ($pattern){
             $matches = [];
             if(!preg_match($pattern, $val, $matches)){   
-                $this->errors[] = 'Invalid date';
+                $this->addError('danger', 'eas.error.date.invalid %date%', ['%date%' => $val]);
                 return false;
             }
 
@@ -616,6 +673,11 @@ class ExtendedAssetSearch
     // ========= UTIL METHODS =========
     //
 
+    private function addError(string $type, string $message, array $params = []): static{
+        $this->errors[] = ['type' => $type, 'message' => $this->translator->trans($message, $params)];
+        return $this;
+    }
+
     /**
      * Helper function to determine a boolean value of a string
      * @param string $str
@@ -647,6 +709,8 @@ class ExtendedAssetSearch
                 ? $this->exprBuilder->notLike($identifier, $this->addParam($val))
                 : $this->exprBuilder->like($identifier, $this->addParam($val));
         }
+
+        // if ()
 
 
         // simple like query
@@ -751,7 +815,7 @@ class ExtendedAssetSearch
      */
     private function matchKeySingleValue(string $query): array {
         $matches = [];
-        preg_match_all('/(?<key>!?\w+)[:=](?<val>(?:(?:(["\'])[\w <>\-\.!üÜöÖäÄ]+)\g-1)|(?:[\w<>\-\.!üÜöÖäÄ]+))/', $query, $matches, PREG_SET_ORDER);
+        preg_match_all('/(?<key>!?\w+)[:=](?<val>(?:(?:(["\'])[\w <>()\-\.!üÜöÖäÄ]+)\g-1)|(?:[\w<>()\-\.!üÜöÖäÄ]+))/', $query, $matches, PREG_SET_ORDER);
                 
         return $matches;
     }
@@ -764,7 +828,7 @@ class ExtendedAssetSearch
      */
     private function matchKeyMultipleValue(string $query): array {
         $matches = [];
-        preg_match_all('/(?<key>!?\w+)[:=]\[(?<val>(?:(["\']?)[\w <>\-\.!üÜöÖäÄ]+\3\|)*(["\']?)[\w <>\-\.!üÜöÖäÄ]+\4)\]/', $query, $matches, PREG_SET_ORDER);        
+        preg_match_all('/(?<key>!?\w+)[:=]\[(?<val>(?:(["\']?)[\w <>()\-\.!üÜöÖäÄ]+\3\|)*(["\']?)[\w <>()\-\.!üÜöÖäÄ]+\4)\]/', $query, $matches, PREG_SET_ORDER);        
         return $matches;
     }
 }

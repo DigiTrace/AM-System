@@ -1,0 +1,60 @@
+not_implemented_yet: 'Not implemented yet: {function}'
+eas:
+  desc:
+    category: 'Category'
+    status: 'Status'
+    barcode: 'Barcode'
+    name: 'Name'
+    description: 'Description'
+    history_description: 'Former description'
+    user: 'User'
+    history_user: 'Former user'
+    reserved: 'Reserved'
+    history_reserved: 'Formerly reserved'
+    location: 'Location'
+    history_location: 'Former location'
+    case: 'Case'
+    history_case: 'Former case'
+    caseactive: 'Is assigned case active?'
+    note: 'Note'
+    type: 'Drive type'
+    form_factor: 'Drive form factor'
+    size: 'Drive size'
+    manufacturer: 'Manufacturer'
+    model: 'Model'
+    product_number: 'Product number'
+    serial_number: 'Serial number'
+    connector: 'Connector'
+    date: 'Last updated'
+    date_end: 'Last updated before'
+  error:
+    category:
+      invalid: 'Invalid category number: {category}'
+    date:
+      invalid: 'Invalid date: {date}'
+    query:
+      empty: 'Empty query'
+    segment:
+      empty: 'No matching tags in "{segment}"'
+      invalid: 'No valid tags in "{segment}"'
+    tag:
+      unknown: 'Unknown tag: {tag}'
+  form:
+    drive_section: 'Drive properties'
+    search: 'Search'
+    show: 'Extended search'
+  operator:
+    any: is set
+    date:
+      before: before
+      after: after
+      range: in range
+    eq: is
+    gt: greater than
+    lt: less than
+    neq: is not
+    no: 'no'
+    none: is not set
+    yes: 'yes'
+    
+

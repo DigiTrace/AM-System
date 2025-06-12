@@ -26,12 +26,12 @@
   
    
     <div class="row">
-        <div class="col-sm-4"> <h2>{% trans %}objectsummary{% endtrans %}:</h2> </div>
-        <div class="col-sm-8" style="margin-top:7px">
+        <div class="col-lg-4"> <h2>{% trans %}objectsummary{% endtrans %}:</h2> </div>
+        <div class="col-lg-8" style="margin-top:7px">
             {{ form_start(searchform) }}
-            {{ form_row(searchform.suchwort) }}
-            {{ form_row(searchform.anzahleintraege) }}
-            <button class="btn btn-default" type="button" onclick="$('#eas_form_container').slideToggle(100)">{{ 'eas.show.form'|trans }}</button>
+            {{ form_row(searchform.search) }}
+            {{ form_row(searchform.limit) }}
+            {{ form_row(searchform.eas) }}
             {{ form_end(searchform) }}
         </div>
     </div>
@@ -46,7 +46,7 @@
 
     {# Include extended search form#}
     <div id="eas_form_container" style="display: none;">
-        {{ include('default/assets/extended_asset_search_from.html.twig') }}
+        {{ include('default/assets/extended_asset_search_form.html.twig', {search_form: 'search_form'}) }}
     </div>
 
    
