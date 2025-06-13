@@ -117,11 +117,10 @@
                         // less then, greater then
                         case "<":
                         case ">":
-                            entry.operator = value;
-                            break;
                         // range
-                        case "<>":
-                            entry.operator = '>';
+                        case ">=":
+                        case "<=":
+                            entry.operator = value;
                             break;
                         // true
                         case "*":
@@ -172,9 +171,17 @@
                 const single = segment.matchAll(SINGLE_VALUE_REGEX).map(function(entry){
                     const key = entry[1].replace("!", "");
                     const raw_value = entry[2].replace(/["']/g, ""); 
-                    const operator = raw_value.match(/^[<>]./) ?
-                        raw_value[0] : '';
-                    const value = operator ? raw_value.substring(1) : raw_value;
+                    let operator = '';
+                    let value = raw_value;
+
+                    if (raw_value.match(/^[<>]=./)){
+                        operator = raw_value.substring(0, 1);
+                        value = raw_value.substring(2);
+                    }
+                    else if (raw_value.match(/^[<>]=./)){
+                        operator = raw_value.substring(0, 0);
+                        value = raw_value.substring(1);
+                    }
 
                     return {
                         name: REV_KEYS.get(key) ?? '',
@@ -306,7 +313,7 @@
                     // handler to trigger date range
                     $(`input[name='date.operator']`).on("change", function(e){
                         // show date end picker
-                        if (this.value == "<>"){
+                        if (this.value == ">="){
                             $(".eas-date-end").show();
                             $(".eas-date-end-placeholder").hide();
                         }
@@ -637,7 +644,7 @@
                 <input type="radio" name="date.operator" value=">" > &gt;
             </label>
             <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'eas.operator.date.range'|trans}}" style="padding-left: 9px;">
-                <input type="radio" name="date.operator" value="<>" id="eas_date_range_operator"> &lt;&gt;
+                <input type="radio" name="date.operator" value=">=" id="eas_date_range_operator"> &lt;&gt;
             </label>
         </div>
         <div class="eas-input-cell">
@@ -649,7 +656,7 @@
         <label for="eas-date-end" class="eas-label eas-date-end" style="grid-column: 4 / span 2; display: none">{{ 'eas.desc.date_end'| trans }}:</label>
         <div class="eas-input-cell eas-date-end" style="display: none;" >
             <input class="eas-input form-control" type="date" id="eas-date-end" name="end_date"> 
-            <input type="text" name="end_date.operator" value="<" hidden>
+            <input type="text" name="end_date.operator" value="<=" hidden>
         </div>
         <span class="eas-date-end-placeholder" style="grid-column: 4 / span 3;"></span>
 
