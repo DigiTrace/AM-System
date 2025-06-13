@@ -61,8 +61,11 @@ class ExtendedAssetSearchTest extends KernelTestCase
                     assertEquals($set[$barcode]->getId(), $value->getId(), "Asserting $method objects have same ids has failed for object $barcode.");
                 }
                 // ... or regular objects
-                else {
+                else if(method_exists($set[$barcode], 'getBarcode')) {
                     assertEquals($set[$barcode]->getBarcode(), $value->getBarcode(), "Asserting $method objects have same barcodes has failed for object $barcode.");
+                }
+                else {
+                    assertEquals($set[$barcode], $value);
                 }
             }
             else {
@@ -600,38 +603,19 @@ class ExtendedAssetSearchTest extends KernelTestCase
         ];
         
         // test simple single date queries
-        foreach ([
+        $this->testQuery($search, [
             'd:14.03.2012', 'mdate:14.03.12', '!d:[<14.03.2012|>14.03.2012]'
-        ] as $q) {
-            $res = $search->generateSearchQuery($q)->execute();
-            assertCount(1, $res);
-            assertEquals($samples[2]->getBarcode(), $res[0]->getBarcode());
-            assertEquals($samples[2]->getZeitstempel(), $res[0]->getZeitstempel());
-        }
+        ], [$samples[2]], 'getZeitstempel');
 
         // test simple date range queries
-        foreach ([
-            'd:>13.03.2021', 'mdate:>13.03.2021', '!d:<14.03.2021'
-        ] as $q) {
-            $res = $search->generateSearchQuery($q)->execute();
-            assertCount(1, $res);
-            assertEquals($samples[11]->getBarcode(), $res[0]->getBarcode());
-            assertEquals($samples[11]->getZeitstempel(), $res[0]->getZeitstempel());
-        }
+        $this->testQuery($search, [
+            'd:>13.03.2021', 'mdate:>03/13/2021', '!d:<14.03.21', 'ed:>=2021-03-14'
+        ], [$samples[11]], 'getZeitstempel');
 
         // test complex date range queries
-        foreach ([
-            'd:>13.03.2012 d:<15.03.2014', 'mdate:>13.03.2012 mdate:<15.03.2014'
-        ] as $q) {
-            $res = $search->generateSearchQuery($q)->execute();
-            assertCount(3, $res);
-            assertEquals($samples[2]->getBarcode(), $res[0]->getBarcode());
-            assertEquals($samples[2]->getZeitstempel(), $res[0]->getZeitstempel());
-            assertEquals($samples[3]->getBarcode(), $res[1]->getBarcode());
-            assertEquals($samples[3]->getZeitstempel(), $res[1]->getZeitstempel());
-            assertEquals($samples[4]->getBarcode(), $res[2]->getBarcode());
-            assertEquals($samples[4]->getZeitstempel(), $res[2]->getZeitstempel());
-        }
+        $this->testQuery($search, [
+            'd:>03/13/2012 d:<03/15/14', 'mdate:>13.03.2012 mdate:<15.03.2014', 'date:>=14.03.2012 ed:<=14.03.2014'
+        ], [$samples[2], $samples[3], $samples[4]], 'getZeitstempel');
     }
 
     public function testDriveTypeQuery() {
@@ -762,12 +746,12 @@ class ExtendedAssetSearchTest extends KernelTestCase
 
         // test all smaller sizes then 200
         $this->testQuery($search, [
-            'size:<200', 'size:[100|150]', '!size:>150'
+            'size:<200', 'size:<=150', 'size:[100|150]', '!size:>150'
         ], [$samples[0], $samples[1]], 'getBarcode');
 
         // test all bigger sizes then 150
         $this->testQuery($search, [
-            '!size:<200', '!size:[100|150]', 'size:>150'
+            '!size:<200', '!size:[100|150]', 'size:>150', 'size:>=200',
         ], [$samples[2], $samples[3]], 'getBarcode');
     }
 

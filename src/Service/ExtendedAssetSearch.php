@@ -546,20 +546,37 @@ class ExtendedAssetSearch
         $expr = [];
 
         foreach ($values as $value) {
-            $op = substr($value, 0, 1);
-            $val = substr($value, 1);
+            $op = '';
+            $val = $value;
 
-            if (($op == '>' || $op == '<') && is_numeric($val)) {
-                if ($op == '>')
-                    $expr[] = $this->exprBuilder->gt('drive.groesse', $this->addParam($val));
-                else
-                    $expr[] = $this->exprBuilder->lt('drive.groesse', $this->addParam($val));
+            // filter operator
+            if(str_starts_with($value, '<=')){
+                $op = 'lte';
+                $val = substr($value, 2);
             }
-            else if (is_int($value)){
-                $expr[] = $this->equalQuery('drive.groesse', false, [$value]);
+            else if (str_starts_with($value, '>=')){
+                $op = 'gte';
+                $val = substr($value, 2);
+            }
+            else if (str_starts_with($value, '<')){
+                $op = 'lt';
+                $val = substr($value, 1);
+            }
+            else if (str_starts_with($value, '>')){
+                $op = 'gt';
+                $val = substr($value, 1);
+            }
+
+            if(is_numeric($val)){
+                if($op){
+                    $expr[] = $this->exprBuilder->$op('drive.groesse', $this->addParam($val));
+                }
+                else {
+                    $expr[] = $this->equalQuery('drive.groesse', false, [$val]);
+                }
             }
             else {
-                $expr[] = $this->stringQuery('drive.groesse', false, [$value]);
+                $expr[] = $this->stringQuery('drive.groesse', false, [$val]);
             }
         }
 
@@ -662,7 +679,7 @@ class ExtendedAssetSearch
      * 
      *  - `dd.mm.yyyy`
      *  - `dd.mm.yy`
-     *  - `yyyy-dd-mm`
+     *  - `yyyy-mm-dd`
      *  - `mm/dd/yyyy`
      *  - `mm/dd/yy`
      * 

@@ -332,6 +332,12 @@
                     $(TEXT_QUERY_FORM).on("input", function(e){
                         updateForm();
                     });
+
+                    // handler to add new search query segment
+                    $("#eas_add_query").on('click', function(e){
+                        $(`${TEXT_QUERY_FORM} input`).val(' || ' + $(`${TEXT_QUERY_FORM} input`).val());
+                        updateForm();
+                    })
                 }
 
                 // update State
@@ -395,7 +401,7 @@
             </label>
         </div>
         <div class="eas-input-cell">
-            <input class="eas-input form-control" type="text" maxlength="9" name="barcode" id="eas_barcode"> 
+            <input class="eas-input form-control" type="text" name="barcode" id="eas_barcode"> 
         </div>
 
         {# name #}
@@ -822,6 +828,7 @@
         <input type="submit" hidden />
     </div>
     <div class="eas-footer">
+        <button type="button" class="btn-primary btn" id="eas_add_query">{{ 'eas.form.add_query'| trans }}</button>
         <button type="submit" class="btn-default btn">{{ 'eas.form.search'| trans }}</button>
         <button type="button" class="btn-default btn" onclick="$('#eas_form_container').slideToggle(250)" >{{ 'eas.form.hide'| trans }}</button>
     </div>

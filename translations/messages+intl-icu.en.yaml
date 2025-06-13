@@ -42,6 +42,7 @@ eas:
     tag:
       unknown: 'Unknown tag: {tag}'
   form:
+    add_query: 'Add new subquery'
     drive_section: 'Drive properties'
     search: 'Search'
     show: 'Extended search'
