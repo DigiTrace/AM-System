@@ -7,8 +7,8 @@ eas:
     status: 'Status'
     barcode: 'Barcode'
     name: 'Name'
-    description: 'Objektbeschreibung'
-    history_description: 'Ehem. Objektbeschreibung'
+    description: 'Verwendung'
+    history_description: 'Ehem. Verwendung'
     user: 'Nutzer'
     history_user: 'Ehem. Nutzer'
     reserved: 'Reserviert'
@@ -30,6 +30,8 @@ eas:
     date: 'Zuletzt aktualisiert'
     date_end: 'Zuletzt aktualisiert vor'
   error:
+    caseactive:
+      invalid: 'Für caseactive sind nur boolische Werte erlaubt'
     category:
       invalid: 'Ungültige Kategorienummer: {category}'
     date:
@@ -43,8 +45,9 @@ eas:
       unknown: 'Unbekanntes Suchkriterium: {tag}'
   form:
     drive_section: 'Datenträgereigenschaften'
-    search: 'Suche'
+    search: 'Suchen'
     show: 'Erweiterte Suche'
+    hide: 'Einklappen'
   operator:
     any: 'gesetzt'
     date:

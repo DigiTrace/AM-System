@@ -36,13 +36,20 @@
         margin: 5px 15px;
     }
 
+    .eas-footer {
+        display: flex;
+        justify-content: flex-end;
+        gap: 5px;
+        margin-top: 10px;
+    }
+
 </style>
 
 <script>
     const TEXT_QUERY_FORM = "#{{ search_form }}";
     const EAS_FORM = "#eas_form";
-    const SINGLE_VALUE_REGEX = /(!?\w+)[:=]((?:(?:(["'])[\w <>()\-\.!üÜöÖäÄ,]+)\3)|(?:[\w<>()\-\.!üÜöÖäÄ,]+))/g;
-    const MULTIPLE_VALUE_REGEX = /(!?\w+)[:=]\[((?:(["\']?)[\w <>()\-\.!üÜöÖäÄ,]+\3\|)*(["\']?)[\w <>()\-\.!üÜöÖäÄ,]+\4)\]/g;
+    const SINGLE_VALUE_REGEX = {{ regex_single_match|raw }}g; 
+    const MULTIPLE_VALUE_REGEX = {{ regex_multiple_match|raw }}g;
 
     const EAS = (function(){
         // TODO replace this with PHP for dynamic list
@@ -72,12 +79,14 @@
             ['serial_number', 'sn'],
             ['connector', 'connector'],
             ['date', 'd'],
+            ['end_date', 'ed'],
         ]);
         const REV_KEYS = new Map([...KEYS.entries()].map(e => [e[1], e[0]]));
 
         let state = [{}];
         
         // sets `state` variable based on extended search form
+        // form -> state
         const parseForm = function(){
             // transform data into a map of entries
             const data = $(EAS_FORM).serializeArray().reduce(function(map, item){
@@ -113,14 +122,6 @@
                         // range
                         case "<>":
                             entry.operator = '>';
-                            // add additional entry for end date
-                            map.set("end_date", {
-                                name: 'end_date',
-                                key: 'd',
-                                value: [$("#eas-date-end").val()],
-                                operator: '<',
-                                negate: false,
-                            });
                             break;
                         // true
                         case "*":
@@ -134,7 +135,21 @@
                 }
                 // or add value
                 else if(value) {
-                    entry.value.push(value);
+                    // check if multiple selection
+                    const valuesToAdd = value.includes('|') ?
+                        value.split('|').map((x) => x.trim()) :
+                        [value];
+
+                    // escape whitespace if not already
+                    valuesToAdd.forEach(element => {
+                        if((element.startsWith('"') && element.endsWith('"')) ||
+                           (element.startsWith("'") && element.endsWith("'"))){
+                            entry.value.push(element);
+                        }
+                        else {
+                            entry.value.push(element.includes(' ') ? `"${element}"` :element);
+                        }
+                    });
                 }
 
                 // update map
@@ -146,6 +161,7 @@
         }
 
         // sets `state` property based on search query input
+        // query -> state
         const parseQuery = function(){
             const data = $(`${TEXT_QUERY_FORM} input`).val().split("||");
             
@@ -155,7 +171,7 @@
                 // process single
                 const single = segment.matchAll(SINGLE_VALUE_REGEX).map(function(entry){
                     const key = entry[1].replace("!", "");
-                    const raw_value = entry[2].replace(/["']/, ""); 
+                    const raw_value = entry[2].replace(/["']/g, ""); 
                     const operator = raw_value.match(/^[<>]./) ?
                         raw_value[0] : '';
                     const value = operator ? raw_value.substring(1) : raw_value;
@@ -171,7 +187,7 @@
                 // process multiple
                 const multiple = segment.matchAll(MULTIPLE_VALUE_REGEX).map(function(entry){
                     const key = entry[1].replace("!", "");
-                    const values = entry[2].split("|").map(e => e.replace(/["']/, ""));
+                    const values = entry[2].split("|").map(e => e.replace(/["']/g, ""));
 
                     const operator = values.length && values[0].match(/^[<>]./) ?
                         values[0][0] : '';
@@ -191,20 +207,36 @@
         }
 
         // apply `state` to form controlls to sync form with state
+        // state -> form
         const applyStateToForm = function(){
+            // reset form
+            document.querySelector(EAS_FORM).reset();
+            $(".eas-operator-btn").removeClass('active');
+
             // for now only support for one/first OR-segment
             state[0].forEach(function(entry) {
                 if (entry.value){
-                    const value = entry.value.length == 1 ? entry.value[0] : `[${entry.value.join("|")}]`;
+                    const value = entry.value.length == 1 ? entry.value[0] : `${entry.value.join(" | ")}`;
                     const name = entry.name;
                     const operator = entry.operator;
                     
-                    if (name) {
+                    // custom handler for endate (ed)
+                    if(name == "end_date"){
+                        // show input
+                        $(".eas-date-end").show();
+                        $(".eas-date-end-placeholder").hide();
+                        // set value
+                        $("#eas-date-end").val(value);
+                        // overide date operator
+                        $(`input[name='date.operator']`).prop('checked', false).parent().removeClass("active");
+                        $("#eas_date_range_operator").prop('checked', true).parent().addClass("active");
+                    }
+                    else if (name) {
                         // set values
                         if (entry.key == 'c' || entry.key == 's'){
                             $(`${EAS_FORM} select[name='${name}']`).val(entry.value);
                         }
-                        else {
+                        else if (value != 't' && value != 'f'){
                             $(`${EAS_FORM} input[name='${name}']`).val(value);
                         }
 
@@ -230,6 +262,7 @@
         }
 
         // apply `state` to text query
+        // state -> query
         const applyStateToQuery = function(){
             const query = state.map(function(segment){
                 return segment.filter(e => e.value.length).map(function(entry){
@@ -278,6 +311,7 @@
                             $(".eas-date-end-placeholder").hide();
                         }
                         else {
+                            $("#eas-date-end").val("");
                             $(".eas-date-end").hide();
                             $(".eas-date-end-placeholder").show();
                         }
@@ -361,11 +395,11 @@
             </label>
         </div>
         <div class="eas-input-cell">
-            <input class="eas-input form-control" type="text" minlength="9" maxlength="9" name="barcode" id="eas_barcode"> 
+            <input class="eas-input form-control" type="text" maxlength="9" name="barcode" id="eas_barcode"> 
         </div>
 
         {# name #}
-        <label class="eas-label" for="eas_name">{{ 'eas.desc.name'| trans }}</label>
+        <label class="eas-label" for="eas_name">{{ 'eas.desc.name'| trans }}:</label>
         <div class="btn-group" data-toggle="buttons">
             <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'eas.operator.eq'|trans}}">
                 <input type="radio" name="name.operator" value=""> =
@@ -555,8 +589,7 @@
         </div>
         
         {# caseactive #}
-        <label class="eas-label">{{ 'eas.desc.caseactive'| trans }}</label>
-        <span class="eas-empty"></span>
+        <label class="eas-label" style="grid-column: 1 / span 2;">{{ 'eas.desc.caseactive'| trans }}</label>
         <div class="btn-group" data-toggle="buttons">
             <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'eas.operator.yes'|trans}}">
                 <input type="radio" name="caseactive.operator" value="*" > ✓
@@ -598,7 +631,7 @@
                 <input type="radio" name="date.operator" value=">" > &gt;
             </label>
             <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'eas.operator.date.range'|trans}}" style="padding-left: 9px;">
-                <input type="radio" name="date.operator" value="<>" > &lt;&gt;
+                <input type="radio" name="date.operator" value="<>" id="eas_date_range_operator"> &lt;&gt;
             </label>
         </div>
         <div class="eas-input-cell">
@@ -609,7 +642,8 @@
         {# end date #}
         <label for="eas-date-end" class="eas-label eas-date-end" style="grid-column: 4 / span 2; display: none">{{ 'eas.desc.date_end'| trans }}:</label>
         <div class="eas-input-cell eas-date-end" style="display: none;" >
-            <input class="eas-input form-control" type="date" id="eas-date-end" > 
+            <input class="eas-input form-control" type="date" id="eas-date-end" name="end_date"> 
+            <input type="text" name="end_date.operator" value="<" hidden>
         </div>
         <span class="eas-date-end-placeholder" style="grid-column: 4 / span 3;"></span>
 
@@ -786,5 +820,9 @@
         </div>
 
         <input type="submit" hidden />
+    </div>
+    <div class="eas-footer">
+        <button type="submit" class="btn-default btn">{{ 'eas.form.search'| trans }}</button>
+        <button type="button" class="btn-default btn" onclick="$('#eas_form_container').slideToggle(250)" >{{ 'eas.form.hide'| trans }}</button>
     </div>
 </form>

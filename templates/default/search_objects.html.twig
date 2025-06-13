@@ -46,7 +46,7 @@
 
     {# Include extended search form#}
     <div id="eas_form_container" style="display: none;">
-        {{ include('default/assets/extended_asset_search_form.html.twig', {search_form: 'search_form'}) }}
+        {{ include('default/assets/extended_asset_search_form.html.twig', {search_form: 'search_form', regex_single_match: regex_single_match, regex_multiple_match: regex_multiple_match}) }}
     </div>
 
    
@@ -58,19 +58,19 @@
         
     <thead>
       <tr>
-        <th class="col-md-2 col-sm-2">{{ knp_pagination_sortable(pagination,'desc.oid'|trans , 'o.barcode_id') }}
-                                                                                                {% if pagination.isSorted('o.barcode_id') %}
+        <th class="col-md-2 col-sm-2">{{ knp_pagination_sortable(pagination,'desc.oid'|trans , 'asset.barcode_id') }}
+                                                                                                {% if pagination.isSorted('asset.barcode_id') %}
                                                                                                 {{ arrow | raw}}
                                                                                                 {% endif %}
         </th>
         <!--<th class="col-md-2 col-sm-2">{% trans %}desc.category{% endtrans %}</th>-->
-        <th class="col-md-2 col-sm-2" >{{ knp_pagination_sortable(pagination, 'desc.category'|trans, 'o.kategorie_id') }} 
-                                                                                                {% if pagination.isSorted('o.kategorie_id') %}
+        <th class="col-md-2 col-sm-2" >{{ knp_pagination_sortable(pagination, 'desc.category'|trans, 'asset.kategorie_id') }} 
+                                                                                                {% if pagination.isSorted('asset.kategorie_id') %}
                                                                                                 {{ arrow | raw}}
                                                                                                 {% endif %}
                                                                                                                                                                                            </th>
-        <th class="col-md-7 col-sm-7">{{ knp_pagination_sortable(pagination, 'desc.name'|trans, 'o.name') }} 
-                                                                                                {% if pagination.isSorted('o.name') %}
+        <th class="col-md-7 col-sm-7">{{ knp_pagination_sortable(pagination, 'desc.name'|trans, 'asset.name') }} 
+                                                                                                {% if pagination.isSorted('asset.name') %}
                                                                                                 {{ arrow | raw}}
                                                                                                 {% endif %}
         </th>

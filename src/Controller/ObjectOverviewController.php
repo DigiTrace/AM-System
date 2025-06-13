@@ -121,6 +121,8 @@ class ObjectOverviewController extends AbstractController
             'eas_categories' => Objekt::$kategorienToId,
             'eas_status' => Objekt::$statusToId,
             'pagination' => $pagination,
+            'regex_single_match' => $extendedAssetSearch::$regex_single_match,
+            'regex_multiple_match' => $extendedAssetSearch::$regex_multiple_match,
         ]);
     }
 

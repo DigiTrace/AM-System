@@ -28,6 +28,8 @@ eas:
     date: 'Last updated'
     date_end: 'Last updated before'
   error:
+    caseactive:
+      invalid: 'Only bool values are allowed for caseactive'
     category:
       invalid: 'Invalid category number: {category}'
     date:
@@ -43,6 +45,7 @@ eas:
     drive_section: 'Drive properties'
     search: 'Search'
     show: 'Extended search'
+    hide: 'Hide form'
   operator:
     any: is set
     date:

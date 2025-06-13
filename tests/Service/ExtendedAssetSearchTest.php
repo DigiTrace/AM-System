@@ -131,7 +131,7 @@ class ExtendedAssetSearchTest extends KernelTestCase
     public function keyValueProvider() {
         // [query, single key-val pairs, mult key-val pairs]
         yield [
-            '!s:1 c:0 name="Heinz " barcode=\'DTHW32310\' c:[0|1] name:["Franz F."|\'Günther D.\'| possible]', 
+            '!s:1 c:0 name:"Heinz " barcode:\'DTHW32310\' c:[0|1] name:["Franz F."|\'Günther D.\'| possible]', 
             [
                 '!s' => '1',
                 'c' => '0',
@@ -161,8 +161,8 @@ class ExtendedAssetSearchTest extends KernelTestCase
         $res = $method->invokeArgs($obj, [$query]);
         $i = 0;
         foreach ($single as $key => $value){
-            assertEquals($res[$i]['key'], $key);
-            assertEquals($res[$i]['val'], $value);
+            assertEquals($res[$i][1], $key);
+            assertEquals($res[$i][2], $value);
             ++$i;
         }
 
@@ -171,8 +171,8 @@ class ExtendedAssetSearchTest extends KernelTestCase
         $res = $method->invokeArgs($obj, [$query]);
         $i = 0;
         foreach ($mult as $key => $value){
-            assertEquals($res[$i]['key'], $key);
-            assertEquals($res[$i]['val'], $value);
+            assertEquals($res[$i][1], $key);
+            assertEquals($res[$i][2], $value);
             ++$i;
         }
     }
@@ -180,7 +180,7 @@ class ExtendedAssetSearchTest extends KernelTestCase
     public function queryValueProvider() {
         // [query, parsed values]
         yield [
-            '!s:1 c:0 name="Heinz" barcode=\'DTHW32310\' !c:[0|1] name:["Franz F."|\'Günther D.\'|possible]', 
+            '!s:1 c:0 name:"Heinz" barcode:\'DTHW32310\' !c:[0|1] name:["Franz F."|\'Günther D.\'|possible]', 
             [
                 ['neg' => true, 'key' => 's', 'val' => ['1']],
                 ['neg' => false, 'key' => 'c', 'val' => ['0']],

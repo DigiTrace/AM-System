@@ -19,6 +19,9 @@ use Symfony\Contracts\Translation\TranslatorInterface;
  */
 class ExtendedAssetSearch
 {
+    public static string $regex_single_match = '/(!?\w+):((?:(?:(["\'])[\w <>()\-\.\/,=!üÜöÖäÄ]+)\3)|(?:[\w<>()\-\.\/,=!üÜöÖäÄ]+))/';
+    public static string $regex_multiple_match = '/(!?\w+):\[((?:(["\']?)[\w <>()\-\.\/,=!üÜöÖäÄ]+\3\|)*(["\']?)[\w <>()\-\.\/,=!üÜöÖäÄ]+\4)\]/';
+
     private bool $driveJoin = false;
     private bool $userJoin = false;
     private bool $reservedUserJoin = false;
@@ -231,7 +234,7 @@ class ExtendedAssetSearch
             'pn' , 'product_number','produkt_nummer'        => $this->productNumberQuery($data['neg'], $data['val']),
             'sn' , 'serial_number','serien_nummer'          => $this->serialNumberQuery($data['neg'], $data['val']),
             'connection','connector','anschluss'            => $this->connectorQuery($data['neg'], $data['val']),
-            'd', 'mdate'                                    => $this->dateQuery($data['neg'], $data['val']),
+            'd', 'ed', 'mdate', 'date'                      => $this->dateQuery($data['neg'], $data['val']),
             default => $this->addError('danger', 'eas.error.tag.unknown', ['tag' => $key]) && false,
         };
     }
@@ -654,30 +657,56 @@ class ExtendedAssetSearch
 
     /**
      * Date query, supports ranges with > and < modifier.
+     * 
+     * Supported date formats:
+     * 
+     *  - `dd.mm.yyyy`
+     *  - `dd.mm.yy`
+     *  - `yyyy-dd-mm`
+     *  - `mm/dd/yyyy`
+     *  - `mm/dd/yy`
+     * 
      * @param bool $neg Whether to negate query.
      * @param array $values Matching values.
      * @return Comparison|Func|Orx
      */
     protected function dateQuery(bool $neg, array $values): Comparison|Func|Orx {
-        $pattern = '/(?<operator>[<>]|<=|>=)?(?<day>\d{2})[-\.](?<month>\d{2})[-\.](?<year>\d{4}|\d{2})/';
+
+        $pattern = [
+            '/(?<operator>[<>]|<=|>=)?(?<day>\d{2})\.(?<month>\d{2})\.(?<year>\d{4}|\d{2})/',
+            '/(?<operator>[<>]|<=|>=)?(?<year>\d{4})-(?<month>\d{2})-(?<day>\d{2})/',
+            '/(?<operator>[<>]|<=|>=)?(?<month>\d{2})\/(?<day>\d{2})\/(?<year>\d{4}|\d{2})/',
+        ];
         
         // try to parse dates
-        $values = array_filter($values, function($val) use ($pattern){
-            $matches = [];
-            if(!preg_match($pattern, $val, $matches)){   
-                $this->addError('danger', 'eas.error.date.invalid %date%', ['%date%' => $val]);
+        $values = array_map(function($val) use ($pattern){
+            foreach ($pattern as $pat) {
+                $matches = [];
+                if(preg_match($pat, $val, $matches)){
+                    // return formatted date
+                    return [
+                        'operator' => $matches['operator'], 
+                        'date' => str_pad($matches['year'], 4, '20', STR_PAD_LEFT)."-{$matches['month']}-{$matches['day']}"
+                    ];
+                }
+            }
+                        
+            return false;
+        }, $values);
+
+        // filter bad and invalid dates
+        $values = array_filter($values, function($val) {
+            if(!$val) {
                 return false;
             }
-
-            return (bool) date_create(str_pad($matches['year'], 4, '20', STR_PAD_LEFT)."-{$matches['month']}-{$matches['day']}");
+            
+            return (bool) date_create($val['date']);
         });
 
         // parse date queries
-        $exprs = array_map(function($date) use ($pattern){
-            $matches = [];
-            preg_match($pattern, $date, $matches);
-            $param = $this->addParam(str_pad($matches['year'], 4, '20', STR_PAD_LEFT)."-{$matches['month']}-{$matches['day']}");
-            return match ($matches['operator']) {
+        $exprs = array_map(function($match) {
+            $param = $this->addParam($match['date']);
+            return match ($match['operator']) {
                 '' => $this->exprBuilder->eq("DATE_DIFF(asset.zeitstempel, $param)", 0),
                 '<' => $this->exprBuilder->lt("DATE_DIFF(asset.zeitstempel, $param)", 0),
                 '<=' => $this->exprBuilder->lte("DATE_DIFF(asset.zeitstempel, $param)", 0),
@@ -823,19 +852,19 @@ class ExtendedAssetSearch
         $matches = $this->matchKeySingleValue($query);
         foreach ($matches as $match) {
             $res[] = [
-                'neg' => str_starts_with($match['key'], '!'), 
-                'key' => ltrim($match['key'], '!'),
-                'val' => [trim($match['val'], "\n\r\t\v\x00\"'")],
+                'neg' => str_starts_with($match[1], '!'), 
+                'key' => ltrim($match[1], '!'),
+                'val' => [trim($match[2], "\n\r\t\v\x00\"'")],
             ];
         }
         // get mult key values
         $matches = $this->matchKeyMultipleValue($query);
         foreach ($matches as $match) {
             $res[] = [
-                'neg' => str_starts_with($match['key'], '!'), 
-                'key' => ltrim($match['key'], '!'),
+                'neg' => str_starts_with($match[1], '!'), 
+                'key' => ltrim($match[1], '!'),
                 // max 16 segments
-                'val' => array_map(fn($val) => trim($val, "\n\r\t\v\x00\"'"), explode('|', $match['val'], 16)),
+                'val' => array_map(fn($val) => trim($val, "\n\r\t\v\x00\"'"), explode('|', $match[2], 16)),
             ];
         }
         return $res;
@@ -849,7 +878,8 @@ class ExtendedAssetSearch
      */
     private function matchKeySingleValue(string $query): array {
         $matches = [];
-        preg_match_all('/(?<key>!?\w+)[:=](?<val>(?:(?:(["\'])[\w <>()\-\.!üÜöÖäÄ,]+)\g-1)|(?:[\w<>()\-\.!üÜöÖäÄ,]+))/', $query, $matches, PREG_SET_ORDER);
+        // key -> $matches[1], value -> $matches[2] 
+        preg_match_all(static::$regex_single_match, $query, $matches, PREG_SET_ORDER);
                 
         return $matches;
     }
@@ -862,7 +892,7 @@ class ExtendedAssetSearch
      */
     private function matchKeyMultipleValue(string $query): array {
         $matches = [];
-        preg_match_all('/(?<key>!?\w+)[:=]\[(?<val>(?:(["\']?)[\w <>()\-\.!üÜöÖäÄ,]+\3\|)*(["\']?)[\w <>()\-\.!üÜöÖäÄ,]+\4)\]/', $query, $matches, PREG_SET_ORDER);        
+        preg_match_all(static::$regex_multiple_match, $query, $matches, PREG_SET_ORDER);        
         return $matches;
     }
 }
