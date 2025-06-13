@@ -16,116 +16,627 @@
 
    // You should have received a copy of the GNU General Public License
    // along with this program.  If not, see <http://www.gnu.org/licenses/>.
-   
+
 #}
 {% extends 'base.html.twig' %}
 
 {% block content1 %}
-           <h2>FAQ zur Suche</h2>
-           Die Suchleiste in der Objektübersicht dient dazu, nach entsprechenden Objekten zu suchen / filtern.
-           Hierbei kann allgemein oder nach speziellen Parametern gesucht werden.
-           <h3>Allgemeine Suche</h3>
-           In der allgemeine Suche muss lediglich ein Suchwort angegeben werden, beispielsweise ein Barcode. Das System nimmt das Suchwort und sucht an folgenden Stellen:
-           <ul>
-               <li>Den Namen der Objekte</li>
-               <li>Die Verwendung der Objekte</li>
-               <li>Den Barcode der Objekte</li>
-               <li>Die Seriennummer eines Datentraegers</li>
-           </ul>
-           Aufgrund der breiten Suche kann es passieren, dass Objekte gelistet werden, welche auf dem ersten Blick keine Relation mit dem Objekt besitzen.
-           <h3>Erweiterte Suche</h3>
-           Wenn die Ergebnisse der allgemeinen Suche nicht treffend sind, kann eine erweiterte Suche angewendet werden. Bei dieser Suche kann dem System explizit nach bestimmten Kriterien untersucht werden. Hierbei ist es jedoch von Nöten, richtige Parameterdefinitionen durchzuführen.
-           Jede Parameterisierung hat folgende folgenden Aufbau:<br> 
-           &lt;Kriterium&gt;:&lt;Wert&gt; <br>
-           Für Kriteriendefinitionen siehe unten stehenden Liste. Bei den Werten können standardmäßig nur nach Wörtern gesucht werden. Falls nach Teilsätzen gesucht werden sollen, kann die Notation &lt;Kriterium&gt;:"&lt;Wert&gt;" verwendet werden.<br>
-           Es können mehrere Parameterisierungen verwendet werden, hierbei muss das zu suchende Objekt alle Kriterien erfüllen.<br>
-           Beispiel: "c:ass name:tosh"<br>
-           In diesem Beispiel wird nach einem Objekt gesucht, dessen Kategorie mit "ass" zu tun hat (wird auf Asservat gemappt) und sein Namen "tosh" beinhaltet.
-           <br><br>
-           Hier eine Liste der Kriterien:
-           <ul>
-               <li>c: Kategorie des Objektes</li>
-               <li>s: Derzeitiger Status des Objektes</li>
-               <li>barcode: Barcode des Objektes</li>
-               <li>name: Namen des Objektes</li>
-               <li>notice: Notiz des Objektes</li>
-               <li>mdesc: Momentane Verwendung des Objektes</li>
-               <li>hdesc: Vergangene Verwendung des Objektes</li>
-               <li>mr:Momentane Reservierung des Objektes (true,false,Nutzername)</li>
-               <li>hr:Historische Reservierung des Objektes (true,false,Nutzername)</li>
-               <li>mu: Letzte Änderung durch Nutzer</li>
-               <li>hu: Vergangene Änderung durch Nutzer </li>
-               <li>mstoredin: Behältername, falls Objekt einem zugewiesen wurde </li>
-               <li>hstoredin: Behältername, falls je ein Objekt in diesem hinzugefügt wurden. VORSICHT: Unter entsprechenden Bedingungen kann die Suche auch momentan gelagerte Objekte beinhalten. </li>
-               <li>mcase: Fallid, welche Objekte derzeit verwendet werden</li>
-               <li>hcase: Fallid, wobei vergangene Fallzugehörigkeiten für Objekte gesucht werden. VORSICHT: Unter entsprechenden Bedingungen kann die Suche auch derzeitig involierte Fälle beinhalten</li>
-               <li>caseactive: Falls ein Objekt einem "aktiven" Fall zugeordnet ist</li>
-               <li>type: Bauart, falls Objekt ein Datenträger ist</li>
-               <li>ff: Formfaktor, falls Objekt ein Datenträger ist</li>
-               <li>size: Grösse des Datenträgers</li>
-               <li>prod: Hersteller des Datenträgers</li>
-               <li>modell: Modell des Datenträgers</li>
-               <li>connection: Anschlussmöglichkeit des Datenträgers</li>
-               <li>sn: Seriennummer des Datenträgers</li>
-               <li>pn: Produktnummer des Datenträgers</li>
-               <li>mdate: Derzeitiges Datum der Eintragung (<20.01.2015, >09.12.2014, 08.07.2013)</li>
-           </ul>
-           
-           Viele der Kriterien besitzen eine eigene Notation bzw. Definition, welche in der Suche berücksichtigt werden.
-           
-          
-           Folgende Kriterien können durch den präfix ! (Beispiel: name:!tosh oder name:"!tosh") invertiert werden: <br>
-           c,s,name,barcode,notice,mdesc,hdesc,type,ff,prod,modell,size,connection,sn,pn,mstoredin,hstoredin,mcase,hcase,mr,hr,mdate<br><br>
-           
-           Folgende Kriterien können durch Boolische Werte auf Existenz geprüft werden (durch name:True oder name:true oder name:false oder name:False): <br>
-           name,barcode,notice,mdesc,hdesc,type,ff,prod,modell, connection,sn,pn,mstoredin,hstoredin,mcase,hcase,mr,hr<br><br>
-           
-           Folgende Kriterien können durch Boolische Werte geprüft werden:<br>
-           caseactive<br><br>
-           
-           Folgende Kriterien können durch Nummerische Werte validiert werden: <br>
-           c,s,size<br><br>
-           
-           
-           Hinsichtlich der Status(s) werden die Nummerischen Werte wie folgt als Text gemappt:
-           <ol start="0">
-               <li>Eingetragen</li>
-               <li>Genullt</li>
-               <li>Zum Kunden mitgenommen</li>
-               <li>Vernichtet</li>
-               <li>An Person übergeben</li>
-               <li>Reserviert</li>
-               <li>Verloren</li>
-               <li>In einem Behaelter gelegt</li>
-               <li>Aus dem Behälter entfernt</li>
-               <li>Einem Fall hinzugefügt</li>
-               <li>Aus dem Fall entfernt</li>
-               <li>Reservierung aufgehoben</li>
-               <li>In Verwendung</li>
-               <li>Editiert</li>
-               <li>Festplattenimage gespeichert</li>
-           </ol>
-           <br>
-            Hinsichtlich der Kategorien(c) werden die Nummerischen Werte wie folgt als Text gemappt:
-           <ol start="0">
-               <li>Asservat</li>
-               <li>Ausrüstung</li>
-               <li>Behälter</li>
-               <li>Datenträger</li>
-               <li>Akte</li>
-               <li>Datenträgerasservat</li>               
-           </ol>
-            <br>
-           Folgende Kriterien können durch logische Operatoren (<,>) validiert werden: <br>
-           size, mdate<br><br>
-           
-           
+    <style>
+        code {
+            text-wrap-mode: nowrap;
+        }
+        .badge-danger: {
+            background-color: #d9534f;
+        }
+        .badge-info {
+            background-color: #5bc0de;
+        }
+        .badge-primary {
+            background-color: #337ab7;
+        }
+        .badge-success {
+            background-color: #5cb85c;
+        }
+        .badge-warning {
+            background-color: #f0ad4e;
+        }
+    </style>
+            <h1>FAQ zur Suche</h1>
+            Die Suchleiste in der Objektübersicht dient dazu, nach entsprechenden Objekten zu suchen / filtern.
+            Hierbei kann eine einfache oder erweiterte Suche verwendet werden.
+
+            <h2>Einfache Suche</h2>
+            In der allgemeine Suche muss lediglich ein Suchwort angegeben werden, beispielsweise ein Barcode. Das System nimmt das Suchwort und sucht an folgenden Stellen:
+            <ul>
+                <li>Den Namen der Objekte</li>
+                <li>Die Verwendung der Objekte</li>
+                <li>Den Barcode der Objekte</li>
+                <li>Die Seriennummer eines Datentraegers</li>
+            </ul>
+            Aufgrund der breiten Suche kann es passieren, dass Objekte gelistet werden, welche auf dem ersten Blick keine Relation mit dem Objekt besitzen.
+
+            <h2 id="extended_search">Erweiterte Suche</h2>
+            <div class="row">
+                <div class="col-lg-6">
+                    <p>
+                        Die erweiterte Suche kann über das Formular, welches durch den Button "Erweiterte Suche" ausgeklappt werden kann, gesteuert werden. 
+                        Alternativ lässt sich die erweiterte Suche auch manuell wie gewohnt über die Suchleiste steuern.
+                    </p>
+                </div>
+            </div>
+
+            <h3>Suchformular</h3>
+            <div class="row">
+                <div class="col-lg-6">
+                    <p>
+                        Das Suchformular ermöglicht das einfache Erstellen einer detaillierten Suchanfrage. In den Textfeldern können beliege Werte eingeben werden. 
+                        Wenn mehrere Felder gesetzt sind, agiert dies wie ein logische Und, das heißt alle Bedingungen müssen erfüllt sein.
+                        Die Suche kann jederzeit durch das Drücken von <code>Enter</code> oder durch das Klicken auf <code>Suchen</code> ausgeführt werden.
+                    </p>
+                    <p>
+                        Über die Operatoren-Button kann das Suchkriterium modifiziert werden, beispielsweise durch eine Negation des Kriteriums.
+                    </p>
+                    <p>
+                        Auch ist es möglich <b>mehrere</b> Werte für ein Feld anzugeben, indem man diese mit einem Senkrechtstrich <code>|</code> trennt, dann muss für dieses Kriterium nur einer der Werte erfüllt sein.
+                        Bei den Auswahlfeldern zu Kategorien und Status können mehrere Felder ausgewählt werden indem man <code>Strg</code> drückt.
+                    </p>
+                    <p>
+                        Es kann durch das Klicken auf <code>Weiteren Suchterm hinzufügen</code> ein weiterer Suchterm über das Formular erstellt werden, welcher in einer Oder-Verknüpfung mit den vorherigen Suchtermen steht.
+                        Über das Formular lässt sich immer nur den ersten Suchterm bearbeiten.
+                    </p>
+                </div>
+
+                <div class="col-lg-3"></div>
+
+                <div class="col-lg-3">
+                    <div class="alert alert-info" role="alert">
+                        <h5><b>Tipp</b></h5>
+                        <p>
+                            Eine ausgeführte Suche kann als Lesezeichen im Browser gespeichert werden, sodass man diese nicht immer neu erstellen muss.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+
+            <h3>Manuelle Nutzung</h3>
+
+            <div class="row">
+                <div class="col-lg-6">
+                    <p>
+                        Die erweiterte Suche kann auch manuell über das Suchtextfeld gesteuert werden. Dabei wird das Suchtextfeld soweit möglich mit Suchformular synchronisiert.
+                    </p>
+                    <p>
+                        Die einzelnen Suchkriterien folgen dem Schema <code>&lt;Parameter&gt;:&lt;Wert&gt;</code> für einfache Werte und <code>&lt;Parameter&gt;:[&lt;Wert1&gt;|&lt;Wert2&gt;|...]</code> für eine Auswahl an Werten (Oder-Verknüpfung). 
+                        Werte können optional durch <code>"</code> oder <code>'</code> eingeschlossen werden, sollten diese z.B. Leerzeichen enthalten.
+                    </p>
+                    <p>
+                        Mehrere Suchkriterien können zu einem Suchterm zusammengefügt werden, es gilt dabei eine Und-Verknüpfung. 
+                        Zum Beispiel: <code>barcode:[DTHW00001|DTHW00002] reserved:t</code> sucht nach Objekten, die den Barcode <code>DTHW00001</code> <b>oder</b> <code>DTHW00002</code> haben <b>und</b> aktuell reserviert sind.
+                    </p>
+                    <p>
+                        Mehrere Suchterme können durch <code>||</code> angegeben werden, welche mittels einer Oder-Verknüpfung evaluiert werden.
+                        Zum Beispiel: <code>category:3 reserved:t || category:5 reserved:f</code> sucht nach Datenträgern, die reserviert sind, <b>und</b> nach Datenträgerasservaten, die nicht reserviert sind, gleichzeitig.
+                    </p>
+                    <p>
+                        Viele der <a href="#available_parameters">Suchkriterien</a> haben eine kurzform, z.B. <code>c</code> anstelle von <code>category</code> für die Kategoriensuche. 
+                        Die nummerischen Werte für Kategorien und Status befinden sich <a href="#ids">hier</a>. Die Suchkriterien können durch verschiedene <a href="#modifications">Modifikatoren</a> beeinflusst werden.
+                    </p>
+                </div>
+            </div>
+
+            <h3 id="modifications">Modifikatoren</h3>
+            <table class="table">
+                <thead>
+                    <th>Modifikator</th>
+                    <th>Erklärung</th>
+                    <th>Beispiel</th>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><span class="badge badge-info">Negierbar</span></td>
+                        <td>Mit einem vorangestellten <code>!</code> kann das Kriterium negiert werden.</td>
+                        <td>Alle Objekte die <b>nicht</b> den Bardcode "DTHW" haben <code>!b:DTHW</code>.</td>
+                    </tr>
+                    <tr>
+                        <td><span class="badge badge-primary">Mehrfach</span></td>
+                        <td>
+                            Durch einschließen mit eckigen Klammern <code>[]</code> können mehrere mögliche Werte angeben werden, die mittels einer Oder-Verknüpfung evaluiert werden. <br>
+                            Trennung einzelner Werte erfolgt mit <code>|</code>.
+                        </td>
+                        <td>Zeige alle Datenträger Objekte <b>und</b> Datenträgerasservat Objekte <code>c:[3|5]</code>.</td>
+                    </tr>
+                    <tr>
+                        <td><span class="badge badge-success">Verifizierbar</span></td>
+                        <td>
+                            Die Extistenz des Parameters kann verifiziert werden. Der Wert <code>t</code> (true) bedeutet, dass der Wert gesetzt sein muss, 
+                            während der Wert <code>f</code> (false) signalisiert, dass der Wert nicht gesetzt sein muss. 
+                        </td>
+                        <td>
+                            Alle Objekte, die aktuell reserviert sind <code>r:t</code>. <br>
+                            Alle Objekte, die keinem Fall zgeordnet sind <code>case:f</code>.
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><span class="badge badge-warning">Vergleichbar</span></td>
+                        <td>Es können <code>&gt; | &lt; | &gt;= | &lt;=</code> dem Wert vorangestellt werden um Vergleiche zu machen.</td>
+                        <td>
+                            Alle Datenträger mit einer Festplattengröße von mehr als 512GB <code>size:&gt;512</code>. <br>
+                            Alle Objekte die vor dem 20.03.25 verändert wurden <code>d:"&lt;20.03.25"</code>.
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3 id="available_parameters">Verfügbare Parameter</h3>
+            <table class="table">
+                <thead>
+                    <th>Kriterium</th>
+                    <th>Parameter</th>
+                    <th>Modifikatoren</th>
+                    <th>Mögliche Werte</th>
+                    <th>Beispiel</th>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Kategorie</td>
+                        <td><code>c</code> | <code>category</code></td>
+                        <td>
+                            <span class="badge badge-info">Negierbar</span>
+                            <span class="badge badge-primary">Mehrfach</span>
+                        </td>
+                        <td>Nummerischer Wert der aktuellen Kategorie.</td>
+                        <td>Suche nach allen Datenträger <code>c:3</code>.</td>
+                    </tr>
+                    <tr>
+                        <td>Status</td>
+                        <td><code>s</code> | <code>status</code></td>
+                        <td>
+                            <span class="badge badge-info">Negierbar</span>
+                            <span class="badge badge-primary">Mehrfach</span>
+                        </td>
+                        <td>Nummerischer Wert des aktuellen Status.</td>
+                        <td>Suche nach allen Objekten mit Status "Vernichtet" <code>s:3</code>.</td>
+                    </tr>
+                    <tr>
+                        <td>Barcode</td>
+                        <td><code>b</code> | <code>barcode</code></td>
+                        <td>
+                            <span class="badge badge-info">Negierbar</span>
+                            <span class="badge badge-primary">Mehrfach</span>
+                        </td>
+                        <td>Barcode oder Teil eines Barcodes (DT-Barcode).</td>
+                        <td>
+                            Objekt mit Barcode "DTAS12345" <code>b:DTAS12345</code>. <br>
+                            Suche nach allen "DTHW" Objekten <code>b:DTHW</code>.
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Name</td>
+                        <td><code>n</code> | <code>name</code></td>
+                        <td>
+                            <span class="badge badge-info">Negierbar</span>
+                            <span class="badge badge-primary">Mehrfach</span>
+                        </td>
+                        <td>Name oder Teil des Namens.</td>
+                        <td>
+                            Name mit Leerzeichen <code>n:"Toshiba 2TB"</code>. <br>
+                            Suche nach allen "Toshiba" Objekten <code>n:Toshiba</code>.
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Verwendungszweck</td>
+                        <td><code>desc</code></td>
+                        <td>
+                            <span class="badge badge-info">Negierbar</span>
+                            <span class="badge badge-primary">Mehrfach</span>
+                        </td>
+                        <td>Aktueller Verwendungszwecks oder Teil des Verwendungszwecks eines Objekts.</td>
+                        <td>
+                            Verwendungszwecks mit Leerzeichen <code>desc:"Befinden sich verschüsselte Daten"</code>.
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Ehem. Verwendungszweck</td>
+                        <td><code>hdesc</code></td>
+                        <td>
+                            <span class="badge badge-info">Negierbar</span>
+                            <span class="badge badge-primary">Mehrfach</span>
+                        </td>
+                        <td>Ehemaliger Verwendungszwecks oder Teil des ehemaligen Verwendungszwecks eines Objekts.</td>
+                        <td>
+                            Ehemaliger Verwendungszwecks mit Leerzeichen <code>hdesc:"Befinden sich verschüsselte Daten"</code>.
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Letzter Nutzer</td>
+                        <td><code>u</code> | <code>user</code></td>
+                        <td>
+                            <span class="badge badge-info">Negierbar</span>
+                            <span class="badge badge-primary">Mehrfach</span>
+                        </td>
+                        <td>Username des Nutzers, der das Objekt zuletzt verändert hat.</td>
+                        <td>
+                            Zuletzt vom Nutzer "mmustermann" geänderte Objekte <code>u:mmustermann</code>.
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Ehem. Nutzer</td>
+                        <td><code>hu</code></td>
+                        <td>
+                            <span class="badge badge-info">Negierbar</span>
+                            <span class="badge badge-primary">Mehrfach</span>
+                        </td>
+                        <td>Username des Nutzers, der das Objekt in der Vergangenheit verändert hat.</td>
+                        <td>
+                            In der Vergangenheit durch den Nutzer "mmustermann" veränderte Objekte <code>hu:mmustermann</code>.
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Reservierung</td>
+                        <td><code>r</code> | <code>reserved</code></td>
+                        <td>
+                            <span class="badge badge-info">Negierbar</span>
+                            <span class="badge badge-primary">Mehrfach</span>
+                            <span class="badge badge-success">Verifizierbar</span>
+                        </td>
+                        <td>Filtern nach Objekten die (nicht) reserviert sind oder spezifisch nach Username des Nutzers, der das Objekt reserviert hat.</td>
+                        <td>
+                            Suche nach reservierten Objekten <code>r:t</code>. <br>
+                            Suche nach reservierten Objekten eines spezifischen Nutzers <code>r:mmustermann</code>.
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Ehem. Reservierung</td>
+                        <td><code>hr</code></td>
+                        <td>
+                            <span class="badge badge-info">Negierbar</span>
+                            <span class="badge badge-primary">Mehrfach</span>
+                            <span class="badge badge-success">Verifizierbar</span>
+                        </td>
+                        <td>Filtern nach Objekten die in der Vergangenheit (nicht) reserviert waren oder spezifisch nach Username des Nutzers, der das Objekt reservierte.</td>
+                        <td>
+                            Suche nach ehem. reservierten Objekten <code>hr:t</code>. <br>
+                            Suche nach ehem. reservierten Objekten eines spezifischen Nutzers <code>h:mmustermann</code>.
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Standort</td>
+                        <td><code>l</code> | <code>location</code></td>
+                        <td>
+                            <span class="badge badge-info">Negierbar</span>
+                            <span class="badge badge-primary">Mehrfach</span>
+                            <span class="badge badge-success">Verifizierbar</span>
+                        </td>
+                        <td>Filtern nach Objekten die (nicht) verstaut sind oder spezifisch nach DT-Code des Behälters.</td>
+                        <td>
+                            Suche nach nicht verstauten Objekten <code>l:f</code>. <br>
+                            Suche nach Objekten im Behälter "DTHW12345" <code>l:DTHW12345</code>.
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Ehem. Standort</td>
+                        <td><code>hl</code></td>
+                        <td>
+                            <span class="badge badge-info">Negierbar</span>
+                            <span class="badge badge-primary">Mehrfach</span>
+                            <span class="badge badge-success">Verifizierbar</span>
+                        </td>
+                        <td>Filtern nach Objekten die in der Vergangenheit (nicht) verstaut waren oder spezifisch nach DT-Code des Behälters.</td>
+                        <td>
+                            Suche nach ehem. nicht verstauten Objekten <code>hl:f</code>. <br>
+                            Suche nach ehem. Objekten im Behälter "DTHW12345" <code>hl:DTHW12345</code>.
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Fall</td>
+                        <td><code>case</code></td>
+                        <td>
+                            <span class="badge badge-info">Negierbar</span>
+                            <span class="badge badge-primary">Mehrfach</span>
+                            <span class="badge badge-success">Verifizierbar</span>
+                        </td>
+                        <td>Filtern nach Objekten die (nicht) einem Fall zugeordnet sind oder spezifisch nach zugehöriger Fall-Id.</td>
+                        <td>
+                            Suche nach einem Fall zugeordneten Objekten <code>case:t</code>. <br>
+                            Suche nach Objekten zugehörig zum Fall "Mustermann" <code>case:"Mustermann"</code>.
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Ehem. Fall</td>
+                        <td><code>hcase</code></td>
+                        <td>
+                            <span class="badge badge-info">Negierbar</span>
+                            <span class="badge badge-primary">Mehrfach</span>
+                            <span class="badge badge-success">Verifizierbar</span>
+                        </td>
+                        <td>Filtern nach Objekten die in der Vergangenheit (nicht) einem Fall zugeordnet waren oder spezifisch nach zugehöriger Fall-Id.</td>
+                        <td>
+                            Suche nach in der Vergangenheut einem Fall zugeordneten Objekten <code>hcase:t</code>. <br>
+                            Suche nach Objekten ehemalig zugehörig zum Fall "Mustermann" <code>hcase:"Mustermann"</code>.
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Zugeordneter Fall aktiv</td>
+                        <td><code>caseactive</code></td>
+                        <td>
+                            <span class="badge badge-success">Verifizierbar</span>
+                        </td>
+                        <td>Filtern nach Objekten dessen zugehöriger Fall (nicht) aktiv ist.</td>
+                        <td>
+                            Suche nach einem aktiven Fall zugeordneten Objekten <code>caseactive:t</code>.
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Notiz</td>
+                        <td><code>note</code></td>
+                        <td>
+                            <span class="badge badge-info">Negierbar</span>
+                            <span class="badge badge-primary">Mehrfach</span>
+                        </td>
+                        <td>Notiz oder Teil der Notiz eines Objekts.</td>
+                        <td>
+                            Suche nach einem Objekt mit der Notiz (mit Leerzeichen) <code>note:"Hat Kratzer"</code>.
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Datum</td>
+                        <td><code>d</code> | <code>date</code> | <code>ed</code></td>
+                        <td>
+                            <span class="badge badge-info">Negierbar</span>
+                            <span class="badge badge-primary">Mehrfach</span>
+                            <span class="badge badge-warning">Vergleichbar</span>
+                        </td>
+                        <td>Datumssuche bezogen auf die letzte Veränderung des Objekts. Verfügbare Datumsformate:
+                            <ul>
+                                <li><code>dd.mm.yy</code></li>
+                                <li><code>dd.mm.yyyy</code></li>
+                                <li><code>yyyy-mm-dd</code></li>
+                                <li><code>mm/dd/yy</code></li>
+                                <li><code>mm/dd/yyyy</code></li>
+                            </ul>
+                        </td>
+                        <td>
+                            Objekte die am 12.04.2025 verändert wurden <code>d:12.04.2025</code>. <br>
+                            Objekte die vor dem 01.01.2025 verändert wurden <code>d:&lt;2025-01-01</code>. <br>
+                            Objekte die nach dem 30.12.2025 verändert wurden <code>d:&gt;12/31/25</code>. <br>
+                            Objekte die zwischem dem 01.06.2025 und 30.06.2025 verändert wurden 
+                            <code>d:&gt;=01.06.2025 d:&lt;=030.06.2025 </code>.
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Bauart</td>
+                        <td><code>type</code></td>
+                        <td>
+                            <span class="badge badge-info">Negierbar</span>
+                            <span class="badge badge-primary">Mehrfach</span>
+                            <span class="badge badge-success">Verifizierbar</span>
+                        </td>
+                        <td>Filtern nach Datenträger mit spezifischer Bauart.</td>
+                        <td>
+                            Suche nach Datenträger mit Bauart "extern" <code>type:extern</code>.
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Formfaktor</td>
+                        <td><code>ff</code></td>
+                        <td>
+                            <span class="badge badge-info">Negierbar</span>
+                            <span class="badge badge-primary">Mehrfach</span>
+                            <span class="badge badge-success">Verifizierbar</span>
+                        </td>
+                        <td>Filtern nach Datenträger mit spezifischem Formfaktor.</td>
+                        <td>
+                            Suche nach Datenträger mit Formfaktor "2,5" <code>ff:2,5</code>.
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Speichergröße</td>
+                        <td><code>size</code></td>
+                        <td>
+                            <span class="badge badge-info">Negierbar</span>
+                            <span class="badge badge-primary">Mehrfach</span>
+                            <span class="badge badge-success">Verifizierbar</span>
+                            <span class="badge badge-warning">Vergleichbar</span>
+                        </td>
+                        <td>Filtern nach Datenträger mit spezifischer, größerer oder kleinerer Speichergröße (in Gigabyte).</td>
+                        <td>
+                            Suche nach Datenträger mit genau 256GB <code>size:256</code>. <br>
+                            Suche nach Datenträger mit mehr als 256GB <code>size:&gt;256</code>.<br>
+                            Suche nach Datenträger mit weniger als 256GB <code>size:&lt;256</code>.
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Hersteller</td>
+                        <td><code>prod</code></td>
+                        <td>
+                            <span class="badge badge-info">Negierbar</span>
+                            <span class="badge badge-primary">Mehrfach</span>
+                            <span class="badge badge-success">Verifizierbar</span>
+                        </td>
+                        <td>Filtern nach Datenträger mit spezifischem Hersteller.</td>
+                        <td>
+                            Suche nach Datenträger mit Hersteller "Toshiba" <code>prod:Toshiba</code>.
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Modell</td>
+                        <td><code>modell</code></td>
+                        <td>
+                            <span class="badge badge-info">Negierbar</span>
+                            <span class="badge badge-primary">Mehrfach</span>
+                            <span class="badge badge-success">Verifizierbar</span>
+                        </td>
+                        <td>Filtern nach Datenträger mit spezifischem Modell.</td>
+                        <td>
+                            Suche nach Datenträger mit Modell "Modell 1" <code>modell:"Modell 1"</code>.
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Produktnummer</td>
+                        <td><code>pn</code></td>
+                        <td>
+                            <span class="badge badge-info">Negierbar</span>
+                            <span class="badge badge-primary">Mehrfach</span>
+                            <span class="badge badge-success">Verifizierbar</span>
+                        </td>
+                        <td>Filtern nach Datenträger mit spezifischer Produktnummer.</td>
+                        <td>
+                            Suche nach Datenträger mit Produktnummer "PN-AB123" <code>pn:PN-AB123</code>.
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Seriennummer</td>
+                        <td><code>sn</code></td>
+                        <td>
+                            <span class="badge badge-info">Negierbar</span>
+                            <span class="badge badge-primary">Mehrfach</span>
+                            <span class="badge badge-success">Verifizierbar</span>
+                        </td>
+                        <td>Filtern nach Datenträger mit spezifischer Seriennummer.</td>
+                        <td>
+                            Suche nach Datenträger mit Seriennummer "SN1234" <code>sn:SN1234</code>.
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Anschluss</td>
+                        <td><code>connector</code></td>
+                        <td>
+                            <span class="badge badge-info">Negierbar</span>
+                            <span class="badge badge-primary">Mehrfach</span>
+                            <span class="badge badge-success">Verifizierbar</span>
+                        </td>
+                        <td>Filtern nach Datenträger mit spezifischem Anschluss.</td>
+                        <td>
+                            Suche nach Datenträger mit Anschluss "USB" <code>connector:USB</code>.
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3 id="ids">Nummerische Werte</h3>
+            <div class="row">
+                
+                <div class="col-lg-6">
+
+                    <h4 id="status_ids">Status-IDs</h4>
+                    <table class="table">
+                        <thead>
+                            <th>Status</th>
+                            <th>Nummerischer Wert (ID)</th>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Eingetragen</td>
+                                <td><code>0</code></td>
+                            </tr>
+                            <tr>
+                                <td>Genullt</td>
+                                <td><code>1</code></td>
+                            </tr>
+                            <tr>
+                                <td>Zum Kunden mitgenommen</td>
+                                <td><code>2</code></td>
+                            </tr>
+                            <tr>
+                                <td>Vernichtet</td>
+                                <td><code>3</code></td>
+                            </tr>
+                            <tr>
+                                <td>An Person übergeben</td>
+                                <td><code>4</code></td>
+                            </tr>
+                            <tr>
+                                <td>Reserviert</td>
+                                <td><code>5</code></td>
+                            </tr>
+                            <tr>
+                                <td>Verloren</td>
+                                <td><code>6</code></td>
+                            </tr>
+                            <tr>
+                                <td>In einem Behaelter gelegt</td>
+                                <td><code>7</code></td>
+                            </tr>
+                            <tr>
+                                <td>Aus dem Behälter entfernt</td>
+                                <td><code>8</code></td>
+                            </tr>
+                            <tr>
+                                <td>Einem Fall hinzugefügt</td>
+                                <td><code>9</code></td>
+                            </tr>
+                            <tr>
+                                <td>Aus dem Fall entfernt</td>
+                                <td><code>10</code></td>
+                            </tr>
+                            <tr>
+                                <td>Reservierung aufgehoben</td>
+                                <td><code>11</code></td>
+                            </tr>
+                            <tr>
+                                <td>In Verwendung</td>
+                                <td><code>12</code></td>
+                            </tr>
+                            <tr>
+                                <td>Editiert</td>
+                                <td><code>13</code></td>
+                            </tr>
+                            <tr>
+                                <td>Festplattenimage gespeichert</td>
+                                <td><code>14</code></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="col-lg-6">
+
+                    <h4 id="category_id">Kategorien-IDs</h4>
+                    <table class="table">
+                        <thead>
+                            <th>Kategorie</th>
+                            <th>Nummerischer Wert (ID)</th>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Asservat</td>
+                                <td><code>0</code></td>
+                            </tr>
+                            <tr>
+                                <td>Ausrüstung</td>
+                                <td><code>1</code></td>
+                            </tr>
+                            <tr>
+                                <td>Behälter</td>
+                                <td><code>2</code></td>
+                            </tr>
+                            <tr>
+                                <td>Datenträger</td>
+                                <td><code>3</code></td>
+                            </tr>
+                            <tr>
+                                <td>Akte</td>
+                                <td><code>4</code></td>
+                            </tr>
+                            <tr>
+                                <td>Datenträgerasservat</td>
+                                <td><code>5</code></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
 {% endblock %}
 
 
 
 {% block context %}
-    
+    <a href="{{ path("search_objects") }}?suche=c:0"><span class="glyphicon glyphicon-search"></span> Zur Objektsuche</a> <br>
+    <a href="#modifications"><span class="glyphicon glyphicon-search"></span>Modifikatoren</a><br>
+    <a href="#available_parameters"><span class="glyphicon glyphicon-search"></span>Verfügbare Parameter</a><br>
+    <a href="#ids"><span class="glyphicon glyphicon-search"></span>Nummerische Werte für Kategorien und Status</a><br>
 {% endblock %}
 
 

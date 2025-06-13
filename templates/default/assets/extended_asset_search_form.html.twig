@@ -1,0 +1,842 @@
+<style>
+    .eas-form-segment {
+        display: grid;
+        grid-template-columns: 1fr 250px 4fr 1fr 150px 4fr;
+        grid-template-rows: 120px 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr;
+        gap: 10px;
+    }
+
+    .eas-input-cell {
+        height: 100%;
+    }
+
+    .eas-input form-control {
+        width: 100%;
+    }
+
+    .eas-operator-btn {
+        height: 36px;
+        width: 36px;
+    }
+
+    .eas-divider {
+        font-size: 16px;
+        font-weight: 700;
+        display: flex;
+        place-self: stretch;
+        grid-column: 1 / span 6;
+        align-items: center;
+
+    }
+    .eas-divider::before, .eas-divider::after {
+        flex: 1;
+        content: '';
+        padding: 1px;
+        background-color: #c1c1c1;
+        margin: 5px 15px;
+    }
+
+    .eas-footer {
+        display: flex;
+        justify-content: flex-end;
+        gap: 5px;
+        margin-top: 10px;
+    }
+
+</style>
+
+<script>
+    const TEXT_QUERY_FORM = "#{{ search_form }}";
+    const EAS_FORM = "#eas_form";
+    const SINGLE_VALUE_REGEX = {{ regex_single_match|raw }}g; 
+    const MULTIPLE_VALUE_REGEX = {{ regex_multiple_match|raw }}g;
+
+    const EAS = (function(){
+        // TODO replace this with PHP for dynamic list
+        const KEYS = new Map([
+            ['category', 'c'],
+            ['status', 's'],
+            ['barcode', 'b'],
+            ['name', 'n'],
+            ['note', 'note'],
+            ['description', 'desc'],
+            ['history_description', 'hdesc'],
+            ['user', 'u'],
+            ['history_user', 'hu'],
+            ['reserved', 'r'],
+            ['history_reserved', 'hr'],
+            ['location', 'l'],
+            ['history_location', 'hl'],
+            ['case', 'case'],
+            ['history_case', 'hcase'],
+            ['caseactive', 'caseactive'],
+            ['type', 'type'],
+            ['form_factor', 'ff'],
+            ['size', 'size'],
+            ['manufacturer', 'prod'],
+            ['model', 'modell'],
+            ['product_number', 'pn'],
+            ['serial_number', 'sn'],
+            ['connector', 'connector'],
+            ['date', 'd'],
+            ['end_date', 'ed'],
+        ]);
+        const REV_KEYS = new Map([...KEYS.entries()].map(e => [e[1], e[0]]));
+
+        let state = [{}];
+        
+        // sets `state` variable based on extended search form
+        // form -> state
+        const parseForm = function(){
+            // transform data into a map of entries
+            const data = $(EAS_FORM).serializeArray().reduce(function(map, item){
+                const name = item.name.split('.')[0];
+                const value = item.value;
+                const isOperator = item.name.endsWith(".operator")                
+                
+                // get existing entry or create new empty
+                const entry = map.get(name) ?? {
+                    name: name,
+                    key: KEYS.get(name),
+                    value: [],
+                    operator: '',
+                    negate: false,
+                }
+
+                // add operator
+                if (isOperator){
+                    switch (value) {
+                        // equal
+                        default:
+                        case "":
+                            break;
+                        // not equal
+                        case "!":
+                            entry.negate = true;
+                            break;
+                        // less then, greater then
+                        case "<":
+                        case ">":
+                        // range
+                        case ">=":
+                        case "<=":
+                            entry.operator = value;
+                            break;
+                        // true
+                        case "*":
+                            entry.value = ["t"];
+                            break;
+                        // false
+                        case "-":
+                            entry.value = ["f"];
+                            break;
+                    }
+                }
+                // or add value
+                else if(value) {
+                    // check if multiple selection
+                    const valuesToAdd = value.includes('|') ?
+                        value.split('|').map((x) => x.trim()) :
+                        [value];
+
+                    // escape whitespace if not already
+                    valuesToAdd.forEach(element => {
+                        if((element.startsWith('"') && element.endsWith('"')) ||
+                           (element.startsWith("'") && element.endsWith("'"))){
+                            entry.value.push(element);
+                        }
+                        else {
+                            entry.value.push(element.includes(' ') ? `"${element}"` :element);
+                        }
+                    });
+                }
+
+                // update map
+                map.set(name, entry);
+                return map;
+            }, new Map());
+
+            state[0] = Array.from(data.values());
+        }
+
+        // sets `state` property based on search query input
+        // query -> state
+        const parseQuery = function(){
+            const data = $(`${TEXT_QUERY_FORM} input`).val().split("||");
+            
+            // update state by parsing state
+            state = data.map(function(segment){
+                
+                // process single
+                const single = segment.matchAll(SINGLE_VALUE_REGEX).map(function(entry){
+                    const key = entry[1].replace("!", "");
+                    const raw_value = entry[2].replace(/["']/g, ""); 
+                    let operator = '';
+                    let value = raw_value;
+
+                    if (raw_value.match(/^[<>]=./)){
+                        operator = raw_value.substring(0, 1);
+                        value = raw_value.substring(2);
+                    }
+                    else if (raw_value.match(/^[<>]=./)){
+                        operator = raw_value.substring(0, 0);
+                        value = raw_value.substring(1);
+                    }
+
+                    return {
+                        name: REV_KEYS.get(key) ?? '',
+                        key: key,
+                        value: [value],
+                        operator: operator,
+                        negate: entry[1].startsWith("!"),
+                    }
+                });
+                // process multiple
+                const multiple = segment.matchAll(MULTIPLE_VALUE_REGEX).map(function(entry){
+                    const key = entry[1].replace("!", "");
+                    const values = entry[2].split("|").map(e => e.replace(/["']/g, ""));
+
+                    const operator = values.length && values[0].match(/^[<>]./) ?
+                        values[0][0] : '';
+
+                    return {
+                        name: REV_KEYS.get(key) ?? '',
+                        key: key,
+                        value: values,
+                        operator: operator,
+                        negate: entry[1].startsWith("!"),
+                    }
+                });
+
+                // merge
+                return [...single, ...multiple];
+            });
+        }
+
+        // apply `state` to form controlls to sync form with state
+        // state -> form
+        const applyStateToForm = function(){
+            // reset form
+            document.querySelector(EAS_FORM).reset();
+            $(".eas-operator-btn").removeClass('active');
+
+            // for now only support for one/first OR-segment
+            state[0].forEach(function(entry) {
+                if (entry.value){
+                    const value = entry.value.length == 1 ? entry.value[0] : `${entry.value.join(" | ")}`;
+                    const name = entry.name;
+                    const operator = entry.operator;
+                    
+                    // custom handler for endate (ed)
+                    if(name == "end_date"){
+                        // show input
+                        $(".eas-date-end").show();
+                        $(".eas-date-end-placeholder").hide();
+                        // set value
+                        $("#eas-date-end").val(value);
+                        // overide date operator
+                        $(`input[name='date.operator']`).prop('checked', false).parent().removeClass("active");
+                        $("#eas_date_range_operator").prop('checked', true).parent().addClass("active");
+                    }
+                    else if (name) {
+                        // set values
+                        if (entry.key == 'c' || entry.key == 's'){
+                            $(`${EAS_FORM} select[name='${name}']`).val(entry.value);
+                        }
+                        else if (value != 't' && value != 'f'){
+                            $(`${EAS_FORM} input[name='${name}']`).val(value);
+                        }
+
+                        // clear prev operator
+                        $(`${EAS_FORM} input[name='${name}.operator']`).prop('checked', false).parent().removeClass("active");
+
+                        let opcode = '';
+                        // set operator
+                        if (entry.negate) {
+                            opcode = '!';
+                        } else if (operator === '<' || operator === '>') {
+                            opcode = operator;
+                        } else if (value === 't') {
+                            opcode = '*'
+                        } else if (value === 'f') {
+                            opcode = '-'
+                        }
+                        $(`${EAS_FORM} input[name='${name}.operator'][value="${opcode}"]`).prop('checked', true).parent().addClass("active");
+                    }
+                }
+            });
+
+        }
+
+        // apply `state` to text query
+        // state -> query
+        const applyStateToQuery = function(){
+            const query = state.map(function(segment){
+                return segment.filter(e => e.value.length).map(function(entry){
+                    const key = entry.key;
+                    const neg = entry.negate ? '!' : '';
+                    const value = entry.value.length == 1 ? entry.operator + entry.value[0] : `[${entry.value.join("|")}]`; 
+                    return `${neg}${key}:${value}`;
+                }).join(" ");
+            }).join(" || ");
+            $(`${TEXT_QUERY_FORM} input`).val(query);
+        }
+
+        // called when query is changed through form controls
+        // updates text in search input
+        const updateQuery = function(){
+            parseForm();
+            applyStateToQuery();
+        }
+
+        // called when search text is changed
+        // updates internal state and form controls
+        const updateForm = function(){
+            parseQuery();
+            applyStateToForm();
+        }
+
+        return {
+            init: function(){
+                // handlers for control
+                {
+                    // handler to activate operator selection
+                    $(`${EAS_FORM} .eas-input form-control`).on("change", function(e){
+                        // if no operator is selected, select first
+                        if($(`input[name='${this.name}.operator']:checked`).length === 0){
+                            const radio = $(`input[name="${this.name}.operator"]`).first();
+                            radio.prop('checked', true);
+                            radio.parent().addClass("active");
+                        }
+                    });
+
+                    // handler to trigger date range
+                    $(`input[name='date.operator']`).on("change", function(e){
+                        // show date end picker
+                        if (this.value == ">="){
+                            $(".eas-date-end").show();
+                            $(".eas-date-end-placeholder").hide();
+                        }
+                        else {
+                            $("#eas-date-end").val("");
+                            $(".eas-date-end").hide();
+                            $(".eas-date-end-placeholder").show();
+                        }
+                    });
+
+                    // handler to submit search form
+                    $(EAS_FORM).on("submit", function(e){
+                        e.preventDefault();
+                        $(TEXT_QUERY_FORM).trigger("submit");
+                    });
+
+                    // handler to update search input when form control changes
+                    $(EAS_FORM).on("change", function(e){
+                        updateQuery();
+                    });
+
+                    // handler to update internal state and form controls
+                    $(TEXT_QUERY_FORM).on("input", function(e){
+                        updateForm();
+                    });
+
+                    // handler to add new search query segment
+                    $("#eas_add_query").on('click', function(e){
+                        $(`${TEXT_QUERY_FORM} input`).val(' || ' + $(`${TEXT_QUERY_FORM} input`).val());
+                        updateForm();
+                    })
+                }
+
+                // update State
+                updateForm();
+            }
+        }
+    })();
+
+    // init when dom ready
+    $(function() {
+        EAS.init();
+    });
+</script>
+
+<form id="eas_form" action="#" class="well">
+    <div class="eas-form-segment" data-index="0">
+        {# category #}
+        <label class="eas-label" for="eas_category">{{'eas.desc.category'|trans}}:</label>
+        <div class="btn-group" data-toggle="buttons">
+            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'eas.operator.eq'|trans}}">
+                <input type="radio" name="category.operator" value=""> =
+            </label>
+            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'eas.operator.neq'|trans}}">
+                <input type="radio" name="category.operator" value="!" > ≠
+            </label>
+        </div>
+        <div class="eas-input-cell">
+            <select class="eas-input form-control eas_category" name="category" multiple="multiple" size="6" id="eas_category" style="height: 100%;">
+                {% for label,id in eas_categories %}
+                    <option value="{{id}}">{{ label | trans }} </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        {# status #}
+        <label class="eas-label" for="eas_status">{{'eas.desc.status'|trans}}:</label>
+        <div class="btn-group" data-toggle="buttons">
+            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'eas.operator.eq'|trans}}">
+                <input type="radio" name="status.operator" value=""> =
+            </label>
+            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'eas.operator.neq'|trans}}">
+                <input type="radio" name="status.operator" value="!" > ≠
+            </label>
+        </div>
+        <div class="eas-input-cell">
+            <select class="eas-input form-control eas_status" name="status" multiple="multiple" size="6" id="eas_status" style="height: 100%;">
+            {% for label,id in eas_status %}
+                <option value="{{id}}">{{ label | trans }} </option>
+            {% endfor %}
+            </select>
+        </div>
+
+        {# barcode #}
+        <label class="eas-label" for="eas_barcode">{{ 'eas.desc.barcode'| trans }}:</label>
+        <div class="btn-group" data-toggle="buttons">
+            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'eas.operator.eq'|trans}}">
+                <input type="radio" name="barcode.operator" value=""> =
+            </label>
+            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'eas.operator.neq'|trans}}">
+                <input type="radio" name="barcode.operator" value="!" > ≠
+            </label>
+        </div>
+        <div class="eas-input-cell">
+            <input class="eas-input form-control" type="text" name="barcode" id="eas_barcode"> 
+        </div>
+
+        {# name #}
+        <label class="eas-label" for="eas_name">{{ 'eas.desc.name'| trans }}:</label>
+        <div class="btn-group" data-toggle="buttons">
+            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'eas.operator.eq'|trans}}">
+                <input type="radio" name="name.operator" value=""> =
+            </label>
+            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'eas.operator.neq'|trans}}">
+                <input type="radio" name="name.operator" value="!" > ≠
+            </label>
+        </div>
+        <div class="eas-input-cell">
+            <input class="eas-input form-control" type="text" name="name" id="eas_name"> 
+        </div>
+        
+        {# description #}
+        <label class="eas-label" for="eas_description">{{ 'eas.desc.description'| trans }}:</label>
+        <div class="btn-group" data-toggle="buttons">
+            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'eas.operator.eq'|trans}}">
+                <input type="radio" name="description.operator" value=""> =
+            </label>
+            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'eas.operator.neq'|trans}}">
+                <input type="radio" name="description.operator" value="!" > ≠
+            </label>
+        </div>
+        <div class="eas-input-cell">
+            <input class="eas-input form-control" type="text" name="description" id="eas_description"> 
+        </div>
+        
+        {# history_description #}
+        <label class="eas-label" for="eas_history_description">{{ 'eas.desc.history_description'| trans }}:</label>
+        <div class="btn-group" data-toggle="buttons">
+            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'eas.operator.eq'|trans}}">
+                <input type="radio" name="history_description.operator" value=""> =
+            </label>
+            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'eas.operator.neq'|trans}}">
+                <input type="radio" name="history_description.operator" value="!" > ≠
+            </label>
+        </div>
+        <div class="eas-input-cell">
+            <input class="eas-input form-control" type="text" name="history_description" id="eas_history_description"> 
+        </div>
+                
+        {# user #}
+        <label class="eas-label" for="eas_user">{{ 'eas.desc.user'| trans }}:</label>
+        <div class="btn-group" data-toggle="buttons">
+            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'eas.operator.eq'|trans}}">
+                <input type="radio" name="user.operator" value=""> =
+            </label>
+            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'eas.operator.neq'|trans}}">
+                <input type="radio" name="user.operator" value="!" > ≠
+            </label>
+        </div>
+        <div class="eas-input-cell">
+            <input class="eas-input form-control" type="text" name="user" id="eas_user"> 
+        </div>
+        
+        {# history_user #}
+        <label class="eas-label" for="eas_history_user">{{ 'eas.desc.history_user'| trans }}:</label>
+        <div class="btn-group" data-toggle="buttons">
+            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'eas.operator.eq'|trans}}">
+                <input type="radio" name="history_user.operator" value=""> =
+            </label>
+            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'eas.operator.neq'|trans}}">
+                <input type="radio" name="history_user.operator" value="!" > ≠
+            </label>
+        </div>
+        <div class="eas-input-cell">
+            <input class="eas-input form-control" type="text" name="history_user" id="eas_history_user"> 
+        </div>
+        
+        {# reserved #}
+        <label class="eas-label" for="eas_reserved">{{ 'eas.desc.reserved'| trans }}:</label>
+        <div class="btn-group" data-toggle="buttons">
+            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'eas.operator.eq'|trans}}">
+                <input type="radio" name="reserved.operator" value=""> =
+            </label>
+            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'eas.operator.neq'|trans}}">
+                <input type="radio" name="reserved.operator" value="!" > ≠
+            </label>
+            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'eas.operator.any'|trans}}">
+                <input type="radio" name="reserved.operator" value="*" > ✓
+            </label>
+            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'eas.operator.none'|trans}}">
+                <input type="radio" name="reserved.operator" value="-" > ✕
+            </label>
+        </div>
+        <div class="eas-input-cell">
+            <input class="eas-input form-control" type="text" name="reserved" id="eas_reserved"> 
+        </div>
+        
+        {# history_reserved #}
+        <label class="eas-label" for="eas_history_reserved">{{ 'eas.desc.history_reserved'| trans }}:</label>
+        <div class="btn-group" data-toggle="buttons">
+            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'eas.operator.eq'|trans}}">
+                <input type="radio" name="history_reserved.operator" value=""> =
+            </label>
+            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'eas.operator.neq'|trans}}">
+                <input type="radio" name="history_reserved.operator" value="!" > ≠
+            </label>
+            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'eas.operator.any'|trans}}">
+                <input type="radio" name="history_reserved.operator" value="*" > ✓
+            </label>
+            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'eas.operator.none'|trans}}">
+                <input type="radio" name="history_reserved.operator" value="-" > ✕
+            </label>
+        </div>
+        <div class="eas-input-cell">
+            <input class="eas-input form-control" type="text" name="history_reserved" id="eas_history_reserved"> 
+        </div>
+        
+        {# location #}
+        <label class="eas-label" for="eas_location">{{ 'eas.desc.location'| trans }}:</label>
+        <div class="btn-group" data-toggle="buttons">
+            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'eas.operator.eq'|trans}}">
+                <input type="radio" name="location.operator" value=""> =
+            </label>
+            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'eas.operator.neq'|trans}}">
+                <input type="radio" name="location.operator" value="!" > ≠
+            </label>
+            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'eas.operator.any'|trans}}">
+                <input type="radio" name="location.operator" value="*" > ✓
+            </label>
+            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'eas.operator.none'|trans}}">
+                <input type="radio" name="location.operator" value="-" > ✕
+            </label>
+        </div>
+        <div class="eas-input-cell">
+            <input class="eas-input form-control" type="text" name="location" id="eas_location"> 
+        </div>
+        
+        {# history_location #}
+        <label class="eas-label" for="eas_history_location">{{ 'eas.desc.history_location'| trans }}:</label>
+        <div class="btn-group" data-toggle="buttons">
+            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'eas.operator.eq'|trans}}">
+                <input type="radio" name="history_location.operator" value=""> =
+            </label>
+            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'eas.operator.neq'|trans}}">
+                <input type="radio" name="history_location.operator" value="!" > ≠
+            </label>
+            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'eas.operator.any'|trans}}">
+                <input type="radio" name="history_location.operator" value="*" > ✓
+            </label>
+            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'eas.operator.none'|trans}}">
+                <input type="radio" name="history_location.operator" value="-" > ✕
+            </label>
+        </div>
+        <div class="eas-input-cell">
+            <input class="eas-input form-control" type="text" name="history_location" id="eas_history_location"> 
+        </div>
+        
+        {# case #}
+        <label class="eas-label" for="eas_case">{{ 'eas.desc.case'| trans }}:</label>
+        <div class="btn-group" data-toggle="buttons">
+            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'eas.operator.eq'|trans}}">
+                <input type="radio" name="case.operator" value=""> =
+            </label>
+            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'eas.operator.neq'|trans}}">
+                <input type="radio" name="case.operator" value="!" > ≠
+            </label>
+            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'eas.operator.any'|trans}}">
+                <input type="radio" name="case.operator" value="*" > ✓
+            </label>
+            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'eas.operator.none'|trans}}">
+                <input type="radio" name="case.operator" value="-" > ✕
+            </label>
+        </div>
+        <div class="eas-input-cell">
+            <input class="eas-input form-control" type="text" name="case" id="eas_case"> 
+        </div>
+        
+        {# history_case #}
+        <label class="eas-label" for="eas_history_case">{{ 'eas.desc.history_case'| trans }}:</label>
+        <div class="btn-group" data-toggle="buttons">
+            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'eas.operator.eq'|trans}}">
+                <input type="radio" name="history_case.operator" value=""> =
+            </label>
+            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'eas.operator.neq'|trans}}">
+                <input type="radio" name="history_case.operator" value="!" > ≠
+            </label>
+            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'eas.operator.any'|trans}}">
+                <input type="radio" name="history_case.operator" value="*" > ✓
+            </label>
+            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'eas.operator.none'|trans}}">
+                <input type="radio" name="history_case.operator" value="-" > ✕
+            </label>
+        </div>
+        <div class="eas-input-cell">
+            <input class="eas-input form-control" type="text" name="history_case" id="eas_history_case"> 
+        </div>
+        
+        {# caseactive #}
+        <label class="eas-label" style="grid-column: 1 / span 2;">{{ 'eas.desc.caseactive'| trans }}</label>
+        <div class="btn-group" data-toggle="buttons">
+            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'eas.operator.yes'|trans}}">
+                <input type="radio" name="caseactive.operator" value="*" > ✓
+            </label>
+            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'eas.operator.no'|trans}}">
+                <input type="radio" name="caseactive.operator" value="-" > ✕
+            </label>
+        </div>
+
+        {# note #}
+        <label class="eas-label" for="eas_note">{{ 'eas.desc.note'| trans }}:</label>
+        <div class="btn-group" data-toggle="buttons">
+            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'eas.operator.eq'|trans}}">
+                <input type="radio" name="note.operator" value=""> =
+            </label>
+            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'eas.operator.neq'|trans}}">
+                <input type="radio" name="note.operator" value="!" > ≠
+            </label>
+        </div>
+        <div class="eas-input-cell">
+            <input class="eas-input form-control" type="text" name="note" id="eas_note"> 
+        </div>
+        
+
+
+        {# date #}
+        <label class="eas-label" for="eas_date">{{ 'eas.desc.date'| trans }}:</label>
+        <div class="btn-group" data-toggle="buttons">
+            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'eas.operator.eq'|trans}}">
+                <input type="radio" name="date.operator" value=""> =
+            </label>
+            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'eas.operator.neq'|trans}}">
+                <input type="radio" name="date.operator" value="!" > ≠
+            </label>
+            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'eas.operator.date.before'|trans}}">
+                <input type="radio" name="date.operator" value="<" > &lt;
+            </label>
+            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'eas.operator.date.after'|trans}}">
+                <input type="radio" name="date.operator" value=">" > &gt;
+            </label>
+            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'eas.operator.date.range'|trans}}" style="padding-left: 9px;">
+                <input type="radio" name="date.operator" value=">=" id="eas_date_range_operator"> &lt;&gt;
+            </label>
+        </div>
+        <div class="eas-input-cell">
+            <input class="eas-input form-control" type="date" name="date" id="eas_date"> 
+        </div>
+   
+
+        {# end date #}
+        <label for="eas-date-end" class="eas-label eas-date-end" style="grid-column: 4 / span 2; display: none">{{ 'eas.desc.date_end'| trans }}:</label>
+        <div class="eas-input-cell eas-date-end" style="display: none;" >
+            <input class="eas-input form-control" type="date" id="eas-date-end" name="end_date"> 
+            <input type="text" name="end_date.operator" value="<=" hidden>
+        </div>
+        <span class="eas-date-end-placeholder" style="grid-column: 4 / span 3;"></span>
+
+        {# ------------------------------- Drive properties ------------------------------- #}
+
+        <div class="eas-divider">
+            {{ 'eas.form.drive_section' | trans }}
+        </div>
+
+        {# type #}
+        <label class="eas-label" for="eas_type">{{ 'eas.desc.type'| trans }}:</label>
+        <div class="btn-group" data-toggle="buttons">
+            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'eas.operator.eq'|trans}}">
+                <input type="radio" name="type.operator" value=""> =
+            </label>
+            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'eas.operator.neq'|trans}}">
+                <input type="radio" name="type.operator" value="!" > ≠
+            </label>
+            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'eas.operator.any'|trans}}">
+                <input type="radio" name="type.operator" value="*" > ✓
+            </label>
+            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'eas.operator.none'|trans}}">
+                <input type="radio" name="type.operator" value="-" > ✕
+            </label>
+        </div>
+        <div class="eas-input-cell">
+            <input class="eas-input form-control" type="text" name="type" id="eas_type"> 
+        </div>
+        
+        {# form_factor #}
+        <label class="eas-label" for="eas_form_factor">{{ 'eas.desc.form_factor'| trans }}:</label>
+        <div class="btn-group" data-toggle="buttons">
+            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'eas.operator.eq'|trans}}">
+                <input type="radio" name="form_factor.operator" value=""> =
+            </label>
+            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'eas.operator.neq'|trans}}">
+                <input type="radio" name="form_factor.operator" value="!" > ≠
+            </label>
+            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'eas.operator.any'|trans}}">
+                <input type="radio" name="form_factor.operator" value="*" > ✓
+            </label>
+            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'eas.operator.none'|trans}}">
+                <input type="radio" name="form_factor.operator" value="-" > ✕
+            </label>
+        </div>
+        <div class="eas-input-cell">
+            <input class="eas-input form-control" type="text" name="form_factor" id="eas_form_factor"> 
+        </div>
+        
+        {# size #}
+        <label class="eas-label" for="eas_size">{{ 'eas.desc.size'| trans }}:</label>
+        <div class="btn-group" data-toggle="buttons">
+            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'eas.operator.eq'|trans}}">
+                <input type="radio" name="size.operator" value=""> =
+            </label>
+            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'eas.operator.neq'|trans}}">
+                <input type="radio" name="size.operator" value="!" > ≠
+            </label>
+            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'eas.operator.any'|trans}}">
+                <input type="radio" name="size.operator" value="*" > ✓
+            </label>
+            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'eas.operator.none'|trans}}">
+                <input type="radio" name="size.operator" value="-" > ✕
+            </label>
+            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'eas.operator.lt'|trans}}">
+                <input type="radio" name="size.operator" value="<" > &lt;
+            </label>
+            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'eas.operator.gt'|trans}}">
+                <input type="radio" name="size.operator" value=">" > &gt;
+            </label>
+        </div>
+        <div class="eas-input-cell">
+            <input class="eas-input form-control" type="text" name="size" id="eas_size"> 
+        </div>
+        
+        {# manufacturer #}
+        <label class="eas-label" for="manufacturer">{{ 'eas.desc.manufacturer'| trans }}:</label>
+        <div class="btn-group" data-toggle="buttons">
+            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'eas.operator.eq'|trans}}">
+                <input type="radio" name="manufacturer.operator" value=""> =
+            </label>
+            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'eas.operator.neq'|trans}}">
+                <input type="radio" name="manufacturer.operator" value="!" > ≠
+            </label>
+            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'eas.operator.any'|trans}}">
+                <input type="radio" name="manufacturer.operator" value="*" > ✓
+            </label>
+            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'eas.operator.none'|trans}}">
+                <input type="radio" name="manufacturer.operator" value="-" > ✕
+            </label>
+        </div>
+        <div class="eas-input-cell">
+            <input class="eas-input form-control" type="text" name="manufacturer" id="manufacturer"> 
+        </div>
+        
+        {# model #}
+        <label class="eas-label" for="eas_model">{{ 'eas.desc.model'| trans }}:</label>
+        <div class="btn-group" data-toggle="buttons">
+            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'eas.operator.eq'|trans}}">
+                <input type="radio" name="model.operator" value=""> =
+            </label>
+            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'eas.operator.neq'|trans}}">
+                <input type="radio" name="model.operator" value="!" > ≠
+            </label>
+            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'eas.operator.any'|trans}}">
+                <input type="radio" name="model.operator" value="*" > ✓
+            </label>
+            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'eas.operator.none'|trans}}">
+                <input type="radio" name="model.operator" value="-" > ✕
+            </label>
+        </div>
+        <div class="eas-input-cell">
+            <input class="eas-input form-control" type="text" name="model" id="eas_model"> 
+        </div>
+        
+        {# product_number #}
+        <label class="eas-label" for="eas_product_number">{{ 'eas.desc.product_number'| trans }}:</label>
+        <div class="btn-group" data-toggle="buttons">
+            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'eas.operator.eq'|trans}}">
+                <input type="radio" name="product_number.operator" value=""> =
+            </label>
+            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'eas.operator.neq'|trans}}">
+                <input type="radio" name="product_number.operator" value="!" > ≠
+            </label>
+            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'eas.operator.any'|trans}}">
+                <input type="radio" name="product_number.operator" value="*" > ✓
+            </label>
+            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'eas.operator.none'|trans}}">
+                <input type="radio" name="product_number.operator" value="-" > ✕
+            </label>
+        </div>
+        <div class="eas-input-cell">
+            <input class="eas-input form-control" type="text" name="product_number" id="eas_product_number"> 
+        </div>
+
+        {# serial_number #}
+        <label class="eas-label" for="eas_serial_number">{{ 'eas.desc.serial_number'| trans }}:</label>
+        <div class="btn-group" data-toggle="buttons">
+            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'eas.operator.eq'|trans}}">
+                <input type="radio" name="serial_number.operator" value=""> =
+            </label>
+            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'eas.operator.neq'|trans}}">
+                <input type="radio" name="serial_number.operator" value="!" > ≠
+            </label>
+            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'eas.operator.any'|trans}}">
+                <input type="radio" name="serial_number.operator" value="*" > ✓
+            </label>
+            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'eas.operator.none'|trans}}">
+                <input type="radio" name="serial_number.operator" value="-" > ✕
+            </label>
+        </div>
+        <div class="eas-input-cell">
+            <input class="eas-input form-control" type="text" name="serial_number" id="eas_serial_number"> 
+        </div>
+
+        {# connector #}
+        <label class="eas-label" for="eas_connector">{{ 'eas.desc.connector'| trans }}:</label>
+        <div class="btn-group" data-toggle="buttons">
+            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'eas.operator.eq'|trans}}">
+                <input type="radio" name="connector.operator" value=""> =
+            </label>
+            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'eas.operator.neq'|trans}}">
+                <input type="radio" name="connector.operator" value="!" > ≠
+            </label>
+            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'eas.operator.any'|trans}}">
+                <input type="radio" name="connector.operator" value="*" > ✓
+            </label>
+            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'eas.operator.none'|trans}}">
+                <input type="radio" name="connector.operator" value="-" > ✕
+            </label>
+        </div>
+        <div class="eas-input-cell">
+            <input class="eas-input form-control" type="text" name="connector" id="eas_connector"> 
+        </div>
+
+        <input type="submit" hidden />
+    </div>
+    <div class="eas-footer">
+        <button type="button" class="btn-primary btn" id="eas_add_query">{{ 'eas.form.add_query'| trans }}</button>
+        <button type="submit" class="btn-default btn">{{ 'eas.form.search'| trans }}</button>
+        <button type="button" class="btn-default btn" onclick="$('#eas_form_container').slideToggle(250)" >{{ 'eas.form.hide'| trans }}</button>
+    </div>
+</form>

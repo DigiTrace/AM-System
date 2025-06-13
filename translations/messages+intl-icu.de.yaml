@@ -1,0 +1,64 @@
+
+not_implemented_yet: 'Noch nicht implementiert: {function}'
+# Extended Asset Search
+eas:
+  desc:
+    category: 'Kategorie'
+    status: 'Status'
+    barcode: 'Barcode'
+    name: 'Name'
+    description: 'Verwendung'
+    history_description: 'Ehem. Verwendung'
+    user: 'Nutzer'
+    history_user: 'Ehem. Nutzer'
+    reserved: 'Reserviert'
+    history_reserved: 'Ehem. reserviert'
+    location: 'Standort'
+    history_location: 'Ehem. Standort'
+    case: 'Fall'
+    history_case: 'Ehem. Fall'
+    caseactive: 'Ist zugewiesener Fall aktiv?'
+    note: 'Notiz'
+    type: 'Bauart'
+    form_factor: 'Formfaktor'
+    size: 'Speichergröße'
+    manufacturer: 'Hersteller'
+    model: 'Modell'
+    product_number: 'Produktnummer'
+    serial_number: 'Seriennummer'
+    connector: 'Anschluss'
+    date: 'Zuletzt aktualisiert'
+    date_end: 'Zuletzt aktualisiert vor'
+  error:
+    caseactive:
+      invalid: 'Für caseactive sind nur boolische Werte erlaubt'
+    category:
+      invalid: 'Ungültige Kategorienummer: {category}'
+    date:
+      invalid: 'Ungültiges Datum: {date}'
+    query:
+      empty: 'Leere Anfrage'
+    segment:
+      empty: 'Keine Suchkriterien gefunden in "{segment}"'
+      invalid: 'Keine gültigen Suchkriterien in "{segment}"'
+    tag:
+      unknown: 'Unbekanntes Suchkriterium: {tag}'
+  form:
+    add_query: 'Weiteren Suchterm hinufügen'
+    drive_section: 'Datenträgereigenschaften'
+    search: 'Suchen'
+    show: 'Erweiterte Suche'
+    hide: 'Einklappen'
+  operator:
+    any: 'gesetzt'
+    date:
+      after: 'nach'
+      before: 'bevor'
+      range: 'im Zeitraum'
+    eq: 'gleich'
+    gt: 'größer als'
+    lt: 'kleiner als'
+    neq: 'ungleich'
+    no: 'nein'
+    none: 'nicht gesetzt'
+    yes: 'ja'

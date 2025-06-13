@@ -26,15 +26,16 @@
   
    
     <div class="row">
-        <div class="col-sm-4"> <h2>{% trans %}objectsummary{% endtrans %}:</h2> </div>
-        <div class="col-sm-8" style="margin-top:7px">
-    
+        <div class="col-lg-4"> <h2>{% trans %}objectsummary{% endtrans %}:</h2> </div>
+        <div class="col-lg-8" style="margin-top:7px">
             {{ form_start(searchform) }}
-            {{ form_row(searchform.suchwort) }}
-            {{ form_row(searchform.anzahleintraege) }}
+            {{ form_row(searchform.search) }}
+            {{ form_row(searchform.limit) }}
+            {{ form_row(searchform.eas) }}
             {{ form_end(searchform) }}
         </div>
     </div>
+
     {% for label, messages in app.flashes %}
         {% for message in messages %}
             <div class="alert alert-{{ label }}">
@@ -42,6 +43,13 @@
             </div>
         {% endfor %}
     {% endfor %}
+
+    {# Include extended search form#}
+    <div id="eas_form_container" style="display: none;">
+        {{ include('default/assets/extended_asset_search_form.html.twig', {search_form: 'search_form', regex_single_match: regex_single_match, regex_multiple_match: regex_multiple_match}) }}
+    </div>
+
+   
     <table class="table">
         
     {% if pagination.getDirection == "desc" %} {% set arrow = '<span class="glyphicon glyphicon-arrow-down"></span>' %} 
@@ -50,19 +58,19 @@
         
     <thead>
       <tr>
-        <th class="col-md-2 col-sm-2">{{ knp_pagination_sortable(pagination,'desc.oid'|trans , 'o.barcode_id') }}
-                                                                                                {% if pagination.isSorted('o.barcode_id') %}
+        <th class="col-md-2 col-sm-2">{{ knp_pagination_sortable(pagination,'desc.oid'|trans , 'asset.barcode_id') }}
+                                                                                                {% if pagination.isSorted('asset.barcode_id') %}
                                                                                                 {{ arrow | raw}}
                                                                                                 {% endif %}
         </th>
         <!--<th class="col-md-2 col-sm-2">{% trans %}desc.category{% endtrans %}</th>-->
-        <th class="col-md-2 col-sm-2" >{{ knp_pagination_sortable(pagination, 'desc.category'|trans, 'o.kategorie_id') }} 
-                                                                                                {% if pagination.isSorted('o.kategorie_id') %}
+        <th class="col-md-2 col-sm-2" >{{ knp_pagination_sortable(pagination, 'desc.category'|trans, 'asset.kategorie_id') }} 
+                                                                                                {% if pagination.isSorted('asset.kategorie_id') %}
                                                                                                 {{ arrow | raw}}
                                                                                                 {% endif %}
                                                                                                                                                                                            </th>
-        <th class="col-md-7 col-sm-7">{{ knp_pagination_sortable(pagination, 'desc.name'|trans, 'o.name') }} 
-                                                                                                {% if pagination.isSorted('o.name') %}
+        <th class="col-md-7 col-sm-7">{{ knp_pagination_sortable(pagination, 'desc.name'|trans, 'asset.name') }} 
+                                                                                                {% if pagination.isSorted('asset.name') %}
                                                                                                 {{ arrow | raw}}
                                                                                                 {% endif %}
         </th>
@@ -116,12 +124,6 @@
 
 {% block context %}
     <a href="{{ path("add_object") }}"><span class="glyphicon glyphicon-pencil"></span> {% trans %}action.add.object{% endtrans %}</a><br>
-    <a href="{{ path("search_objects") }}?suche=c:0"><span class="glyphicon glyphicon-search"></span> {% trans %}action.filter.exhibit{% endtrans %}</a> <br>
-    <a href="{{ path("search_objects") }}?suche=c:3"><span class="glyphicon glyphicon-search"></span> {% trans %}action.filter.hdd{% endtrans %}</a> <br>
-    <a href="{{ path("search_objects") }}?suche=c:4"><span class="glyphicon glyphicon-search"></span> {% trans %}action.filter.record{% endtrans %}</a> <br>
-    <a href="{{ path("search_objects") }}?suche=c:1"><span class="glyphicon glyphicon-search"></span> {% trans %}action.filter.equipment{% endtrans %}</a> <br>
-    <a href="{{ path("search_objects") }}?suche=c:2"><span class="glyphicon glyphicon-search"></span> {% trans %}action.filter.container{% endtrans %}</a> <br>
-    {#<a href="{{ path("search_objects") }}?suche=c:{{ categorytemp[1] |trans }}"><span class="glyphicon glyphicon-search"></span> {% trans %}action.filter.equipment{% endtrans %} {{ date("-2days") |date("d-m-Y")  }}</a> <br>#}
     <a href="{{ path("search_objects_faq") }}"><span class="glyphicon glyphicon-question-sign"></span> {% trans %}action.object.faq.search{% endtrans %}</a> <br>
     <a href='{{ path("select_new_status_for_multiple_objects")}}'> <span class="glyphicon glyphicon-pencil"></span> {% trans %}action.chosen.object.change{% endtrans %}</a><br>
       

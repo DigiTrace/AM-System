@@ -55,16 +55,4 @@ abstract class BaseWebTestCase extends WebTestCase
         $repo = static::getContainer()->get($repository);
         $this->assertEmpty($repo->findBy($matchCriteria), "Failed asserting that no $repository matching records exist in database.");
     }
-
-    /**
-     * Call after something thats changes the DB state. Now the DB changes are actually persisted and you can debug them
-     * @return never
-     */
-    protected function dieForDebug()
-    {
-        // ... something thats changes the DB state
-        \DAMA\DoctrineTestBundle\Doctrine\DBAL\StaticDriver::commit();
-        die;
-        // now the DB changes are actually persisted and you can debug them
-    }
 }
