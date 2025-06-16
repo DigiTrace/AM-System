@@ -24,7 +24,7 @@ class ObjektControllerTest extends BaseWebTestCase
     {
         yield ['/objekte/faq'];
         yield ['/objekte'];
-        yield ['/objekt-scanner'];
+        yield ['/objekte-scanner'];
         yield ['/objekt/anlegen'];
         yield ['/objekte/aendern/'];
     }
