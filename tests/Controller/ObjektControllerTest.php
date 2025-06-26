@@ -315,11 +315,11 @@ class ObjektControllerTest extends BaseWebTestCase
             'expected_results' => 1,
         ];
         yield 'Note query' => [
-            'query' => "notice:note_string",
+            'query' => "note:note_string",
             'expected_results' => 1,
         ];
         yield 'Description query' => [
-            'query' => "mdesc:current_description",
+            'query' => "desc:current_description",
             'expected_results' => 2,
         ];
         // yield 'Previous description query' => [
@@ -327,15 +327,15 @@ class ObjektControllerTest extends BaseWebTestCase
         //     'expected_results' => 2,
         // ];
         yield 'Reservation query (name)' => [
-            'query' => "mr:current_reservation",
+            'query' => "r:current_reservation",
             'expected_results' => 1,
         ];
         yield 'Reservation query (not reserved)' => [
-            'query' => "mr:false",
+            'query' => "r:false",
             'expected_results' => 4,
         ];
         yield 'Reservation query (reserved)' => [
-            'query' => "mr:true",
+            'query' => "r:true",
             'expected_results' => 1,
         ];
         // yield 'Previous reservation query (name)' => [
@@ -351,7 +351,7 @@ class ObjektControllerTest extends BaseWebTestCase
         //     'expected_results' => 1,
         // ];
         yield 'Stored in query' => [
-            'query' => "mstoredin:DTHW33344",
+            'query' => "l:DTHW33344",
             'expected_results' => 1,
         ];
         // yield 'Previous stored in query' => [
@@ -359,7 +359,7 @@ class ObjektControllerTest extends BaseWebTestCase
         //     'expected_results' => 1,
         // ];
         yield 'Case query' => [
-            'query' => "mcase:case_id",
+            'query' => "case:case_id",
             'expected_results' => 1,
         ];
         // yield 'Previos case query' => [
@@ -403,15 +403,15 @@ class ObjektControllerTest extends BaseWebTestCase
             'expected_results' => 1,
         ];
         yield 'Date query (exact)' => [
-            'query' => "mdate:24.02.2042",
+            'query' => "d:24.02.2042",
             'expected_results' => 1,
         ];
         yield 'Date query (older)' => [
-            'query' => "mdate:<10.02.1970",
+            'query' => "d:<10.02.1970",
             'expected_results' => 1,
         ];
         yield 'Date query (newer)' => [
-            'query' => "mdate:>17.03.2040",
+            'query' => "d:>17.03.2040",
             'expected_results' => 2,
         ];
     }
@@ -1329,10 +1329,10 @@ class ObjektControllerTest extends BaseWebTestCase
 
         $client = static::createClient();
         $crawler = $this->loginUser($client)->request('POST', "/objekte");
-        $form = $crawler->selectButton('Suchen')->form();
+        $form = $crawler->filter("#search_form")->form();
         $crawler = $client->submit($form, [
-            'form[suchwort]' => $query,
-            'form[anzahleintraege]' => '1000'
+            'form[search]' => $query,
+            'form[limit]' => '1000'
         ]);
         $this->assertResponseIsSuccessful();
         $this->assertEquals($expectedResults, $crawler->filter("tbody tr")->count(), "Unexpected number of search results"); 
