@@ -54,8 +54,6 @@ class ActionChooseType extends AbstractType
         
         $forbiddenstatus = array(helper::STATUS_EDITIERT,
                                  helper::STATUS_EINGETRAGEN,
-                                 helper::STATUS_VERLOREN,
-                                 helper::STATUS_VERNICHTET,
                                  helper::STATUS_FESTPLATTENIMAGE_GESPEICHERT);
         
         foreach($tempchoices as $status=>$statusvalue){
