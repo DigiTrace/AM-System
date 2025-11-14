@@ -1,0 +1,16 @@
+<script>
+    /**
+     * Displays an bootstrap alert at `anchor` wit level `type` and contents `message`.
+     */
+    const showAlert = function(type, message, anchor, is_dismissible=true, dom_id=null) {
+        const dismissible = is_dismissible ? 'alert-dismissible' : '';
+        const id = dom_id ? `id="${dom_id}"` : '';
+
+        const alert = 
+        `<div class="alert alert-${type} ${dismissible}" ${id} role="alert">
+            <button type="button" class="close" data-dismiss="alert" aria-label="{{ 'form.close'| trans }}"><span aria-hidden="true">&times;</span></button>
+            ${message}
+        </div>`;
+        $(anchor).append(alert);
+    }
+</script>

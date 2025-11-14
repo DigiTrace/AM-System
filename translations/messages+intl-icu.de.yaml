@@ -62,3 +62,45 @@ eas:
     no: 'nein'
     none: 'nicht gesetzt'
     yes: 'ja'
+
+# user translations
+user:
+  user: 'Nutzer'
+  username: &user_username 'Nutzername'
+  fullname: &user_fullname 'Vollständiger Name'
+  email: &user_email 'E-Mail'
+  overview: 'Nutzerübersicht'
+  not_found: 'Nutzer konnte nicht gefunden werden'
+  form:
+    actions: 'Aktionen'
+    email: *user_email
+    state: 'Status'
+    state_enabled: 'Aktiv'
+    state_disabled: 'Deaktiviert'
+    state_subscribed: 'Benachrichtigungen'
+    state_unsubscribed: 'Keine Benachrichtigungen'
+    enabled: 'Nutzer wurde aktiviert.'
+    disabled: 'Nutzer wurde deaktiviert.'
+    subscribed: 'Nutzer wird nun bei Erstellung eines Falles benachrichtigt.'
+    unsubscribed: 'Nutzer wird nun nicht mehr bei Erstellung eines Falles benachrichtigt.'
+  actions:
+    add: 'Neuen Nutzer hinzufügen'
+    show: 'Nutzerübersicht öffnen'
+    deactivate: 'Nutzer deaktivieren (Er kann sich nicht mehr einloggen)'
+    activate: 'Nutzer reaktivieren'
+    subscribe_case: 'Nutzer bei Erstellung eines Falles benachrichtigen'
+    unsubscribe_case: 'Nutzer bei Erstellung eines Falles nicht mehr benachrichtigen'
+    
+security:
+  login:
+    username: *user_username
+    fullname: *user_fullname
+    password: 'Passwort'
+    remember_me: 'Eingeloggt bleiben'
+    submit: 'Login'
+  changepw:
+    oldPW: 'Altes Passwort:'
+    newPW: 'Neues Passwort:'
+
+form:
+  close: 'Schließen'

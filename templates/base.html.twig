@@ -31,7 +31,26 @@
         <script src="{{asset('js/bootstrap.min.js')}}" ></script>
         <link rel="icon" type="image/x-icon" href="{{ asset('img/favicon.ico') }}" />
         
-        
+        <style>
+          code {
+              text-wrap-mode: nowrap;
+          }
+          .badge-danger: {
+              background-color: #d9534f;
+          }
+          .badge-info {
+              background-color: #5bc0de;
+          }
+          .badge-primary {
+              background-color: #337ab7;
+          }
+          .badge-success {
+              background-color: #5cb85c;
+          }
+          .badge-warning {
+              background-color: #f0ad4e;
+          }
+      </style>
     </head>
     <body > 
         
@@ -59,14 +78,14 @@
                 
                 <ul class="nav navbar-nav navbar-right">
                   {% if app.user is not null%}
-                  <li><a href='{{ path('Nutzerlogout') }}'><span class="glyphicon glyphicon-log-out"></span> {% trans %}action.logout{% endtrans %}</a></li>
+                  <li><a href='{{ path('logout') }}'><span class="glyphicon glyphicon-log-out"></span> {% trans %}action.logout{% endtrans %}</a></li>
                   {% endif %}
                 </ul>
                 <ul class="nav navbar-nav navbar-right">
                      {% if app.user is null %}
                         <li class="navbar-brand">Anonym</li>
                     {% else %}
-                    <li class="navbar-brand" onclick="window.location.href='{{ path('Nutzerprofil') }}'">{{ app.user.username }}</li>
+                    <li class="navbar-brand" onclick="window.location.href='{{ path('user_profile') }}'">{{ app.user.username }}</li>
                     {% endif %}
                 </ul>
                 

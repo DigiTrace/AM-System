@@ -1,4 +1,6 @@
 not_implemented_yet: 'Not implemented yet: {function}'
+
+# extended asset search
 eas:
   desc:
     category: 'Category'
@@ -61,4 +63,67 @@ eas:
     none: is not set
     yes: 'yes'
     
+# user translations
+user:
+  user: 'User'
+  username: 'Username'
+  fullname: 'Full name'
+  email: 'Email'
+  not_found: 'User not found'
+  overview: 'User Overview' # former "summary"
+  
+  index:
+    greeting: 'Hello {user}!'
+  form:
+    username: 'Username:'
+    fullname: 'Full name:'
+    email: 'Email:'
+    password: 'Password:'
+    notify_case_creation: 'Notify case creation:'
+    state: 'State:'
+    actions: 'Actions:'
+    state_enabled: 'Enabled'
+    state_disabled: 'Disabled'
+    state_subscribed: 'Subscribed'
+    state_unsubscribed: 'Unsubscribed'
+    enabled: 'User was enabled.'
+    disabled: 'User was disabled.'
+    subscribed: 'User subscribed to case creation notfiy.'
+    unsubscribed: 'User unsubscribed from case creation notfiy.'
+    apply: 'Apply changes'
+    reset: 'Reset changes'
+    edit_profile: 'Edit profile information:'
+    edit_successul: 'Profile updated succesfully'
+    error:
+      duplicate: 'Profile could not be updated. New values collide with existing users.'
+  actions:
+    add: 'Add new user'
+    show: 'Show user overview'
+    deactivate: 'Deactivate user(He cant login anymore)'
+    activate: 'Reactivate user'
+    subscribe_case: 'Notify user on case creation'
+    unsubscribe_case: 'Do not notify user on case creation'
 
+profile:
+  page: a
+    
+security:
+  username: &security_username 'Username:'
+  fullname: &security_fullname 'Full name:'
+  email: &security_email 'Email:'
+  password: 'Password:'
+  add_user: 'Add user'
+  duplicate_user: 'Provided user information matches existing one.'
+  user_added: 'User succesfully added.'
+  login:
+    username: *security_username
+    fullname: *security_fullname
+    password: 'Password:'
+    remember_me: 'Remember me'
+    submit: 'Login'
+  changepw:
+    oldPW: 'Old Password:'
+    newPW: 'New Password:'
+
+form:
+  close: 'Close'

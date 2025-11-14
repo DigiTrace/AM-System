@@ -294,10 +294,6 @@
                 <source>action.edit.profile</source>
                 <target>Profil ändern</target>
             </trans-unit>
-            <trans-unit id="action_add_user">
-                <source>action.add.user</source>
-                <target>Neuen Nutzer eintragen</target>
-            </trans-unit>
             <trans-unit id="action_change_password">
                 <source>action.change.password</source>
                 <target>Passwort ändern</target>
@@ -552,10 +548,6 @@
                 <source>timestamp.value.not.valid</source>
                 <target>Angabe des Datums fehlerhaft</target>
             </trans-unit>
-            <trans-unit id="usersummary">
-                <source>usersummary</source>
-                <target>Nutzerübersicht</target>
-            </trans-unit>
             <trans-unit id="hddsummary">
                 <source>hddsummary</source>
                 <target>Festplattenübersicht</target>
@@ -568,37 +560,9 @@
                 <source>containersummary</source>
                 <target>Behälterübersicht</target>
             </trans-unit>
-            <trans-unit id="user">
-                <source>user</source>
-                <target>Nutzer</target>
-            </trans-unit>
-            <trans-unit id="useremail">
-                <source>useremail</source>
-                <target>E-Mail</target>
-            </trans-unit>
-            <trans-unit id="useroptions">
-                <source>useroptions</source>
-                <target>Nutzeroptionen</target>
-            </trans-unit>
             <trans-unit id="userlastlogin">
                 <source>userlastlogin</source>
                 <target>Letzte Anmeldung</target>
-            </trans-unit>
-            <trans-unit id="action_deactivate_user">
-                <source>action.deactivate.user</source>
-                <target>Nutzer deaktivieren (Er kann sich nicht mehr einloggen)</target>
-            </trans-unit>
-            <trans-unit id="action_reactivate_user">
-                <source>action.reactivate.user</source>
-                <target>Nutzer reaktivieren</target>
-            </trans-unit>
-            <trans-unit id="action_show_users">
-                <source>action.show.users</source>
-                <target>Nutzeransicht öffnen</target>
-            </trans-unit>
-            <trans-unit id="user_not_found">
-                <source>user.not.found</source>
-                <target>Nutzer konnte nicht gefunden werden</target>
             </trans-unit>
             <trans-unit id="error_image_cant_be_saved">
                 <source>error.image.cant.be.saved</source>
@@ -1045,15 +1009,6 @@ AM-System
                 <target>Ist Aktiv:</target>
             </trans-unit>
             
-             <trans-unit id="action.subscribe_case_creation.user">
-                <source>action.subscribe_case_creation.user</source>
-                <target>Nutzer bei Erstellung eines Falles benachrichtigen</target>
-            </trans-unit>
-            
-            <trans-unit id="action.unsubscribe_case_creation.user">
-                <source>action.unsubscribe_case_creation.user</source>
-                <target>Nutzer bei Erstellung eines Falles nicht mehr benachrichtigen</target>
-            </trans-unit>
             
             <trans-unit id="desc.enable.relate.to.case">
                 <source>desc.enable.relate.to.case</source>
@@ -1135,42 +1090,7 @@ AM-System
                 <target>Vertraulichkeitsstufe ist nicht definiert worden</target>
             </trans-unit>
 
-            <trans-unit id="security.login.username">
-                <source>security.login.username</source>
-                <target>Nutzername</target>
-            </trans-unit>
 
-            <trans-unit id="security.login.fullname">
-                <source>security.login.fullname</source>
-                <target>Vollständiger Name</target>
-            </trans-unit>
-
-            <trans-unit id="security.login.password">
-                <source>security.login.password</source>
-                <target>Passwort</target>
-            </trans-unit>
-
-
-            <trans-unit id="security.login.remember_me">
-                <source>security.login.remember_me</source>
-                <target>Angemeldet bleiben</target>
-            </trans-unit>
-
-            <trans-unit id="security.login.submit">
-                <source>security.login.submit</source>
-                <target>Einloggen</target>
-            </trans-unit>
-
-
-            <trans-unit id="security.changepw.oldPW">
-                <source>security.changepw.oldPW</source>
-                <target>Altes Passwort:</target>
-            </trans-unit>
-
-            <trans-unit id="security.changepw.newPW">
-                <source>security.changepw.newPW</source>
-                <target>Neues Passwort:</target>
-            </trans-unit>
 
             <trans-unit id="security.changepw.oldPW.incorrect">
                 <source>security.changepw.oldPW.incorrect</source>
@@ -1182,36 +1102,6 @@ AM-System
                 <target>Neues Passwort gesetzt</target>
             </trans-unit>
 
-            <trans-unit id="security.adduser.account.created">
-                <source>security.adduser.account.created</source>
-                <target>Neuen Benutzer erstellt</target>
-            </trans-unit>
-
-            <trans-unit id="security.adduser.account.fail.dup.user">
-                <source>security.adduser.account.fail.dup.user</source>
-                <target>Bereitgestellte Informationen treffen auf einen bereits bestehenden Nutzer zu, bitte prüfen Sie dies in der Nutzeransicht nach</target>
-            </trans-unit>
-
-            <trans-unit id="security.adduser.username">
-                <source>security.adduser.username</source>
-                <target>Nutzername:</target>
-            </trans-unit>
-
-            <trans-unit id="security.adduser.fullname">
-                <source>security.adduser.fullname</source>
-                <target>Vollständiger Name:</target>
-            </trans-unit>
-
-
-            <trans-unit id="security.adduser.password">
-                <source>security.adduser.password</source>
-                <target>Passwort:</target>
-            </trans-unit>
-
-            <trans-unit id="security.adduser.email">
-                <source>security.adduser.email</source>
-                <target>E-Mail:</target>
-            </trans-unit>
 
             <trans-unit id="profile_successful_changed">
                 <source>profile.successful.changed</source>

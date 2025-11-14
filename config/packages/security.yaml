@@ -32,12 +32,12 @@ security:
             pattern: ^/
             user_checker: App\Security\UserChecker
             form_login:
-                login_path: Nutzerlogin
-                check_path: Nutzerlogin
+                login_path: login
+                check_path: login
                 provider: app_user_provider
                 enable_csrf: true
             logout:
-                path: Nutzerlogout
+                path: logout
             remember_me:
                 secret: '%kernel.secret%' # required
                 lifetime: 604800 # 1 week in seconds

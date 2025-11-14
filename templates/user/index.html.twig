@@ -1,0 +1,22 @@
+{% extends 'base.html.twig' %}
+{% block content1 %}
+    <h2>{{ 'user.index.greeting' | trans({'%user%': user.getUsername}) }} </h2>
+    <div id="alert-anchor">
+
+    <h3>{{ 'user.form.edit_profile' | trans }}</h3>
+    {% for label, messages in app.flashes %}
+        {% for message in messages %}
+            <div class="alert alert-{{ label }}">
+                {{ message |trans }}
+            </div>
+            {% endfor %}
+        {% endfor %}
+    </div>
+
+    {{ include('user/change_user_form.html.twig', {form:form}) }}
+
+{% endblock %}
+
+{% block context %}
+{{ include('admin/context.html.twig') }}
+{% endblock %}
