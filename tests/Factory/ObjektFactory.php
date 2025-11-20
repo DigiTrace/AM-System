@@ -114,6 +114,7 @@ final class ObjektFactory extends PersistentProxyObjectFactory
             'zeitstempel' => self::faker()->dateTime(),
             'zeitstempelumsetzung' => self::faker()->dateTime(),
             'nutzer' => LazyValue::memoize(fn () => NutzerFactory::createOne()),
+            
         ];
 
         return $defaults;

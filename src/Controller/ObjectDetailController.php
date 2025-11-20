@@ -134,7 +134,7 @@ class ObjectDetailController extends AbstractController{
                    $new_object->setNotiz($info['notiz']);
                    $new_object->setKategorie($info['kategorie_id']);
                    $new_object->setZeitstempelumsetzung($info['dueDate']);
-
+                   
                    
                    $new_object->setNutzer($em->getRepository(Nutzer::class)->findOneBy(array('id' => $usr->getId())));
 
@@ -746,11 +746,15 @@ class ObjectDetailController extends AbstractController{
         $hist->setReserviertVon($object->getreserviertVon());
         $hist->setStandort($object->getStandort());
         $hist->setZeitstempelumsetzung($object->getZeitstempelumsetzung());
-        // Veraenderte Daten
+        // Changed Data
         $hist->setStatusId(Objekt::STATUS_EDITIERT);
         $hist->setVerwendung($newVerwendung);
         $hist->setSystemaktion(true);
         $hist->setZeitstempel(new \DateTime("now"));
+
+        // This new historyentry needs a new dbversion and cannot use the old version schema 
+        $hist->setDBVersion(Objekt::CURRENT_DB_VERSION);
+
 
         foreach($object->getImages() as $image){
             $hist->addImage($image);
@@ -951,6 +955,7 @@ class ObjectDetailController extends AbstractController{
 
         $new_status = $status_id;
         
+        $object->updateDBVersion();
         $object->setSystemaktion($isSystemaktion);
 
         $object->setZeitstempel(new \DateTime('now'));

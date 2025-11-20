@@ -31,6 +31,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 #[ORM\Table(name: "ams_Objekt")]
 class Objekt
 {
+    const CURRENT_DB_VERSION = "1.0";
     const KATEGORIE_ASSERVAT = 0;
     const KATEGORIE_AUSRUESTUNG = 1;
     const KATEGORIE_BEHAELTER = 2;
@@ -98,6 +99,9 @@ class Objekt
         
         $this->HDDs = new \Doctrine\Common\Collections\ArrayCollection();
         $this->Images = new \Doctrine\Common\Collections\ArrayCollection();
+
+        // Setting dbversion is required for phpunit testing
+        $this->dbversion = Objekt::CURRENT_DB_VERSION;
         
     }
 
@@ -106,7 +110,7 @@ class Objekt
     #[ORM\OneToMany(targetEntity:"Objekt",mappedBy:"standort")]
     protected $barcode_id;
 
-    
+
     #[ORM\Column(type: "text")]
     protected $name;
     
@@ -175,7 +179,11 @@ class Objekt
     #[ORM\OneToOne(targetEntity: "ObjektBlob", mappedBy:"objekt",cascade: ["persist", "remove"])]
     protected $objektBlob;
     
-    
+    // In dieser Variable wird die Version der DB dokumentiert, damit im Nachgang nachvollzogen werden kann,
+    // nach welchen Regeln der Eintrag erfolgt ist.
+    // Diese Variable wird im Konstruktor gesetzt und wird nicht nachtraeglich veraendert
+    #[ORM\Column(type: "text")]
+    protected $dbversion;
 
     
   
@@ -704,6 +712,16 @@ class Objekt
         return $this->systemaktion;
     }
     
+    // Diese Methode setzt im Objekt die aktuell DB Version
+    // Dies ist notwendig, wenn sich Datenbankschema aendert
+    public function updateDBVersion(){
+        $this->dbversion = Objekt::CURRENT_DB_VERSION;
+    }
+
+    public function getDBVersion(){
+        return $this->dbversion;
+    }
+
     
 
     public function isObjectWithNewStatusValid( $newstatus, 
@@ -931,6 +949,7 @@ class Objekt
         $hist->setZeitstempel($this->getZeitstempel());
         $hist->setZeitstempelumsetzung($this->getZeitstempelumsetzung());
         $hist->setSystemaktion($this->GetSystemaktion());
+        $hist->setDBVersion($this->getDBVersion());
         
         
         foreach($this->getImages() as $image){

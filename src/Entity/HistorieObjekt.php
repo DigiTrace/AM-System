@@ -74,6 +74,16 @@ class HistorieObjekt
     #[ORM\InverseJoinColumn(name: 'barcode_id', referencedColumnName: 'barcode_id')]
     private $images;
 
+
+    // In dieser Variable wird die Version der DB dokumentiert, damit im Nachgang nachvollzogen werden kann,
+    // nach welchen Regeln der Eintrag erfolgt ist.
+    // Diese Variable wird im Konstruktor gesetzt und wird nicht nachtraeglich veraendert
+    #[ORM\Column(type: "text")]
+    protected $dbversion;
+
+
+
+
     public function __construct($barcode_id)
     {
         $this->barcode_id = $barcode_id;
@@ -313,4 +323,17 @@ class HistorieObjekt
     {
         return $this->images;
     }
+
+
+    public function getDBVersion()
+    {
+        return $this->dbversion;
+    }
+
+    public function setDBVersion($dbversion)
+    {
+        $this->dbversion = $dbversion;
+    }
+
+
 }
