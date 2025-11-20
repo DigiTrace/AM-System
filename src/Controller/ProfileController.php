@@ -11,7 +11,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Core\Validator\Constraints as SecurityConstraints;
-use Symfony\Component\Validator\Constraints;
+use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Component\Validator\Context\ExecutionContextInterface;
 
 /**
@@ -56,7 +56,6 @@ class ProfileController extends AbstractController
         return $this->render('user/index.html.twig', [
             'user' => $user,
             'form' => $form->createView(),
-            'controller_name' => 'ProfileController',
         ]);
     }
 
@@ -160,7 +159,7 @@ class ProfileController extends AbstractController
             'label' => 'user.form.old_password',
             'required' => true,
             'constraints' => [
-                new Constraints\NotBlank(),
+                new Assert\NotBlank(),
                 new SecurityConstraints\UserPassword([
                     'message' => 'user.violation.incorrect_password',
                 ]),
@@ -173,7 +172,7 @@ class ProfileController extends AbstractController
             'label' => 'user.form.new_password',
             'required' => true,
             'constraints' => [
-                new Constraints\NotBlank(),
+                new Assert\NotBlank(),
             ],
         ])
         ->add('new_password_repeat', FormField\PasswordType::class, [
@@ -181,10 +180,10 @@ class ProfileController extends AbstractController
             'label' => 'user.form.new_password_repeat',
             'required' => true,
             'constraints' => [
-                new Constraints\NotBlank(),
+                new Assert\NotBlank(),
                 // Check if new passwords match
                 // TODO exclude as own constraint
-                new Constraints\Callback(function ($new_password_repeat, ExecutionContextInterface $context, $payload) {
+                new Assert\Callback(function ($new_password_repeat, ExecutionContextInterface $context, $payload) {
                     $form = $context->getRoot();
                     $new_password = $form->get('new_password')->getData();
 

@@ -38,45 +38,48 @@ class AdminControllerTest extends BaseWebTestCase
             'roles' => ['ROLE_USER'],
         ]];
     }
-    
-    public function setUserActionProvider() {
+
+    public function setUserActionProvider()
+    {
         yield [false, false];
         yield [false, true];
         yield [true, false];
         yield [true, true];
     }
 
-     public function invalidUserProvider(){
+    public function invalidUserProvider()
+    {
         yield [[
             'username' => 'Admin', // already in use
             'fullname' => 'huhiu',
             'email' => 'what@an.email',
             'plainpassword' => 'password :)',
-            'notifyCaseCreation' => "0",
+            'notifyCaseCreation' => '0',
         ]];
         yield [[
             'username' => 'Admin',
             'fullname' => 'user', // already in use
             'email' => 'what@an.email',
             'plainpassword' => 'password :)',
-            'notifyCaseCreation' => "0",
+            'notifyCaseCreation' => '0',
         ]];
         yield [[
             'username' => 'Admin',
             'fullname' => 'huhiu',
             'email' => 'user@localhost', // already in use
             'plainpassword' => 'password :)',
-            'notifyCaseCreation' => "0",
+            'notifyCaseCreation' => '0',
         ]];
     }
 
-    public function validUserProvider(){
+    public function validUserProvider()
+    {
         yield [[
             'username' => 'Gottfried',
             'fullname' => 'Gott Fried',
             'email' => 'Gott-fried@email.com',
             'plainpassword' => 'password :)',
-            'notifyCaseCreation' => "0",
+            'notifyCaseCreation' => '0',
         ]];
     }
 
@@ -108,11 +111,12 @@ class AdminControllerTest extends BaseWebTestCase
     /**
      * @dataProvider userSummaryProvider
      */
-    public function testUserSummary($attr){
+    public function testUserSummary($attr)
+    {
         // setup
         $factory = NutzerFactory::new();
         $user = $factory->with($attr)->create();
-        
+
         // do request
         $client = static::createClient();
 
@@ -123,7 +127,8 @@ class AdminControllerTest extends BaseWebTestCase
     /**
      * @dataProvider setUserActionProvider
      */
-    public function testSetUserEnableAction($enabled, $set_enabled){
+    public function testSetUserEnableAction($enabled, $set_enabled)
+    {
         // setup
         $factory = NutzerFactory::new();
         $client = $this->loginAdmin(static::createClient());
@@ -132,7 +137,7 @@ class AdminControllerTest extends BaseWebTestCase
         $user = $factory->with([
             'enabled' => $enabled,
         ])->create();
-        
+
         $form_data = [
             'username' => $user->getUsername(),
             'enable' => $set_enabled ? 'on' : 'off',
@@ -149,11 +154,11 @@ class AdminControllerTest extends BaseWebTestCase
         ]);
     }
 
-
     /**
      * @dataProvider setUserActionProvider
      */
-    public function testSetCaseSubscriptionAction($enabled, $set_enabled){
+    public function testSetCaseSubscriptionAction($enabled, $set_enabled)
+    {
         // setup
         $factory = NutzerFactory::new();
         $client = $this->loginAdmin(static::createClient());
@@ -162,7 +167,7 @@ class AdminControllerTest extends BaseWebTestCase
         $user = $factory->with([
             'notifyCaseCreation' => $enabled,
         ])->create();
-        
+
         $form_data = [
             'username' => $user->getUsername(),
             'enable' => $set_enabled ? 'on' : 'off',
@@ -179,7 +184,7 @@ class AdminControllerTest extends BaseWebTestCase
         ]);
     }
 
-     /**
+    /**
      * @dataProvider invalidUserProvider
      */
     public function testAddUserInvalid($user)
@@ -209,6 +214,7 @@ class AdminControllerTest extends BaseWebTestCase
 
     /**
      * @depends testAddUserInvalid
+     *
      * @dataProvider validUserProvider
      */
     public function testAddUserValid($user)
@@ -235,14 +241,13 @@ class AdminControllerTest extends BaseWebTestCase
         $this->seeInDatabase(NutzerRepository::class, $user);
     }
 
-
     //
     // ================ HELPER METHODS ================
     //
 
     protected function assertInOverviewPageCorrect($client, $user): Crawler
     {
-        if (is_object($user)){
+        if (is_object($user)) {
             $user = [
                 'username' => $user->getUsername(),
                 'fullname' => $user->getFullname(),
@@ -260,17 +265,16 @@ class AdminControllerTest extends BaseWebTestCase
         // test state
         $this->assertSelectorTextContains(
             "span.user_state[data-username='{$user['username']}'][style='display:none;']",
-            $user['enabled'] ?  'user.form.state_disabled' : "user.form.state_enabled"
+            $user['enabled'] ? 'user.form.state_disabled' : 'user.form.state_enabled'
         );
         // test notify case creation
         $this->assertSelectorTextContains(
             "span.subscription_state[data-username='{$user['username']}'][style='display:none;']",
-            $user['notify'] ? 'user.form.state_unsubscribed' : "user.form.state_subscribed"
+            $user['notify'] ? 'user.form.state_unsubscribed' : 'user.form.state_subscribed'
         );
-        if (!$user['admin']){
+        if (!$user['admin']) {
             $this->assertSelectorExists("a.toggle_enable_user[data-username='{$user['username']}']");
-        }
-        else {
+        } else {
             $this->assertSelectorNotExists("a.toggle_enable_user[data-username='{$user['username']}']");
         }
 
