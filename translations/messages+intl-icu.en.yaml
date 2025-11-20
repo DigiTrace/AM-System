@@ -1,5 +1,15 @@
 not_implemented_yet: 'Not implemented yet: {function}'
 
+# general form labels/messages
+form:
+  actions: &form_actions 'Actions'
+  apply: &form_apply 'Apply'
+  cancel: &form_cancel 'Cancel'
+  close: &form_close 'Close'
+  reset: &form_reset 'Reset'
+  save: &form_save 'Save'
+  search: &form_search 'Search'
+
 # extended asset search
 eas:
   desc:
@@ -65,23 +75,27 @@ eas:
     
 # user translations
 user:
-  user: 'User'
-  username: 'Username'
-  fullname: 'Full name'
-  email: 'Email'
+  user: &user_user 'User'
+  username: &user_username 'Username'
+  fullname: &user_fullname 'Full name'
+  email: &user_email 'Email'
   not_found: 'User not found'
   overview: 'User Overview' # former "summary"
   
-  index:
-    greeting: 'Hello {user}!'
+  page:
+    index: 'Hello {user}!'
+    password: 'Change password'
   form:
-    username: 'Username:'
-    fullname: 'Full name:'
-    email: 'Email:'
-    password: 'Password:'
-    notify_case_creation: 'Notify case creation:'
-    state: 'State:'
-    actions: 'Actions:'
+    username: *user_username
+    fullname: *user_fullname
+    email: *user_email
+    password: &user_form_password 'Password'
+    old_password: &user_form_old_password 'Current password'
+    new_password: &user_form_new_password 'New password'
+    new_password_repeat: &user_form_new_password_repeat 'Repeat new password'
+    notify_case_creation: 'Notify case creation'
+    actions: *form_actions
+    state: 'State'
     state_enabled: 'Enabled'
     state_disabled: 'Disabled'
     state_subscribed: 'Subscribed'
@@ -90,11 +104,16 @@ user:
     disabled: 'User was disabled.'
     subscribed: 'User subscribed to case creation notfiy.'
     unsubscribed: 'User unsubscribed from case creation notfiy.'
-    apply: 'Apply changes'
-    reset: 'Reset changes'
+    apply: *form_apply
+    reset: *form_reset
+    save: *form_save
     edit_profile: 'Edit profile information:'
     edit_successul: 'Profile updated succesfully'
+    change_password: '' # left empty
+    password_change_successful: 'Password succesfully changed'
     error:
+      incorrect_password: 'Incorrect password.'
+      passwords_not_matching: 'Provided new passwords do not match.'
       duplicate: 'Profile could not be updated. New values collide with existing users.'
   actions:
     add: 'Add new user'
@@ -103,27 +122,18 @@ user:
     activate: 'Reactivate user'
     subscribe_case: 'Notify user on case creation'
     unsubscribe_case: 'Do not notify user on case creation'
-
-profile:
-  page: a
     
 security:
-  username: &security_username 'Username:'
-  fullname: &security_fullname 'Full name:'
-  email: &security_email 'Email:'
-  password: 'Password:'
+  username: &security_username *user_username
+  fullname: &security_fullname *user_fullname
+  email: &security_email *user_email
+  password: *user_form_password
   add_user: 'Add user'
   duplicate_user: 'Provided user information matches existing one.'
   user_added: 'User succesfully added.'
   login:
     username: *security_username
     fullname: *security_fullname
-    password: 'Password:'
+    password: *user_form_password
     remember_me: 'Remember me'
     submit: 'Login'
-  changepw:
-    oldPW: 'Old Password:'
-    newPW: 'New Password:'
-
-form:
-  close: 'Close'

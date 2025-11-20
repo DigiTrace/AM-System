@@ -172,22 +172,22 @@ class AdminController extends AbstractController
         ->add('username', TextType::class, [
             'label' => 'security.username',
             'required' => true,
-            'attr' => ['autocomplete' => 'off'],
+            'attr' => ['autocomplete' => 'new-username'],
         ])
         ->add('fullname', TextType::class, [
             'label' => 'security.fullname',
             'required' => true,
-            'attr' => ['autocomplete' => 'off'],
+            'attr' => ['autocomplete' => 'new-fullname'],
         ])
         ->add('email', EmailType::class, [
             'label' => 'security.email',
             'required' => true,
-            'attr' => ['autocomplete' => 'off'],
+            'attr' => ['autocomplete' => 'new-email'],
         ])
         ->add('plainpassword', PasswordType::class, [
             'label' => 'security.password',
             'required' => true,
-            'attr' => ['autocomplete' => 'off'],
+            'attr' => ['autocomplete' => 'new-password'],
         ])
         ->add('save', SubmitType::class, [
             'label' => 'security.add_user',

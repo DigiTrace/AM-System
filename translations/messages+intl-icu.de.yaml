@@ -1,5 +1,16 @@
 
 not_implemented_yet: 'Noch nicht implementiert: {function}'
+
+# general form labels/messages
+form:
+  actions: &form_actions 'Aktionen'
+  apply: &form_apply 'Anwenden'
+  cancel: &form_cancel 'Abbrechen'
+  close: &form_close 'Schließen'
+  reset: &form_reset 'Zurücksetzen'
+  save: &form_save 'Speichern'
+  search: &form_search 'Suchen'
+
 # Extended Asset Search
 eas:
   desc:
@@ -65,15 +76,26 @@ eas:
 
 # user translations
 user:
-  user: 'Nutzer'
+  user: &user_user 'Nutzer'
   username: &user_username 'Nutzername'
   fullname: &user_fullname 'Vollständiger Name'
   email: &user_email 'E-Mail'
-  overview: 'Nutzerübersicht'
   not_found: 'Nutzer konnte nicht gefunden werden'
+  overview: 'Nutzerübersicht'
+
+  page:
+    index: 'Hallo {user}!'
+    password: 'Passwort ändern'
   form:
-    actions: 'Aktionen'
+    username: *user_username
+    fullname: *user_fullname
     email: *user_email
+    password: &user_form_password 'Passwort'
+    old_password: &user_form_old_password 'Aktuelles Passwort'
+    new_password: &user_form_new_password 'Neues Passwort'
+    new_password_repeat: &user_form_new_password_repeat 'Neues Passwort wiederholen'
+    notify_case_creation: 'Benachrichtigungen zu Fallerstellungen'
+    actions: *form_actions
     state: 'Status'
     state_enabled: 'Aktiv'
     state_disabled: 'Deaktiviert'
@@ -83,6 +105,15 @@ user:
     disabled: 'Nutzer wurde deaktiviert.'
     subscribed: 'Nutzer wird nun bei Erstellung eines Falles benachrichtigt.'
     unsubscribed: 'Nutzer wird nun nicht mehr bei Erstellung eines Falles benachrichtigt.'
+    apply: *form_apply
+    reset: *form_reset
+    save: *form_save
+    edit_profile: 'Profildaten ändern:'
+    edit_successul: 'Profil erfolgreich aktualisiert'
+    change_password: ''
+    password_change_successful: 'Passwort erfolgreich geändert'
+    error:
+      duplicate: 'Profil konnte nicht geupdated werden. Änderungen kollidieren mit existierenden Nutzerdaten'
   actions:
     add: 'Neuen Nutzer hinzufügen'
     show: 'Nutzerübersicht öffnen'
@@ -92,15 +123,16 @@ user:
     unsubscribe_case: 'Nutzer bei Erstellung eines Falles nicht mehr benachrichtigen'
     
 security:
+  username: &security_username *user_username
+  fullname: &security_fullname *user_fullname
+  email: &security_email *user_email
+  password: *user_form_password
+  add_user: 'Nutzer hinzufügen'
+  duplicate_user: 'Ein Nutzer existiert bereits mit diesen Daten.'
+  user_added: 'Nutzer erfolgreich angelegt.'
   login:
-    username: *user_username
-    fullname: *user_fullname
-    password: 'Passwort'
+    username: *security_username
+    fullname: *security_fullname
+    password: *user_form_password
     remember_me: 'Eingeloggt bleiben'
     submit: 'Login'
-  changepw:
-    oldPW: 'Altes Passwort:'
-    newPW: 'Neues Passwort:'
-
-form:
-  close: 'Schließen'

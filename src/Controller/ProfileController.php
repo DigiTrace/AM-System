@@ -2,29 +2,26 @@
 
 namespace App\Controller;
 
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\Form\Extension\Core\Type\EmailType;
-use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Annotation\Route;
-
-use Symfony\Component\Form\Extension\Core\Type as FormField;
-use Symfony\Component\Validator\Constraints as Constrains;
-use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
-use Doctrine\ORM\EntityManagerInterface;
-
 use App\Entity\Nutzer;
-
+use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\Form\Extension\Core\Type as FormField;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
+use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Security\Core\Validator\Constraints as SecurityConstraints;
+use Symfony\Component\Validator\Constraints;
+use Symfony\Component\Validator\Context\ExecutionContextInterface;
 
 /**
  * Controller for profile management, e.g. change password etc.
- * 
+ *
  * @author Robert Krasowski
  * @author Ben Brooksnieder
  */
 class ProfileController extends AbstractController
 {
-
     /**
      * Show profile information and allow editing of attributes.
      */
@@ -44,8 +41,9 @@ class ProfileController extends AbstractController
             }
 
             $updated_user = $this->processUserChangeForm($data, $entityManager);
-            if (false !== $updated_user){
+            if (false !== $updated_user) {
                 $this->addFlash('success', 'user.form.edit_successul');
+
                 return $this->redirectToRoute('user_profile');
             }
 
@@ -54,6 +52,7 @@ class ProfileController extends AbstractController
         }
 
         $user = $this->getUser();
+
         return $this->render('user/index.html.twig', [
             'user' => $user,
             'form' => $form->createView(),
@@ -63,14 +62,16 @@ class ProfileController extends AbstractController
 
     /**
      * Generate form to update user.
-     * @param mixed $user
+     *
      * @return \Symfony\Component\Form\FormInterface
      */
-    private function getUserChangeForm($user) {
+    private function getUserChangeForm($user)
+    {
         $form = $this->createFormBuilder($user, ['attr' => [
             // 'onsubmit' => 'return alertbeforesubmit()',
             'autocomplete' => 'off',
             'method' => 'POST',
+            'style' => 'max-width: 1440px',
         ]])
         ->add('id', FormField\HiddenType::class, [
             'required' => true,
@@ -78,21 +79,24 @@ class ProfileController extends AbstractController
         ->add('username', FormField\TextType::class, [
             'label' => 'user.form.username',
             'required' => true,
+            'attr' => ['autocomplete' => 'change-username'],
         ])
         ->add('fullname', FormField\TextType::class, [
             'label' => 'user.form.fullname',
             'required' => true,
+            'attr' => ['autocomplete' => 'change-fullname'],
         ])
         ->add('email', FormField\EmailType::class, [
             'label' => 'user.form.email',
             'required' => true,
+            'attr' => ['autocomplete' => 'change-email'],
         ])
         ->add('notifyCaseCreation', FormField\ChoiceType::class, [
             'label' => 'user.form.notify_case_creation',
             'choices' => [
                 'user.form.state_subscribed' => true,
                 'user.form.state_unsubscribed' => false,
-            ]
+            ],
         ])
         ->add('save', FormField\SubmitType::class, [
             'label' => 'user.form.apply',
@@ -102,17 +106,19 @@ class ProfileController extends AbstractController
             'label' => 'user.form.reset',
         ])
         ->getForm();
-        
+
         return $form;
     }
 
     /**
-     * Validates updated users values and if valid, update user. 
-     * @param \App\Entity\Nutzer $updated_user Updated user from form.
-     * @param \Doctrine\ORM\EntityManagerInterface $entityManager
-     * @return bool|Nutzer `false` if validation failed, otherwise updated user.
+     * Validates updated users values and if valid, update user.
+     *
+     * @param Nutzer $updated_user updated user from form
+     *
+     * @return bool|Nutzer `false` if validation failed, otherwise updated user
      */
-    private function processUserChangeForm(Nutzer $updated_user, EntityManagerInterface $entityManager) {
+    private function processUserChangeForm(Nutzer $updated_user, EntityManagerInterface $entityManager)
+    {
         // test whether new values are allowed and not already in use
         $query_string = <<<SQL
         SELECT count(u) FROM App:Nutzer u 
@@ -124,15 +130,15 @@ class ProfileController extends AbstractController
         SQL;
 
         $query = $entityManager->createQuery($query_string)
-            ->setParameter(":id", $updated_user->getId())
-            ->setParameter(":fullname", $updated_user->getFullname())
-            ->setParameter(":username", $updated_user->getUsername())
-            ->setParameter(":email", $updated_user->getEMail())
+            ->setParameter(':id', $updated_user->getId())
+            ->setParameter(':fullname', $updated_user->getFullname())
+            ->setParameter(':username', $updated_user->getUsername())
+            ->setParameter(':email', $updated_user->getEMail())
         ;
 
         $duplicates = $query->getArrayResult()[0][1];
 
-        if ($duplicates > 0){
+        if ($duplicates > 0) {
             return false;
         }
 
@@ -143,69 +149,84 @@ class ProfileController extends AbstractController
         return $updated_user;
     }
 
-
-
-
     #[Route('/profil/passwort', name: 'user_change_password')]
     public function changeUserPassword(Request $request, UserPasswordHasherInterface $passwordHasher, EntityManagerInterface $entityManager): Response
     {
-        $form = $this->createFormBuilder([
-            'attr' => ['autocomplete' => 'off']
+        $form = $this->createFormBuilder(null, [
+            'attr' => ['style' => 'max-width: 800px;'],
         ])
-        ->add("old_password", FormField\PasswordType::class, [
+        ->add('old_password', FormField\PasswordType::class, [
             'attr' => ['autocomplete' => 'password'],
-            'label' => "user.form.old_password",
-            'required' => true,
-        ])
-        ->add("new_password", FormField\PasswordType::class, [
-            'label' => "user.form.new_password",
-            'required' => true,
-        ])
-        ->add("new_password_repeat", FormField\PasswordType::class, [
-            'label' => "user.form.new_password_repeat",
+            'label' => 'user.form.old_password',
             'required' => true,
             'constraints' => [
-                new Constrains\NotBlank(),
-                
+                new Constraints\NotBlank(),
+                new SecurityConstraints\UserPassword([
+                    'message' => 'user.violation.incorrect_password',
+                ]),
+            ],
+        ])
+        // TODO add constraints for password e.g. capital letter
+        // TODO exclude in own constraint collection, that can be used for adding users also
+        ->add('new_password', FormField\PasswordType::class, [
+            'attr' => ['autocomplete' => 'new-password'],
+            'label' => 'user.form.new_password',
+            'required' => true,
+            'constraints' => [
+                new Constraints\NotBlank(),
+            ],
+        ])
+        ->add('new_password_repeat', FormField\PasswordType::class, [
+            'attr' => ['autocomplete' => 'new-password-repeat'],
+            'label' => 'user.form.new_password_repeat',
+            'required' => true,
+            'constraints' => [
+                new Constraints\NotBlank(),
+                // Check if new passwords match
+                // TODO exclude as own constraint
+                new Constraints\Callback(function ($new_password_repeat, ExecutionContextInterface $context, $payload) {
+                    $form = $context->getRoot();
+                    $new_password = $form->get('new_password')->getData();
+
+                    if ($new_password_repeat !== $new_password) {
+                        $context->buildViolation('user.violation.passwords_not_matching')
+                        ->addViolation();
+                    }
+                }),
             ],
         ])
         ->add('save', FormField\SubmitType::class, [
-            'label' => 'user.form.apply',
+            'label' => 'user.form.save',
             'attr' => ['class' => 'btn btn-primary '],
         ])
         ->getForm();
 
         $form->handleRequest($request);
         if ($form->isSubmitted() && $form->isValid()) {
-        
             $user = $this->getUser();
+            $data = $form->getData();
 
-            if($passwordHasher->isPasswordValid($user, $form->getData()['old_password'])){
-                
-                $hashednewPassword = $passwordHasher->hashPassword(
-                    $user,
-                    $form->getData()['newPW']
-                );
-                
-                $user->setPassword($hashednewPassword);
-                $entityManager->persist($user);
-                $entityManager->flush();
-                $this->addFlash('success',"security.changepw.newPW.set");
-                return $this->redirectToRoute('user_profile');
-            }
-            
-            $this->addFlash('danger',"user.form.error.incorrect_password");
+            $hashednewPassword = $passwordHasher->hashPassword(
+                $user,
+                $data['new_password']
+            );
+
+            $user->setPassword($hashednewPassword);
+            $entityManager->persist($user);
+            $entityManager->flush();
+
+            $this->addFlash('success', 'user.form.password_change_successful');
+
+            return $this->redirectToRoute('user_profile');
         }
-        
 
-        return $this->render('user/ChangePasswort.html.twig', array(
-            'changePWform' => $form->createView()
-        ));
+        return $this->render('user/change_password.html.twig', [
+            'form' => $form->createView(),
+        ]);
     }
 
-
     /**
-     * @deprecated Use `index` instead.
+     * @deprecated use `index` instead
      */
     #[Route('/profil/aendern', name: 'NutzerAenderung')]
     public function ChangeProfile(Request $request, EntityManagerInterface $entityManager): Response
@@ -213,13 +234,3 @@ class ProfileController extends AbstractController
         return $this->redirectToRoute('user_profile');
     }
 }
-
-
-
-    
-    
-    
-
-    
-    
-
