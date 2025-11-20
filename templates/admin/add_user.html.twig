@@ -42,6 +42,13 @@
                 {{ form_widget(form.plainpassword) }}
                 <span class="help-block"></span>
             </div>
+
+            <div class='col-sm-12 col-md-6'>
+                {{ form_label(form.notifyCaseCreation) }}
+                {{ form_errors(form.notifyCaseCreation) }}
+                {{ form_widget(form.notifyCaseCreation) }}
+                <span class="help-block"></span>
+            </div>
         </div>
 
         <div class="row">

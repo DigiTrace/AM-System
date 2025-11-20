@@ -24,10 +24,7 @@ use App\Entity\Nutzer;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\Form\Extension\Core\Type\EmailType;
-use Symfony\Component\Form\Extension\Core\Type\PasswordType;
-use Symfony\Component\Form\Extension\Core\Type\SubmitType;
-use Symfony\Component\Form\Extension\Core\Type\TextType;
+use Symfony\Component\Form\Extension\Core\Type as FormField;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -168,29 +165,53 @@ class AdminController extends AbstractController
         $addUserForm = $this->createFormBuilder($user, ['attr' => [
             'onsubmit' => 'return alertbeforesubmit()',
             'autocomplete' => 'off',
+            'style' => 'max-width: 1440px;'
         ]])
-        ->add('username', TextType::class, [
+        ->add('username', FormField\TextType::class, [
             'label' => 'security.username',
             'required' => true,
             'attr' => ['autocomplete' => 'new-username'],
+            'constraints' => [
+                new Assert\NotBlank(),
+            ],
         ])
-        ->add('fullname', TextType::class, [
+        ->add('fullname', FormField\TextType::class, [
             'label' => 'security.fullname',
             'required' => true,
             'attr' => ['autocomplete' => 'new-fullname'],
+            'constraints' => [
+                new Assert\NotBlank(),
+            ],
         ])
-        ->add('email', EmailType::class, [
+        ->add('email', FormField\EmailType::class, [
             'label' => 'security.email',
             'required' => true,
             'attr' => ['autocomplete' => 'new-email'],
+            'constraints' => [
+                new Assert\NotBlank(),
+            ],
         ])
-        ->add('plainpassword', PasswordType::class, [
+        ->add('plainpassword', FormField\PasswordType::class, [
             'label' => 'security.password',
             'required' => true,
             'attr' => ['autocomplete' => 'new-password'],
+            'constraints' => [
+                new Assert\NotBlank(),
+            ],
         ])
-        ->add('save', SubmitType::class, [
+        ->add('notifyCaseCreation', FormField\ChoiceType::class, [
+            'label' => 'user.form.notify_case_creation',
+            'choices' => [
+                'user.form.state_unsubscribed' => false,
+                'user.form.state_subscribed' => true,
+            ],
+        ])
+        ->add('save', FormField\SubmitType::class, [
             'label' => 'security.add_user',
+            'attr' => ['class' => 'btn btn-primary '],
+        ])
+         ->add('reset', FormField\ResetType::class, [
+            'label' => 'form.reset',
         ])
         ->getForm();
 
