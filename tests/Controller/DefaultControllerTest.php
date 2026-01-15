@@ -139,7 +139,7 @@ class DefaultControllerTest extends BaseWebTestCase
         // test whether reserved objects are displayed
         foreach ($reserved as $obj) {
             $this->assertSelectorTextContains('#reserved_objekts', $obj->getBarcode());
-            $this->assertSelectorTextContains('#reserved_objekts', $obj->getKategorieName());
+            $this->assertSelectorTextContains('#reserved_objekts', $obj->getCategory()->toTranslatableString());
             $this->assertSelectorTextContains('#reserved_objekts', $obj->getName());
         }
         // test whether not-reserved objects are displayed

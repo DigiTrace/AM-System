@@ -373,8 +373,8 @@
         </div>
         <div class="eas-input-cell">
             <select class="eas-input form-control eas_category" name="category" multiple="multiple" size="6" id="eas_category" style="height: 100%;">
-                {% for label,id in eas_categories %}
-                    <option value="{{id}}">{{ label | trans }} </option>
+                {% for category in AssetCategory.cases %}
+                    <option value="{{category.value}}">{{ category.toTranslatableString | trans }} </option>
                 {% endfor %}
             </select>
         </div>
@@ -391,9 +391,9 @@
         </div>
         <div class="eas-input-cell">
             <select class="eas-input form-control eas_status" name="status" multiple="multiple" size="6" id="eas_status" style="height: 100%;">
-            {% for label,id in eas_status %}
-                <option value="{{id}}">{{ label | trans }} </option>
-            {% endfor %}
+            {% for state in AssetState.cases %}
+                    <option value="{{state.value}}">{{ state.toTranslatableString | trans }} </option>
+                {% endfor %}
             </select>
         </div>
 

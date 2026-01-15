@@ -286,8 +286,8 @@ class CaseOverviewController extends AbstractController
       $repository = $doctrine->getRepository(Fall::class); 
       
       $query = $repository->createQueryBuilder('c');
-      $query->leftjoin("App:Objekt"         , "o","WITH" ,"c.id = o.fall_id");
-      $query->leftjoin("App:HistorieObjekt", "ho","WITH","c.id = ho.fall_id ");
+      $query->leftjoin("App:Asset"         , "o","WITH" ,"c.id = o.case");
+      $query->leftjoin("App:AssetHistory", "ho","WITH","c.id = ho.case ");
       
       
 

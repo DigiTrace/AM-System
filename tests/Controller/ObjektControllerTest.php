@@ -299,11 +299,11 @@ class ObjektControllerTest extends BaseWebTestCase
     public function simpleSearchParamsProvider()
     {
         yield 'Category query' => [
-            'query' => "c:". Objekt::KATEGORIE_ASSERVAT, // 0
+            'query' => "c:". AssetCategory::Exhibit, // 0
             'expected_results' => 1,
         ];
         yield 'Status query' => [
-            'query' => "s:". Objekt::STATUS_GENULLT, // 1
+            'query' => "s:". AssetState::Cleaned, // 1
             'expected_results' => 1,
         ];
         yield 'Barcode query' => [
@@ -429,7 +429,7 @@ class ObjektControllerTest extends BaseWebTestCase
         yield 'Move to container' => [
             'objects' => [[], [],],
             'query' => [
-                'newstate' => Objekt::STATUS_IN_EINEM_BEHAELTER_GELEGT,
+                'newstate' => AssetState::StoredInContainer,
                 'desc' => '(TEST) temporäre Verwahrung',
                 'context' => 'DTHW12345',
             ]
@@ -437,20 +437,20 @@ class ObjektControllerTest extends BaseWebTestCase
         yield 'Zero drive' => [
             'objects' => [[
                 'barcode' => 'DTHD00020',
-                'kategorie' => Objekt::KATEGORIE_DATENTRAEGER,
+                'kategorie' => AssetCategory::Hdd,
             ], [
                 'barcode' => 'DTHD00024',
-                'kategorie' => Objekt::KATEGORIE_DATENTRAEGER,
+                'kategorie' => AssetCategory::Hdd,
             ],],
             'query' => [
-                'newstate' => Objekt::STATUS_GENULLT,
+                'newstate' => AssetState::Cleaned,
                 'desc' => '(TEST) Vorsichtshalber genullt, um Probleme zu vermeiden',
                 ]
             ];
         yield 'Use multiple objekts' => [
             'objects' => [[], [],],
             'query' => [
-                'newstate' => Objekt::STATUS_IN_VERWENDUNG,
+                'newstate' => AssetState::Used,
                 'desc' => '(TEST) Analyse einer Festplatte',
             ]
         ];
@@ -461,13 +461,13 @@ class ObjektControllerTest extends BaseWebTestCase
         yield 'Zero exibits' => [
             'objects' => [[
                 'barcode' => 'DTAS00020',
-                'kategorie' => Objekt::KATEGORIE_ASSERVAT,
+                'kategorie' => AssetCategory::Exhibit,
             ], [
                 'barcode' => 'DTAS00024',
-                'kategorie' => Objekt::KATEGORIE_AKTE,
+                'kategorie' => AssetCategory::Record,
             ],],
             'query' => [
-                'newstate' => Objekt::STATUS_GENULLT,
+                'newstate' => AssetState::Cleaned,
                 'desc' => '(TEST) Asservate sollten nicht genullt werden können',
             ], 
             'expected' => [
@@ -477,15 +477,15 @@ class ObjektControllerTest extends BaseWebTestCase
         yield 'Zero drives again' => [
             'objects' => [[
                 'barcode' => 'DTHD00020',
-                'kategorie' => Objekt::KATEGORIE_DATENTRAEGER,
-                'status' => Objekt::STATUS_GENULLT,
+                'kategorie' => AssetCategory::Hdd,
+                'status' => AssetState::Cleaned,
             ], [
                 'barcode' => 'DTHD00024',
-                'kategorie' => Objekt::KATEGORIE_DATENTRAEGER,
-                'status' => Objekt::STATUS_GENULLT,      
+                'kategorie' => AssetCategory::Hdd,
+                'status' => AssetState::Cleaned,      
             ],],
             'query' => [
-                'newstate' => Objekt::STATUS_GENULLT,
+                'newstate' => AssetState::Cleaned,
                 'desc' => '(TEST) Festplatten müssen gekaputt genullt werden',
             ], 
             'expected' => [
@@ -495,20 +495,20 @@ class ObjektControllerTest extends BaseWebTestCase
         yield 'Non-existant object' => [
             'objects' => [[
                 'barcode' => 'DTHD00020',
-                'kategorie' => Objekt::KATEGORIE_DATENTRAEGER,
-                'status' => Objekt::STATUS_GENULLT,
+                'kategorie' => AssetCategory::Hdd,
+                'status' => AssetState::Cleaned,
             ], [
                 'barcode' => 'DTHD00024',
-                'kategorie' => Objekt::KATEGORIE_DATENTRAEGER,
-                'status' => Objekt::STATUS_GENULLT,
+                'kategorie' => AssetCategory::Hdd,
+                'status' => AssetState::Cleaned,
             ], [
                 'volatile' => true,
                 'barcode' => 'DTHD99999',
-                'kategorie' => Objekt::KATEGORIE_DATENTRAEGER,
-                'status' => Objekt::STATUS_GENULLT,
+                'kategorie' => AssetCategory::Hdd,
+                'status' => AssetState::Cleaned,
             ],],
             'query' => [
-                'newstate' => Objekt::STATUS_IN_VERWENDUNG,
+                'newstate' => AssetState::Used,
                 'desc' => '(TEST) DTHD99999 existiert natürlich',
             ], 
             'expected' => [
@@ -569,16 +569,16 @@ class ObjektControllerTest extends BaseWebTestCase
         $crawler = $this->loginUser($client)->request('GET', '/objekt/anlegen');
 
         // make form request
-        $form = $crawler->selectButton('add_object[save]')->form();
+        $form = $crawler->selectButton('add_asset[save]')->form();
 
         // add objekt parameters
         foreach ($objekt as $key => $value) {
-            $form["add_object[{$key}]"] = $value ?? '';
+            $form["add_asset[{$key}]"] = $value ?? '';
         }
 
         // add datentraeger paramters
         foreach ($datentraeger ?? [] as $key => $value) {
-            $form["add_object[{$key}]"] = $value ?? '';
+            $form["add_asset[{$key}]"] = $value ?? '';
         }
 
         $client->submit($form);
@@ -620,16 +620,16 @@ class ObjektControllerTest extends BaseWebTestCase
         $crawler = $this->loginUser($client)->request('GET', '/objekt/anlegen');
 
         // make form request
-        $form = $crawler->selectButton('add_object[save]')->form();
+        $form = $crawler->selectButton('add_asset[save]')->form();
 
         // add objekt parameters
         foreach ($objekt as $key => $value) {
-            $form["add_object[{$key}]"] = $value ?? '';
+            $form["add_asset[{$key}]"] = $value ?? '';
         }
 
         // add datentraeger paramters
         foreach ($datentraeger ?? [] as $key => $value) {
-            $form["add_object[{$key}]"] = $value ?? '';
+            $form["add_asset[{$key}]"] = $value ?? '';
         }
 
         $client->submit($form);
@@ -665,11 +665,11 @@ class ObjektControllerTest extends BaseWebTestCase
         $crawler = $this->loginUser($client)->request('GET', '/objekt/anlegen');
 
         // try to add second time
-        $form = $crawler->selectButton('add_object[save]')->form();
+        $form = $crawler->selectButton('add_asset[save]')->form();
 
         // add objekt parameters
         foreach ($objekt as $key => $value) {
-            $form["add_object[{$key}]"] = $value ?? '';
+            $form["add_asset[{$key}]"] = $value ?? '';
         }
 
         $client->submit($form);
@@ -687,7 +687,7 @@ class ObjektControllerTest extends BaseWebTestCase
         // setup
         $factory = ObjektFactory::new();
         $objekt = $factory->hdd()->create();
-        $prevState = $objekt->getStatus();
+        $prevState = $objekt->getState();
 
         // do request
         $client = static::createClient();
@@ -720,7 +720,7 @@ class ObjektControllerTest extends BaseWebTestCase
         // setup
         $factory = ObjektFactory::new();
         $objekt = $factory->exhibit()->create();
-        $prevState = $objekt->getStatus();
+        $prevState = $objekt->getState();
 
         // do request
         $client = static::createClient();
@@ -750,7 +750,7 @@ class ObjektControllerTest extends BaseWebTestCase
         // setup
         $factory = ObjektFactory::new();
         $objekt = $factory->hdd()->create();
-        $prevState = $objekt->getStatus();
+        $prevState = $objekt->getState();
 
         // do request
         $client = static::createClient();
@@ -783,7 +783,7 @@ class ObjektControllerTest extends BaseWebTestCase
         // setup
         $factory = ObjektFactory::new();
         $objekt = $factory->hdd()->create();
-        $prevState = $objekt->getStatus();
+        $prevState = $objekt->getState();
 
         // do request
         $client = static::createClient();
@@ -828,21 +828,21 @@ class ObjektControllerTest extends BaseWebTestCase
             $this->assertResponseRedirects("/objekt/{$objekt->getBarcodeId()}");
             $this->seeInDatabase(ObjektRepository::class, [
                 'barcode_id' => $objekt->getBarcode(),
-                'status_id' => $objekt->getStatus(),
+                'status_id' => $objekt->getState(),
             ]);
             
             $client->request('POST', "/objekt/{$objekt->getBarcodeId()}/editieren");
             $this->assertResponseRedirects("/objekt/{$objekt->getBarcodeId()}");
             $this->seeInDatabase(ObjektRepository::class, [
                 'barcode_id' => $objekt->getBarcode(),
-                'status_id' => $objekt->getStatus(),
+                'status_id' => $objekt->getState(),
             ]);
             
             $client->request('POST', "/objekt/{$objekt->getBarcodeId()}/einlegen/in");
             $this->assertResponseRedirects("/objekt/{$objekt->getBarcodeId()}");
             $this->seeInDatabase(ObjektRepository::class, [
                 'barcode_id' => $objekt->getBarcode(),
-                'status_id' => $objekt->getStatus(),
+                'status_id' => $objekt->getState(),
             ]);
             
             $storage = $factory->container()->create();        
@@ -850,7 +850,7 @@ class ObjektControllerTest extends BaseWebTestCase
             $this->assertResponseRedirects("/objekt/{$objekt->getBarcodeId()}");
             $this->seeInDatabase(ObjektRepository::class, [
                 'barcode_id' => $objekt->getBarcode(),
-                'status_id' => $objekt->getStatus(),
+                'status_id' => $objekt->getState(),
             ]);
         }
     }
@@ -860,7 +860,7 @@ class ObjektControllerTest extends BaseWebTestCase
         // setup
         $factory = ObjektFactory::new();
         $objekt = $factory->hdd()->create();
-        $prevState = $objekt->getStatus();
+        $prevState = $objekt->getState();
 
         // do request
         $client = static::createClient();
@@ -894,7 +894,7 @@ class ObjektControllerTest extends BaseWebTestCase
         $factory = ObjektFactory::new();
         $objekt = $factory->hdd()->create();
         $storage = $factory->container()->create();
-        $prevState = $objekt->getStatus();
+        $prevState = $objekt->getState();
 
         // do request
         $client = static::createClient();
@@ -931,10 +931,54 @@ class ObjektControllerTest extends BaseWebTestCase
         $this->assertSelectorTextContains('#container_info', $objekt->getBarcode());
     }
 
+    # TODO new test, may need refactoring
+    public function testStoreObjektInEquipment()
+    {
+        // setup
+        $factory = ObjektFactory::new();
+        $objekt = $factory->hdd()->create();
+        $storage = $factory->equipment()->create();
+        $prevState = $objekt->getStatus();
+        // do request
+        $client = static::createClient();
+        $crawler = $this->loginUser($client)->request('POST', "/objekt/{$objekt->getBarcodeId()}/einlegen/in/{$storage->getBarcodeId()}");
+        $form = $crawler->selectButton('label.do.action')->form();
+        $client->submit($form, ['form[verwendung]' => 'Aus Testzwecken wird dieses Objekt in den Schrank gelegt']);
+        $this->assertResponseRedirects("/objekt/{$objekt->getBarcodeId()}");
+
+        // test overview page
+        $this->assertInOverviewPageCorrect($client, [
+            'barcode_id' => $objekt->getBarcodeId(),
+            'name' => $objekt->getName(),
+        ]);
+
+        // test details page
+        $this->assertDetailsPageCorrect($client, [
+            'barcode_id' => $objekt->getBarcodeId(),
+            'name' => $objekt->getName(),
+        ]);
+        // also test whether it is in storage
+        $this->assertSelectorTextContains('#location', $storage->getBarcode());
+        $this->assertSelectorTextContains('#state', 'status.stored.in.container');
+        $this->assertSelectorTextContains('#last_action_user', 'user');
+
+        // test history
+        $this->assertSelectorTextContains('#history', Objekt::getStatusNameFromId($prevState));
+
+        // test details page of storage
+        $this->assertDetailsPageCorrect($client, [
+            'barcode_id' => $storage->getBarcodeId(),
+            'name' => $storage->getName(),
+        ]);
+        // also test whether storage lists item
+        $this->assertSelectorTextContains('#container_info', $objekt->getBarcode());
+    }
+
+
     /**
      * @depends testStoreObjekt
      */
-    public function testStoreObjektInvalidSelfStore()
+    public function testStoreOgetStatelidSelfStore()
     {
         // setup
         $factory = ObjektFactory::new();
@@ -978,7 +1022,7 @@ class ObjektControllerTest extends BaseWebTestCase
         $factory = ObjektFactory::new();
         $storage = $factory->container()->create();
         // create object which is in storage
-        $objekt = $factory->hdd()->create(['standort' => $storage, 'status' => Objekt::STATUS_IN_EINEM_BEHAELTER_GELEGT]);
+        $objekt = $factory->hdd()->create(['standort' => $storage, 'status' => AssetState::StoredInContainer]);
         $prevState = $objekt->getStatus();
 
         // do request
@@ -1024,7 +1068,7 @@ class ObjektControllerTest extends BaseWebTestCase
         $factory = ObjektFactory::new();
         $container1 = $factory->container()->create();
         // container2 stored in container1
-        $container2 = $factory->container()->create(['standort' => $container1, 'status' => Objekt::STATUS_IN_EINEM_BEHAELTER_GELEGT]);
+        $container2 = $factory->container()->create(['standort' => $container1, 'status' => AssetState::StoredInContainer]);
 
         $client = static::createClient();
         $this->loginUser($client)->request('POST', "/objekt/{$container1->getBarcodeId()}/einlegen/in/{$container2->getBarcodeId()}");
@@ -1073,9 +1117,9 @@ class ObjektControllerTest extends BaseWebTestCase
         $factory = ObjektFactory::new();
         $container1 = $factory->container()->create();
         // container2 stored in container1
-        $container2 = $factory->container()->create(['standort' => $container1, 'status' => Objekt::STATUS_IN_EINEM_BEHAELTER_GELEGT]);
+        $container2 = $factory->container()->create(['standort' => $container1, 'status' => AssetState::StoredInContainer]);
         // container3 stored in container2
-        $container3 = $factory->container()->create(['standort' => $container2, 'status' => Objekt::STATUS_IN_EINEM_BEHAELTER_GELEGT]);
+        $container3 = $factory->container()->create(['standort' => $container2, 'status' => AssetState::StoredInContainer]);
 
         $client = static::createClient();
         $this->loginUser($client)->request('POST', "/objekt/{$container1->getBarcodeId()}/einlegen/in/{$container3->getBarcodeId()}");
@@ -1095,7 +1139,7 @@ class ObjektControllerTest extends BaseWebTestCase
             'name' => $container3->getName(),
         ]);
 
-        // test details page
+        // test details pagegetState
         $this->assertDetailsPageCorrect($client, [
             'barcode_id' => $container1->getBarcodeId(),
             'name' => $container1->getName(),
@@ -1255,7 +1299,7 @@ class ObjektControllerTest extends BaseWebTestCase
         $samples = [
             [
                 'Barcode' => ObjektFactory::generateBarcode('DTAS'),
-                'Kategorie' => Objekt::KATEGORIE_ASSERVAT,
+                'Kategorie' => AssetCategory::Exhibit,
                 'Status' => Objekt::STATUS_EINGETRAGEN,
                 'Name' => 'name_string',
                 'Notiz' => 'note_string',
@@ -1263,12 +1307,12 @@ class ObjektControllerTest extends BaseWebTestCase
             ],
             [
                 'Barcode' => 'DTHD12345',
-                'Kategorie' => Objekt::KATEGORIE_DATENTRAEGER,
-                'Status' => Objekt::STATUS_IN_EINEM_BEHAELTER_GELEGT,
+                'Kategorie' => AssetCategory::Hdd,
+                'Status' => AssetState::StoredInContainer,
                 'Verwendung' => 'current_description',
                 'Standort' => $factory->create([
                     'Barcode' => 'DTHW33344',
-                    'Kategorie' => Objekt::KATEGORIE_BEHAELTER,
+                    'Kategorie' => AssetCategory::Container,
                     'Status' => Objekt::STATUS_EINGETRAGEN,
                 ]),
                 'Zeitstempel' => date_create_from_format('d.m.Y', "01.01.1970"),
@@ -1283,8 +1327,8 @@ class ObjektControllerTest extends BaseWebTestCase
             ],
             [
                 'Barcode' => ObjektFactory::generateBarcode('DTHD'),
-                'Kategorie' => Objekt::KATEGORIE_DATENTRAEGER,
-                'Status' => Objekt::STATUS_GENULLT,
+                'Kategorie' => AssetCategory::Hdd,
+                'Status' => AssetState::Cleaned,
                 'Verwendung' => 'current_description',
                 'Fall' => $caseFactory->create([
                     'case_id' => 'case_id',
@@ -1302,8 +1346,8 @@ class ObjektControllerTest extends BaseWebTestCase
             ],
             [
                 'Barcode' => ObjektFactory::generateBarcode('DTHW'),
-                'Kategorie' => Objekt::KATEGORIE_AUSRUESTUNG,
-                'Status' => Objekt::STATUS_RESERVIERT,
+                'Kategorie' => AssetCategory::Equipment,
+                'Status' => AssetState::Reserved,
                 'ReserviertVon' => $userFactory->create([
                     'username' => 'current_reservation',
                     'fullname' => 'current_reservation'

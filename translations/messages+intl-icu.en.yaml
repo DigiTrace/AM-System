@@ -60,5 +60,88 @@ eas:
     no: 'no'
     none: is not set
     yes: 'yes'
-    
+  
+  
+entity:
+  asset: 'Asset'
+  drive: 'Drive'
 
+asset:
+  attr:
+    barcode: &ASSET_BARCODE 'Barcode'
+    name: &ASSET_NAME 'Name'
+    category: &ASSET_CATEGORY 'Category'
+    state: &ASSET_STATE 'State'
+    usage: &ASSET_USAGE 'Usage'
+    note: &ASSET_NOTE 'Note'
+    modified_by: &ASSET_MODIFIED_BY 'Modified by'
+    reserved_by: &ASSET_RESERVED_BY 'Reserved by'
+    case: &ASSET_CASE 'Case'
+    location: &ASSET_LOCATION 'Location'
+
+  add:
+    page:
+      header: 'Add new Asset'
+
+    form:
+      barcode: *ASSET_BARCODE
+      name: *ASSET_NAME
+      category: *ASSET_CATEGORY
+      state: *ASSET_STATE
+      usage: *ASSET_USAGE
+      note: *ASSET_NOTE
+      due_date: Date of receipt
+      storage_override: 'Function as storage'
+      storage_override_opt:
+        auto: 'Auto'
+        enabled: 'Yes'
+        disabled: 'No' 
+      case_search: 'Assigned case'
+      no_case: 'Assign no case'
+      
+      help:
+        due_date: 'When asset was/will be added to inventory'
+        storage_override: 'Assets can have custom storage behaviour if required'
+        case_search: 'Search for case names or case IDs'
+
+      error:
+        duplicate: 'Asset with barcode already exists'
+
+      save: 'Save asset'
+      save_and_new: 'Save asset and add another'
+      save_and_keep: 'Save asset and add similar'
+      success: 'Asset successfully added'
+
+  details:
+    page:
+      header: 'Details to'
+
+drive:
+  attr:
+    barcode: &DRIVE_BARCODE *ASSET_BARCODE
+    form_factor: &DRIVE_FORM_FACTOR 'Form factor'
+    type: &DRIVE_TYPE 'Type'
+    size: &DRIVE_SIZE 'Size'
+    manufacturer: &DRIVE_MANUFACTURER 'Manufacturer'
+    model: &DRIVE_MODEL 'Model'
+    serial_number: &DRIVE_SERIAL_NUMBER 'Serial number'
+    product_number: &DRIVE_PRODUCT_NUMBER 'Product number'
+    connector: &DRIVE_CONNECTOR 'Connector'
+
+  form:
+    form_factor: *DRIVE_FORM_FACTOR
+    type: *DRIVE_TYPE
+    size: *DRIVE_SIZE
+    manufacturer: *DRIVE_MANUFACTURER
+    model: *DRIVE_MODEL
+    serial_number: *DRIVE_SERIAL_NUMBER
+    product_number: *DRIVE_PRODUCT_NUMBER
+    connector: *DRIVE_CONNECTOR
+
+    help:
+      form_factor: '2.5/3.5/...'
+      type: 'internal/external'
+      size: 'Custom size, in GB'
+      size_dropdown: 'In GB'
+      connector: 'USB/ATA/SATA/...'
+    

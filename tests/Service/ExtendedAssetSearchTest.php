@@ -420,10 +420,10 @@ class ExtendedAssetSearchTest extends KernelTestCase
         ])->create()->_real();
 
         $samples = [
-            $factory->exhibit()->create(['barcode' => 'DTAS00001', 'status' => Objekt::STATUS_RESERVIERT, 'reserviert_von' => $alice]),
-            $factory->exhibit()->create(['barcode' => 'DTAS00002', 'status' => Objekt::STATUS_RESERVIERT, 'reserviert_von' => $bob]),
-            $factory->equipment()->create(['barcode' => 'DTHW00001', 'status' => Objekt::STATUS_RESERVIERUNG_AUFGEHOBEN]),
-            $factory->equipment()->create(['barcode' => 'DTHW00002', 'status' => Objekt::STATUS_RESERVIERUNG_AUFGEHOBEN]),
+            $factory->exhibit()->create(['barcode' => 'DTAS00001', 'status' => AssetState::Reserved, 'reserviert_von' => $alice]),
+            $factory->exhibit()->create(['barcode' => 'DTAS00002', 'status' => AssetState::Reserved, 'reserviert_von' => $bob]),
+            $factory->equipment()->create(['barcode' => 'DTHW00001', 'status' => AssetState::UnbindReservation]),
+            $factory->equipment()->create(['barcode' => 'DTHW00002', 'status' => AssetState::UnbindReservation]),
             $factory->container()->create(['barcode' => 'DTHW00003']),
             $factory->container()->create(['barcode' => 'DTHW00004']),
         ];
@@ -463,10 +463,10 @@ class ExtendedAssetSearchTest extends KernelTestCase
             $factory->container()->create(['barcode' => 'DTHW00004']),
         ];
         $samples = [
-            $factory->hdd()->create(['barcode' => 'DTHD00001', 'status' => Objekt::STATUS_IN_EINEM_BEHAELTER_GELEGT, 'standort' => $container[0]]),
-            $factory->hdd()->create(['barcode' => 'DTHD00002', 'status' => Objekt::STATUS_IN_EINEM_BEHAELTER_GELEGT, 'standort' => $container[0]]),
-            $factory->record()->create(['barcode' => 'DTAS00003', 'status' => Objekt::STATUS_IN_EINEM_BEHAELTER_GELEGT, 'standort' => $container[1]]),
-            $factory->record()->create(['barcode' => 'DTAS00004', 'status' => Objekt::STATUS_IN_EINEM_BEHAELTER_GELEGT, 'standort' => $container[1]]),
+            $factory->hdd()->create(['barcode' => 'DTHD00001', 'status' => AssetState::StoredInContainer, 'standort' => $container[0]]),
+            $factory->hdd()->create(['barcode' => 'DTHD00002', 'status' => AssetState::StoredInContainer, 'standort' => $container[0]]),
+            $factory->record()->create(['barcode' => 'DTAS00003', 'status' => AssetState::StoredInContainer, 'standort' => $container[1]]),
+            $factory->record()->create(['barcode' => 'DTAS00004', 'status' => AssetState::StoredInContainer, 'standort' => $container[1]]),
         ];
         
         // test all
@@ -500,8 +500,8 @@ class ExtendedAssetSearchTest extends KernelTestCase
         ];
 
         $samples = [
-            $factory->hdd()->create(['barcode' => 'DTHD00001', 'status' => Objekt::STATUS_EINEM_FALL_HINZUGEFUEGT, 'fall' => $cases[0]]),
-            $factory->hdd()->create(['barcode' => 'DTHD00002', 'status' => Objekt::STATUS_AUS_DEM_BEHAELTER_ENTFERNT, 'fall' => $cases[1]]),
+            $factory->hdd()->create(['barcode' => 'DTHD00001', 'status' => State::AddedToCase, 'fall' => $cases[0]]),
+            $factory->hdd()->create(['barcode' => 'DTHD00002', 'status' => AssetState::PulledOutOfContainer, 'fall' => $cases[1]]),
             $factory->record()->create(['barcode' => 'DTAS00003']),
             $factory->record()->create(['barcode' => 'DTAS00004']),
         ];
@@ -537,8 +537,8 @@ class ExtendedAssetSearchTest extends KernelTestCase
         ];
 
         $samples = [
-            $factory->hdd()->create(['barcode' => 'DTHD00001', 'status' => Objekt::STATUS_EINEM_FALL_HINZUGEFUEGT, 'fall' => $cases[0]]),
-            $factory->hdd()->create(['barcode' => 'DTHD00002', 'status' => Objekt::STATUS_AUS_DEM_BEHAELTER_ENTFERNT, 'fall' => $cases[1]]),
+            $factory->hdd()->create(['barcode' => 'DTHD00001', 'status' => State::AddedToCase, 'fall' => $cases[0]]),
+            $factory->hdd()->create(['barcode' => 'DTHD00002', 'status' => AssetState::PulledOutOfContainer, 'fall' => $cases[1]]),
             $factory->record()->create(['barcode' => 'DTAS00003']),
             $factory->record()->create(['barcode' => 'DTAS00004']),
         ];

@@ -1,0 +1,215 @@
+{#
+   // AM-System
+   // Copyright (C) 2019 Robert Krasowski
+   // This program was created during an internship at DigiTrace GmbH
+   // Read LIZENZ.txt for full notice
+
+   // This program is free software: you can redistribute it and/or modify
+   // it under the terms of the GNU General Public License as published by
+   // the Free Software Foundation, either version 3 of the License, or
+   // (at your option) any later version.
+
+   // This program is distributed in the hope that it will be useful,
+   // but WITHOUT ANY WARRANTY; without even the implied warranty of
+   // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   // GNU General Public License for more details.
+
+   // You should have received a copy of the GNU General Public License
+   // along with this program.  If not, see <http://www.gnu.org/licenses/>.
+   
+#}
+{% set aa_form = 'aa-form' %}
+{% set drive_form = 'drive-form' %}
+
+{% extends 'base.html.twig' %}
+{% form_theme form 'bootstrap_3_layout.html.twig' %} 
+{% block content1 %}
+    {# <div class="wrapper">
+        <div class="container" > #}
+            <h2>{{ 'asset.add.page.header' | trans}}</h2>
+
+            {{ include('messages.html.twig') }}
+        
+            {{ form_start(form, {'attr': {'id': aa_form } }) }}
+            <div class="row">
+                <div class="col-lg-4 col-xs-12">
+                    {{ form_row(form.barcode) }}
+                    {{ form_row(form.name) }}
+                    {{ form_row(form.lastUpdatePerformedOn) }}
+                </div>
+                
+                <div class="col-lg-4 col-xs-12">
+                    {{ form_row(form.category) }}
+                    {{ form_row(form.storageOverride) }}
+                </div>
+
+                <div class="col-lg-4 col-xs-12">
+                    {{ form_row(form.case_search) }}
+                    {{ form_widget(form.case) }}
+                    {{ form_errors(form.case) }}
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-lg-6">
+                    {{ form_row(form.usage) }}
+                </div>
+                <div class="col-lg-6">
+                    {{ form_row(form.note) }}
+                </div>
+            </div>
+
+            <div class="divider">{{ 'entity.drive' | trans}}</div>
+
+            {# drive form #}
+            <div class="row" id="{{ drive_form|e('html') }}">
+                <div class="col-lg-3 col-xs-6">
+                    {{ form_row(form.drive.type) }}
+                    {{ form_row(form.drive.manufacturer) }}
+                </div>
+
+                <div class="col-lg-3 col-xs-6">
+                    {{ form_row(form.drive.formFactor) }}
+                    {{ form_row(form.drive.model) }}
+                </div>
+
+                <div class="col-lg-3 col-xs-6">
+                    <div class="row">
+                        <div class="col-lg-4">
+                            {{ form_row(form.drive.size_choice) }}
+                        </div>
+                        <div class="col-lg-8">
+                            {{ form_row(form.drive.size) }}
+                        </div>
+                    </div>
+                    {{ form_row(form.drive.serialNumber) }}
+                </div>
+
+                <div class="col-lg-3 col-xs-6">
+                    {{ form_row(form.drive.connector) }}
+                    {{ form_row(form.drive.productNumber) }}
+                </div>
+            </div>
+
+            <div class="form-footer-rtl">
+                    {{ form_widget(form.save) }}
+                    {{ form_widget(form.save_and_new) }}
+                    {{ form_widget(form.save_and_keep) }}
+            </div>
+
+            {{ form_end(form) }}
+        {# </div>
+    </div> #}
+    
+{% endblock %}
+
+{% block stylesheets %}
+{% endblock %}
+
+
+{% block javascripts %}
+<script>
+    {# TODO replace with `field_id()` twig functions in future symfony versions #}
+    const AA_FORM = '{{ aa_form }}';
+    const AA_DRIVE_FORM = '{{ drive_form }}';
+    const AA_BARCODE_FIELD = 'add_asset_barcode';
+    const AA_CATEGORY_FIELD = 'add_asset_category';
+    const AA_CASE_SEARCH_FIELD = 'add_asset_case_search';
+    const AA_CASE_FIELD = 'add_asset_case';
+    const AA_STORAGE_OVERRIDE_FIELD = 'add_asset_storageOverride'
+
+    const AddAsset = (function(){
+        let prevRequest = null;
+
+        const setDriveFormEnable = function(enabled) {
+            $(`#${AA_DRIVE_FORM} [name]`).each(function(_) {
+                $(this).attr('disabled', enabled ? null : 'disabled');
+            })
+        }
+
+        return {
+            init: function(){
+                // category handler
+                $(`#${AA_CATEGORY_FIELD}`).on("change", function(){
+                    const option = $(this).find(':selected');
+                    const prefix = option.data('prefix');
+                    const drive = option.data('drive');
+                    
+                    // set DT prefix
+                    const barcode = $(`#${AA_BARCODE_FIELD}`);
+                    const val = barcode.val()
+                    const new_val = prefix + val.substring(4)
+                    barcode.val(new_val)
+
+                    // enable/disable drive form
+                    setDriveFormEnable(drive);
+
+                    // storage override hint
+                    const auto_text = '{{ 'asset.add.form.storage_override_opt.auto' | trans }}';
+                    const enabled_text = '{{ 'asset.add.form.storage_override_opt.enabled' | trans }}';
+                    const disabled_text = '{{ 'asset.add.form.storage_override_opt.disabled' | trans }}';
+                    const auto_option = $(`#${AA_STORAGE_OVERRIDE_FIELD} > [value="0"]`)
+
+                    const text = `${auto_text} (${option.data('storage') ? enabled_text : disabled_text})`;
+                    console.log(auto_option, text);
+                    
+                    auto_option.text(text);
+                });
+
+                // case search handler
+                $(`#${AA_CASE_SEARCH_FIELD}`).on("change", function(){
+                    const data = $(this).val();
+                    const url = '{{ path('add_asset_query_cases') }}';
+                    
+                    if (data.length < 1) {
+                        return;
+                    }
+                    
+                    // improve performance by canceling old requests
+                    if (prevRequest != null) {
+                        prevRequest.abort();
+                    }
+                    
+                    prevRequest = $.ajax({
+                        url : url,
+                        data: {
+                            query: data,
+                        },
+                        success: function(response) {
+                            if(!response.update) {
+                                return;
+                            }
+                            
+                            // const no_case = '{{ 'asset.add.form.no_case' | trans }}';
+
+                            const cases =  $(`#${AA_CASE_FIELD}`);
+                            // remove all expect placeholder
+                            cases.find(' > option').each(function(index){
+                                const elem = $(this)
+                                if (elem.val()) {
+                                    elem.remove()
+                                }
+                            })
+
+                            // append new items
+                            response.data.forEach(item => {
+                                const option = document.createElement('option');
+                                const text = document.createTextNode(item.text);
+                                option.value = item.val;
+                                option.appendChild(text);
+                                
+                                cases.append(option);
+                            });
+                        }
+                    });
+                });
+            }
+        }
+    })();
+
+    $(function() {
+        AddAsset.init();
+    });
+</script>
+{% endblock %}
+

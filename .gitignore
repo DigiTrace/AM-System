@@ -24,7 +24,7 @@
 ###< php-cs-fixer
 
 .env
-/migrations/*
+# /migrations/*
 !/migrations/.gitkeep
 /public/uploads/pic/*
 !/public/uploads/pic/.gitkeep

@@ -23,9 +23,9 @@
 
 namespace App\Controller;
 
+use App\Entity\Asset;
 use App\Entity\Fall;
 use App\Entity\Nutzer;
-use App\Entity\Objekt;
 use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
@@ -49,15 +49,15 @@ class DefaultController extends AbstractController
         $user = $this->get('security.token_storage')->getToken()->getUser();
 
         // get all reserved objects
-        $repository = $doctrine->getRepository(Objekt::class);
-        $reservedObjects = $repository->findAllReservedByUser($user);
+        $repository = $doctrine->getRepository(Asset::class);
+        $reservedAssets = $repository->findAllReservedByUser($user);
 
         // get open cases
         $repository = $doctrine->getRepository(Fall::class);
         $cases = $repository->findAllOpen(10);
 
         return $this->render('default/index.html.twig', [
-            'reservedObjects' => $reservedObjects,
+            'reservedAssets' => $reservedAssets,
             'recentCases' => $cases,
         ]);
     }

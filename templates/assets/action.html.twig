@@ -1,0 +1,142 @@
+{#
+   // AM-System
+   // Copyright (C) 2019 Robert Krasowski
+   // This program was created during an internship at DigiTrace GmbH
+   // Read LIZENZ.txt for full notice
+
+   // This program is free software: you can redistribute it and/or modify
+   // it under the terms of the GNU General Public License as published by
+   // the Free Software Foundation, either version 3 of the License, or
+   // (at your option) any later version.
+
+   // This program is distributed in the hope that it will be useful,
+   // but WITHOUT ANY WARRANTY; without even the implied warranty of
+   // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   // GNU General Public License for more details.
+
+   // You should have received a copy of the GNU General Public License
+   // along with this program.  If not, see <http://www.gnu.org/licenses/>.
+   
+#}
+
+{% extends 'base.html.twig' %}
+{% form_theme form 'bootstrap_3_layout.html.twig' %} 
+
+{% block content1 %}
+    {# <div class="wrapper">
+        <div class="container" > #}
+            <h2>{{ 'asset.action.page.header' | trans}}</h2>
+
+            {{ include('messages.html.twig') }}
+
+            {{ form_start(form) }}
+
+            <div class="row">
+                <div class="col-lg-8 col-xs-12">
+                    <div class="well">
+                        {{ 'asset.action.page.transition' | trans }}:
+                        <span class="label label-default">
+                            {{ cur_state | trans }}    
+                        </span>
+                        <span class="glyphicon glyphicon-arrow-right" style="margin: 0px 10px;" aria-hidden="true"></span>
+                        <span class="label label-primary">
+                            {{ new_state | trans }}    
+                        </span>
+                    </div>
+
+                    {{ form_row(form.usage) }}
+                    {{ form_row(form.lastUpdatePerformedOn) }}
+                </div>
+                <div class="col-lg-4 col-xs-12">
+
+                {% if options.form.selector is defined %}
+                    {% set field = options.form.selector.name  %}
+                    {{ form_row(form.selector_search) }}
+                    {{ form_widget(form[field]) }}
+                    {{ form_errors(form[field]) }}
+                {% endif %}
+                </div>
+            </div>
+            
+            <div class="form-footer">
+                {{ form_widget(form.save) }}
+            </div>
+
+            {{ form_end(form) }}
+    {# </div>
+    </div> #}
+{% endblock %}
+
+{% block stylesheets %}
+{% endblock %}
+
+
+
+{% block javascripts %}
+{% if options.form.selector is defined %}
+<script>
+    {# TODO replace with `field_id()` twig functions in future symfony versions #}
+    const SEARCH_FIELD = 'action_asset_selector_search';
+    const SELECTION = 'action_asset_{{ options.form.selector.name }}';
+
+    const SelectAPI = (function(){
+        let prevRequest = null;
+
+        return {
+            init: function(){
+                // location search handler
+                $(`#${SEARCH_FIELD}`).on("keydown", function(){
+                    const data = $(this).val();
+                    const url = '{{ path(options.api_url) }}';
+                    
+                    if (data.length < 1) {
+                        return;
+                    }
+                    
+                    
+                    // improve performance by canceling old requests
+                    if (prevRequest != null) {
+                        prevRequest.abort();
+                    }
+
+                    prevRequest = $.ajax({
+                        url : url,
+                        data: {
+                            query: data,
+                        },
+                        success: function(response) {
+                            if(!response.update) {
+                                return;
+                            }
+
+                            const locations =  $(`#${SELECTION}`);
+                            // remove all expect placeholder
+                            locations.find(' > option').each(function(index){
+                                const elem = $(this)
+                                if (elem.val()) {
+                                    elem.remove()
+                                }
+                            })
+
+                            // append new items
+                            response.data.forEach(item => {
+                                const option = document.createElement('option');
+                                const text = document.createTextNode(item.text);
+                                option.value = item.val;
+                                option.appendChild(text);
+                                
+                                locations.append(option);
+                            });
+                        }
+                    });
+                });
+            }
+        }
+    })();
+
+    $(function() {
+        SelectAPI.init();
+    });
+</script>
+{% endif %}
+{% endblock %}

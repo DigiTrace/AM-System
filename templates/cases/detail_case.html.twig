@@ -97,26 +97,26 @@
      </thead>
      <tbody>
 
-         {% for object in fall.getObjekte %}
+         {% for asset in fall.getObjekte %}
 
-         <tr style="cursor:pointer" onclick="window.location.href='{{ path('detail_object', {'id': object.getBarcode}) }}'">
+         <tr style="cursor:pointer" onclick="window.location.href='{{ path('details_asset', {'id': asset.getBarcode}) }}'">
             <td style='font-family: courier;font-size: large'>
-                <a href="{{ path('detail_object', {'id': object.getBarcode}) }}">
-                {{ object.getBarcode }}
+                <a href="{{ path('details_asset', {'id': asset.getBarcode}) }}">
+                {{ asset.getBarcode }}
                 </a>
             </td>
             <td>
-                <a href="{{ path('detail_object', {'id': object.getBarcode}) }}">
-                    {{ object.getName }}
+                <a href="{{ path('details_asset', {'id': asset.getBarcode}) }}">
+                    {{ asset.getName }}
                 </a>
             </td>
-            <td>{{ statustemp[object.getStatus] | trans }}</td>
-            <td>{{ object.getZeitstempelumsetzung|date('d.m.y H:i') }}</td>
+            <td>{{ asset.getState | trans }}</td>
+            <td>{{ asset.lastUpdatePerformedOn | date('d.m.y H:i') }}</td>
             <td>
-                {% if object.getStandort == false %}
+                {% if object.getLocation == false %}
                 /
                 {% else %}
-                <a href='{{ path('detail_object', {'id': object.getStandort.getBarcode}) }}' >{{ object.getStandort.getBarcode }} | {{ object.getStandort.getName }} </a></td>
+                <a href='{{ path('details_asset', {'id': object.getLocation.getBarcode}) }}' >{{ object.getLocation.getBarcode }} | {{ object.getLocation.getName }} </a></td>
                 {% endif %}
             </td>
        </tr>
@@ -144,26 +144,26 @@
      </thead>
      <tbody>
 
-         {% for object in historie_objekts %}
+         {% for history_asset in historie_objekts %}
 
-         <tr style="cursor:pointer" onclick="window.location.href='{{ path('detail_object', {'id': object['barcode_id']}) }}'">
+         <tr style="cursor:pointer" onclick="window.location.href='{{ path('details_asset', {'id': history_asset['barcode_id']}) }}'">
             <td style='font-family: courier;font-size: large'>
-                <a href="{{ path('detail_object', {'id': object['barcode_id']}) }}">
-                {{ object['barcode_id'] }}
+                <a href="{{ path('details_asset', {'id': history_asset['barcode_id']}) }}">
+                {{ history_asset['barcode_id'] }}
                 </a>
             </td>
             <td>
-                <a href="{{ path('detail_object', {'id': object['barcode_id']}) }}">
-                    {{ object['name'] }}
+                <a href="{{ path('details_asset', {'id': history_asset['barcode_id']}) }}">
+                    {{ history_asset['name'] }}
                 </a>
             </td>
-            <td>{{ object['status_id'] | wrappergetStatusNameFromId | trans }}</td>
-            <td>{{ object['zeitstempelderumsetzung']|date('d.m.y H:i') }}</td>
+            <td>{{ history_asset['state'].toTranslatableString | trans }}</td>
+            <td>{{ history_asset['zeitstempelderumsetzung']|date('d.m.y H:i') }}</td>
             <td>
-                {% if object['standort'] == false %}
+                {% if history_asset['standort'] == false %}
                 /
                 {% else %}
-                <a href='{{ path('detail_object', {'id': object['standort']}) }}' >{{ object['standort'] }} | {{ object['Standortname'] }} </a></td>
+                <a href='{{ path('details_asset', {'id': history_asset['standort']}) }}' >{{ history_asset['standort'] }} | {{ history_asset['Standortname'] }} </a></td>
                 {% endif %}
             </td>
        </tr>

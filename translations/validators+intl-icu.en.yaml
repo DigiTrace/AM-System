@@ -1,0 +1,5 @@
+asset:
+  add:
+    form:
+      error:
+        duplicate: 'Asset with barcode already exists'

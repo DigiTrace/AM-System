@@ -37,6 +37,8 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Session\SessionInterface;
 use Symfony\Component\Routing\Annotation\Route;
+use App\Enum\AssetCategory as Category;
+use App\Enum\AssetState as State;
 
 /**
  * Provides overview functionality for objects.
@@ -46,15 +48,6 @@ use Symfony\Component\Routing\Annotation\Route;
  */
 class ObjectOverviewController extends AbstractController
 {
-    /**
-     * Displays FAQ and help page for advanced search.
-     */
-    #[Route(data: '/objekte/faq', name: 'search_objects_faq')]
-    public function searchFaq(): Response
-    {
-        return $this->render('default/search_objects_faq.twig');
-    }
-
     /**
      * Return list of all objects, with optional search (simple or advanced) applied.
      *
@@ -110,16 +103,18 @@ class ObjectOverviewController extends AbstractController
             $request->query->getInt('page', 1), // page number
             $session->get('limit') ?? 25, // limit per page,
             [
-                'defaultSortFieldName' => 'asset.barcode_id',
+                'defaultSortFieldName' => 'asset.barcode',
                 'defaultSortDirection' => 'asc',
             ]
         );
 
+        Category::cases()[0]->toTranslatableString();
+
         // render object table
         return $this->render('default/search_objects.html.twig', [
             'searchform' => $form->createView(),
-            'eas_categories' => Objekt::$kategorienToId,
-            'eas_status' => Objekt::$statusToId,
+            'eas_categories' => Category::cases(),
+            'eas_states' => State::cases(),
             'pagination' => $pagination,
             'regex_single_match' => $extendedAssetSearch::$regex_single_match,
             'regex_multiple_match' => $extendedAssetSearch::$regex_multiple_match,
@@ -155,7 +150,7 @@ class ObjectOverviewController extends AbstractController
             $object = $em->getRepository(Objekt::class)->find($searchword);
 
             if ($object) {
-                return $this->redirectToRoute('detail_object', ['id' => $object->getBarcode()]);
+                return $this->redirectToRoute('details_asset', ['id' => $object->getBarcode()]);
             } else {
                 $this->addFlash('danger', 'object_was_not_found');
             }

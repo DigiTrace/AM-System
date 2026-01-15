@@ -1,7 +1,9 @@
 <?php
 
 namespace App\Service;
-use App\Entity\Objekt;
+use App\Entity\Asset;
+use App\Enum\AssetCategory;
+use App\Enum\AssetState;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Query;
 use Doctrine\ORM\Query\Expr;
@@ -38,21 +40,14 @@ class ExtendedAssetSearch
     private array $errors = []; 
     private Expr $exprBuilder;
 
-    private array $categoryNames;
-    private array $categoryNamesTranslated;
+    # TODO add support for language specific category search
+    // private array $categoryNames;
+    // private array $categoryNamesTranslated;
 
-    private EntityManagerInterface $entityManagerInterface;
-    private TranslatorInterface $translator;
-
-    public function __construct(EntityManagerInterface $entityManagerInterface, TranslatorInterface $translator)
-    {
-        $this->entityManagerInterface = $entityManagerInterface;
-        $this->translator = $translator;
-        // get category names
-        $this->categoryNames = array_keys(Objekt::$kategorienToId);
-        // translate category names to local lang
-        $this->categoryNamesTranslated = array_map(fn($c) => $translator->trans($c), $this->categoryNames);
-    }
+    public function __construct(
+        private EntityManagerInterface $entityManagerInterface, 
+        private TranslatorInterface $translator)
+    {}
 
     /**
      * Generates either simple or complex search query based on input query.
@@ -98,16 +93,16 @@ class ExtendedAssetSearch
      */
     protected function simpleSearchQuery(string $query): Query {
         $dql = <<<'DQL'
-        SELECT asset FROM App:Objekt asset 
-            LEFT JOIN App:HistorieObjekt ho 
-                WITH asset.barcode_id = ho.barcode_id 
-            LEFT JOIN App:Datentraeger d 
-                WITH asset.barcode_id = d.barcode_id 
+        SELECT asset FROM App:Asset asset 
+            LEFT JOIN App:AssetHistory ho 
+                WITH asset.barcode = ho.barcode 
+            LEFT JOIN App:Drive d 
+                WITH asset.barcode = d.barcode 
         WHERE asset.name like :searchword 
-            OR asset.verwendung like :searchword 
-            OR asset.notiz like :searchword 
-            OR asset.barcode_id like :searchword 
-            OR d.sn like :searchword 
+            OR asset.usage like :searchword 
+            OR asset.note like :searchword 
+            OR asset.barcode like :searchword 
+            OR d.serialNumber like :searchword 
         DQL;
 
         return $this->entityManagerInterface->createQuery($dql)->setParameter(':searchword', "%$query%");
@@ -168,14 +163,14 @@ class ExtendedAssetSearch
             : $this->exprBuilder->orX(array_shift($segmentExprs), ...$segmentExprs);
 
         // get repository    
-        $repository = $this->entityManagerInterface->getRepository(Objekt::class);
+        $repository = $this->entityManagerInterface->getRepository(Asset::class);
         $builder = $repository->createQueryBuilder('asset');
 
         // join requiered tables
         if ($this->historyJoin)
-            $builder->leftjoin("App:HistorieObjekt", "h_asset", "WITH", "h_asset.barcode_id = asset.barcode_id");
+            $builder->leftjoin("App:AssetHistory", "h_asset", "WITH", "h_asset.barcode = asset.barcode");
         if ($this->driveJoin)
-            $builder->leftjoin("App:Datentraeger", "drive", "WITH", "drive.barcode_id = asset.barcode_id");
+            $builder->leftjoin("App:Drive", "drive", "WITH", "drive.barcode = asset.barcode");
         if ($this->userJoin)
             $builder->leftjoin("App:Nutzer", "user", "WITH", "user.id = asset.nutzer_id");
         if ($this->historyUserJoin)
@@ -185,9 +180,9 @@ class ExtendedAssetSearch
         if ($this->historyReservedUserJoin)
             $builder->leftjoin("App:Nutzer", "h_reserver", "WITH", "h_reserver.id = h_asset.reserviert_von");
         if ($this->locationJoin)
-            $builder->leftjoin("App:Objekt", "location", "WITH", "location.barcode_id = asset.standort");
+            $builder->leftjoin("App:Asset", "location", "WITH", "location.barcode = asset.location");
         if ($this->historyLocationJoin)
-            $builder->leftjoin("App:Objekt", "h_location", "WITH", "h_location.barcode_id = h_asset.standort");
+            $builder->leftjoin("App:Asset", "h_location", "WITH", "h_location.barcode = h_asset.location");
         if ($this->caseJoin) //  "case" is SQL keyword -> we use "_case"
             $builder->leftjoin("App:Fall", "_case", "WITH", "_case.id = asset.fall_id");
         if ($this->historyCaseJoin)
@@ -253,7 +248,7 @@ class ExtendedAssetSearch
     protected function categoryQuery(bool $neg, array $values): Comparison|Func|string|null {
         // translate all categories into categorie ids
         foreach ($values as $key => $c) {
-            if(is_numeric($c) && ($c < 0 || $c >= Objekt::getCountCategories())) {
+            if(is_numeric($c) && ($c < 0 || $c >= \count(AssetCategory::cases()))) {
                 $this->addError('danger', 'eas.error.category.invalid', ['category' => $c]);
                 return null;
             }
@@ -263,7 +258,7 @@ class ExtendedAssetSearch
             }
         }
                 
-        return $this->equalQuery('asset.kategorie_id', $neg, $values);
+        return $this->equalQuery('asset.category', $neg, $values);
     }
 
     /**
@@ -276,7 +271,7 @@ class ExtendedAssetSearch
     protected function statusQuery(bool $neg, array $values): Comparison|Func|string|null {
         // translate all status into status ids
         foreach ($values as $key => $s) {
-            if(is_numeric($s) && ($s < 0 || $s >= Objekt::getCountStatues())) {
+            if(is_numeric($s) && ($s < 0 || $s >= \count(AssetState::cases()))) {
                 $this->addError('danger', 'eas.error.invalid.status %status%', ['%status%' => $s]);
                 return null;
             }
@@ -286,7 +281,7 @@ class ExtendedAssetSearch
             }
         }
                 
-        return $this->equalQuery('asset.status_id', $neg, $values);
+        return $this->equalQuery('asset.state', $neg, $values);
     }
     
     /**
@@ -297,10 +292,10 @@ class ExtendedAssetSearch
      */
     protected function barcodeQuery(bool $neg, array $values): Comparison|Orx|string { 
         if (1 == count($values) && ($bool = $this->to_bool($values[0])) !== null){
-            return $this->existenceQuery('asset.barcode_id', $neg xor $bool);
+            return $this->existenceQuery('asset.barcode', $neg xor $bool);
         }
 
-        return $this->stringQuery('asset.barcode_id', $neg, $values);
+        return $this->stringQuery('asset.barcode', $neg, $values);
     }
 
     /**
@@ -325,10 +320,10 @@ class ExtendedAssetSearch
      */
     protected function noteQuery(bool $neg, array $values): Comparison|Orx|string {
         if (1 == count($values) && ($bool = $this->to_bool($values[0])) !== null){
-            return $this->existenceQuery('asset.notiz', $neg xor $bool);
+            return $this->existenceQuery('asset.note', $neg xor $bool);
         }
 
-        return $this->stringQuery('asset.notiz', $neg, $values);
+        return $this->stringQuery('asset.note', $neg, $values);
     }
 
     /**
@@ -339,10 +334,10 @@ class ExtendedAssetSearch
      */
     protected function descriptionQuery(bool $neg, array $values): Comparison|Orx|string {
         if (1 == count($values) && ($bool = $this->to_bool($values[0])) !== null){
-            return $this->existenceQuery('asset.verwendung', $neg xor $bool);
+            return $this->existenceQuery('asset.usage', $neg xor $bool);
         }
 
-        return $this->stringQuery('asset.verwendung', $neg, $values);
+        return $this->stringQuery('asset.usage', $neg, $values);
     }
 
     /**
@@ -354,10 +349,10 @@ class ExtendedAssetSearch
     protected function historyDescriptionQuery(bool $neg, array $values): Comparison|Orx|string {
         $this->historyJoin = true;
         if (1 == count($values) && ($bool = $this->to_bool($values[0])) !== null){
-            return $this->existenceQuery('h_asset.verwendung', $neg xor $bool);
+            return $this->existenceQuery('h_asset.usage', $neg xor $bool);
         }
 
-        return $this->stringQuery('h_asset.verwendung', $neg, $values);
+        return $this->stringQuery('h_asset.usage', $neg, $values);
     }
 
     /**
@@ -427,10 +422,10 @@ class ExtendedAssetSearch
         $this->locationJoin = true;
 
         if (1 == count($values) && ($bool = $this->to_bool($values[0])) !== null){
-            return $this->existenceQuery('location.barcode_id', $neg xor $bool);
+            return $this->existenceQuery('location.barcode', $neg xor $bool);
         }
 
-        return $this->stringQuery('location.barcode_id', $neg, $values);
+        return $this->stringQuery('location.barcode', $neg, $values);
     }
 
     /**
@@ -444,10 +439,10 @@ class ExtendedAssetSearch
         $this->historyLocationJoin = true;
 
         if (1 == count($values) && ($bool = $this->to_bool($values[0])) !== null){
-            return $this->existenceQuery('h_location.barcode_id', $neg xor $bool);
+            return $this->existenceQuery('h_location.barcode', $neg xor $bool);
         }
 
-        return $this->stringQuery('h_location.barcode_id', $neg, $values);
+        return $this->stringQuery('h_location.barcode', $neg, $values);
     }
 
     /**
@@ -504,14 +499,10 @@ class ExtendedAssetSearch
         $this->driveJoin = true;
 
         if (1 == count($values) && ($bool = $this->to_bool($values[0])) !== null){
-            return $this->existenceQuery('drive.bauart', $neg xor $bool);
+            return $this->existenceQuery('drive.type', $neg xor $bool);
         }
 
-        // return $this->exprBuilder->andX(
-        //     $this->existenceQuery('drive.bauart', true),
-        //     $this->stringQuery('drive.bauart', $neg, $values)
-        // );
-        return $this->stringQuery('drive.bauart', $neg, $values);
+        return $this->stringQuery('drive.type', $neg, $values);
     }
 
     /**
@@ -524,10 +515,10 @@ class ExtendedAssetSearch
         $this->driveJoin = true;
 
         if (1 == count($values) && ($bool = $this->to_bool($values[0])) !== null){
-            return $this->existenceQuery('drive.formfaktor', $neg xor $bool);
+            return $this->existenceQuery('drive.formFactor', $neg xor $bool);
         }
 
-        return $this->stringQuery('drive.formfaktor', $neg, $values);
+        return $this->stringQuery('drive.formFactor', $neg, $values);
     }
 
     /**
@@ -540,7 +531,7 @@ class ExtendedAssetSearch
         $this->driveJoin = true;
 
         if (1 == count($values) && ($bool = $this->to_bool($values[0])) !== null){
-            return $this->existenceQuery('drive.groesse', $neg xor $bool);
+            return $this->existenceQuery('drive.size', $neg xor $bool);
         }
 
         $expr = [];
@@ -569,14 +560,14 @@ class ExtendedAssetSearch
 
             if(is_numeric($val)){
                 if($op){
-                    $expr[] = $this->exprBuilder->$op('drive.groesse', $this->addParam($val));
+                    $expr[] = $this->exprBuilder->$op('drive.size', $this->addParam($val));
                 }
                 else {
-                    $expr[] = $this->equalQuery('drive.groesse', false, [$val]);
+                    $expr[] = $this->equalQuery('drive.size', false, [$val]);
                 }
             }
             else {
-                $expr[] = $this->stringQuery('drive.groesse', false, [$val]);
+                $expr[] = $this->stringQuery('drive.size', false, [$val]);
             }
         }
 
@@ -601,10 +592,10 @@ class ExtendedAssetSearch
         $this->driveJoin = true;
 
         if (1 == count($values) && ($bool = $this->to_bool($values[0])) !== null){
-            return $this->existenceQuery('drive.hersteller', $neg xor $bool);
+            return $this->existenceQuery('drive.manufacturer', $neg xor $bool);
         }
 
-        return $this->stringQuery('drive.hersteller', $neg, $values);
+        return $this->stringQuery('drive.manufacturer', $neg, $values);
     }
 
     /**
@@ -617,10 +608,10 @@ class ExtendedAssetSearch
         $this->driveJoin = true;
 
         if (1 == count($values) && ($bool = $this->to_bool($values[0])) !== null){
-            return $this->existenceQuery('drive.modell', $neg xor $bool);
+            return $this->existenceQuery('drive.model', $neg xor $bool);
         }
 
-        return $this->stringQuery('drive.modell', $neg, $values);
+        return $this->stringQuery('drive.model', $neg, $values);
     }
 
     /**
@@ -633,10 +624,10 @@ class ExtendedAssetSearch
         $this->driveJoin = true;
 
         if (1 == count($values) && ($bool = $this->to_bool($values[0])) !== null){
-            return $this->existenceQuery('drive.pn', $neg xor $bool);
+            return $this->existenceQuery('drive.productNumber', $neg xor $bool);
         }
 
-        return $this->stringQuery('drive.pn', $neg, $values);
+        return $this->stringQuery('drive.productNumber', $neg, $values);
     }
 
     /**
@@ -649,10 +640,10 @@ class ExtendedAssetSearch
         $this->driveJoin = true;
 
         if (1 == count($values) && ($bool = $this->to_bool($values[0])) !== null){
-            return $this->existenceQuery('drive.sn', $neg xor $bool);
+            return $this->existenceQuery('drive.serialNumber', $neg xor $bool);
         }
 
-        return $this->stringQuery('drive.sn', $neg, $values);
+        return $this->stringQuery('drive.serialNumber', $neg, $values);
     }
 
     /**
@@ -665,10 +656,10 @@ class ExtendedAssetSearch
         $this->driveJoin = true;
 
         if (1 == count($values) && ($bool = $this->to_bool($values[0])) !== null){
-            return $this->existenceQuery('drive.anschluss', $neg xor $bool);
+            return $this->existenceQuery('drive.connector', $neg xor $bool);
         }
 
-        return $this->stringQuery('drive.anschluss', $neg, $values);
+        return $this->stringQuery('drive.connector', $neg, $values);
     }
     
 
@@ -724,11 +715,11 @@ class ExtendedAssetSearch
         $exprs = array_map(function($match) {
             $param = $this->addParam($match['date']);
             return match ($match['operator']) {
-                '' => $this->exprBuilder->eq("DATE_DIFF(asset.zeitstempel, $param)", 0),
-                '<' => $this->exprBuilder->lt("DATE_DIFF(asset.zeitstempel, $param)", 0),
-                '<=' => $this->exprBuilder->lte("DATE_DIFF(asset.zeitstempel, $param)", 0),
-                '>' => $this->exprBuilder->gt("DATE_DIFF(asset.zeitstempel, $param)", 0),
-                '>=' => $this->exprBuilder->gte("DATE_DIFF(asset.zeitstempel, $param)", 0),
+                '' => $this->exprBuilder->eq("DATE_DIFF(asset.lastUpdatedOn, $param)", 0),
+                '<' => $this->exprBuilder->lt("DATE_DIFF(asset.lastUpdatedOn, $param)", 0),
+                '<=' => $this->exprBuilder->lte("DATE_DIFF(asset.lastUpdatedOn, $param)", 0),
+                '>' => $this->exprBuilder->gt("DATE_DIFF(asset.lastUpdatedOn, $param)", 0),
+                '>=' => $this->exprBuilder->gte("DATE_DIFF(asset.lastUpdatedOn, $param)", 0),
             };
         }, $values);
 

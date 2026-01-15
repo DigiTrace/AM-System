@@ -1,0 +1,131 @@
+{#
+   // AM-System
+   // Copyright (C) 2019 Robert Krasowski
+   // This program was created during an internship at DigiTrace GmbH
+   // Read LIZENZ.txt for full notice
+
+   // This program is free software: you can redistribute it and/or modify
+   // it under the terms of the GNU General Public License as published by
+   // the Free Software Foundation, either version 3 of the License, or
+   // (at your option) any later version.
+
+   // This program is distributed in the hope that it will be useful,
+   // but WITHOUT ANY WARRANTY; without even the implied warranty of
+   // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   // GNU General Public License for more details.
+
+   // You should have received a copy of the GNU General Public License
+   // along with this program.  If not, see <http://www.gnu.org/licenses/>.
+   
+#}
+{% extends 'base.html.twig' %}
+{% form_theme form 'bootstrap_3_layout.html.twig' _self %} 
+
+{% block checkbox_radio_label %}
+    {# Do not display the label if widget is not defined in order to prevent double label rendering #}
+    {% if widget is defined %}
+        {% if required %}
+            {% set label_attr = label_attr|merge({class: (label_attr.class|default('') ~ ' required')|trim}) %}
+        {% endif %}
+        {% if parent_label_class is defined %}
+            {% set label_attr = label_attr|merge({class: (label_attr.class|default('') ~ ' ' ~ parent_label_class)|trim}) %}
+        {% endif %}
+        {% if label is not same as(false) and label is empty %}
+            {%- if label_format is not empty -%}
+                {% set label = label_format|replace({
+                    '%name%': name,
+                    '%id%': id,
+                }) %}
+            {%- else -%}
+                {% set label = name|humanize %}
+            {%- endif -%}
+        {% endif %}
+        <label{% for attrname, attrvalue in label_attr %} {{ attrname }}="{{ attrvalue }}"{% endfor %}>
+            {% if '.jpeg' in label or '.png' in label  or '.jpg' in label  %}
+                {{- widget|raw }} <img style="max-height: 100px;max-width:200px" src="/uploads/pic/{{ label }}">
+            {% else %}
+                {{- widget|raw }} {{ label is not same as(false) ? (translation_domain is same as(false) ? label : label|trans({}, translation_domain)) -}}
+            {% endif %}
+        </label>
+    {% endif %}
+{% endblock checkbox_radio_label %}
+
+{% block content1 %}
+    {# <div class="wrapper">
+        <div class="container" > #}
+           <h2>{{ header | trans }}</h2>
+           
+            {{ include('messages.html.twig') }}
+           
+            
+            {{ form_start(form)  }}
+            {{ form_row(form.picture) }}
+            {{ form_row(form.is_public) }}
+            
+            {{ form_label(form.select_public) }}
+            {{ form_errors(form.select_public) }}
+            {{ form_widget(form.select_public) }}
+            <div class="row">
+                {%  for label, value in field_choices(form.select_public) %}
+                <div class="col-xs-3 col-md-2">
+                    <a href="#" class="thumbnail image_select" data-id="{{ form.select_public.vars.id }}_{{ value }}">
+                        <img src="/uploads/pic/{{ label }}" 
+                            alt="{{ label }}" 
+                            class="thumbnail_img" 
+                            loading="lazy"
+                        >
+                        <div class="caption">
+                            <h6>{{ label }}</h6>
+                        </div>
+                    </a>
+                </div>
+                {%  else %}
+                    <div class="alert alert-info" role="alert">
+                        {{ 'form.picture.no_public_pictures' | trans }}
+                    </div>
+                {% endfor %}
+
+            </div>
+
+            {{ form_row(form.save) }}
+
+            {{ form_end(form) }}
+            
+        {# </div>
+    </div> #}
+{% endblock %}
+
+{% block stylesheets %}
+<style>
+    .thumbnail_img {
+        max-width: 200px;
+        max-height: 200px;
+    }
+    a.thumbnail.selected {
+        background-color: lightgray;
+    }
+</style>
+{% endblock %}
+
+{% block javascripts %}
+<script>
+    const ImageSelect = (function(){
+
+        return {
+            init: function(){
+                $(".image_select").click(function(e) {
+                    e.preventDefault();
+                    const id = $(this).data('id');
+                    $(`#${id}`).prop('checked', true);
+                    $(".image_select").removeClass("selected");
+                    $(this).addClass("selected");
+                });
+            }
+        }
+    })();
+
+    $(function() {
+        ImageSelect.init();
+    });
+</script>
+{% endblock %}

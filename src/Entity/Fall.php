@@ -21,6 +21,7 @@
 namespace App\Entity;
 
 use App\Repository\FallRepository;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -40,6 +41,7 @@ class Fall
     public function __construct() {
         $time = new \DateTime('NOW');
         $this->zeitstempel_beginn = $time;
+        $this->assetHistories = new ArrayCollection();
     }
     
 
@@ -110,6 +112,9 @@ class Fall
     
     #[ORM\OneToMany(targetEntity: "Objekt", mappedBy: "fall_id")]
     protected $objekte;
+
+    #[ORM\OneToMany(mappedBy: 'case', targetEntity: AssetHistory::class)]
+    private Collection $assetHistories;
     
     
     
@@ -218,6 +223,36 @@ class Fall
                     Fall::DEGREE_OF_SECRECY_INTERNAL,
                     Fall::DEGREE_OF_SECRECY_CONFIDENTIAL,
                     Fall::DEGREE_OF_SECRECY_SECRET);
+    }
+
+    /**
+     * @return Collection<int, AssetHistory>
+     */
+    public function getAssetHistories(): Collection
+    {
+        return $this->assetHistories;
+    }
+
+    public function addAssetHistory(AssetHistory $assetHistory): static
+    {
+        if (!$this->assetHistories->contains($assetHistory)) {
+            $this->assetHistories->add($assetHistory);
+            $assetHistory->setCase($this);
+        }
+
+        return $this;
+    }
+
+    public function removeAssetHistory(AssetHistory $assetHistory): static
+    {
+        if ($this->assetHistories->removeElement($assetHistory)) {
+            // set the owning side to null (unless already changed)
+            if ($assetHistory->getCase() === $this) {
+                $assetHistory->setCase(null);
+            }
+        }
+
+        return $this;
     }
     
     

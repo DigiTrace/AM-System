@@ -20,6 +20,8 @@
 namespace App\Controller;
 
 //use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
+use App\Entity\Asset;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Session\Session;
@@ -82,12 +84,16 @@ class CaseDetailController extends AbstractController {
         
     }
     
+    /**
+     * @deprecated  Use `ObjektRepositoy::findPreviouslyInvolvedInCase` instead
+     * @param mixed $case
+     */
     private function getinvolvedObjectsFromCase($case){
         $em = $this->getDoctrine()->getManager();
         $query = $em->createQuery("SELECT distinct o.barcode_id,"
                 . "o.name,"
                 . "so.barcode_id AS standort,"
-                . "o.status_id,"
+                . "o.state,"
                 . "o.zeitstempelderumsetzung,"
                 . "so.name AS Standortname  "
                     . "FROM App:Objekt o "
@@ -152,7 +158,7 @@ class CaseDetailController extends AbstractController {
     /**
      * @Route("/fall/{id}/anzeigen/", name="detail_case", requirements={"id"=".+"})
      */
-    public function details_case(Request $request, $id) {
+    public function details_case(Request $request, EntityManagerInterface $entityManager, $id) {
         /*
          * hier wird eines der Faelle im Detail angezeigt,
          * Dadurch erhält man Zugriff auf die fuer den Fall verwendeten
@@ -166,13 +172,14 @@ class CaseDetailController extends AbstractController {
             return $this->redirectToRoute('search_case');
         }
         
-        $history_entrys = $this->getinvolvedObjectsFromCase($case);
+        $assetRepository = $entityManager->getRepository(Asset::class);
+        $previousEntrys = $assetRepository->findPreviouslyInvolvedInCase($case);
         
     
         
-        return $this->render('default/detail_case.html.twig',
+        return $this->render('cases/detail_case.html.twig',
                                     ['fall' => $case,
-                                     'historie_objekts' => $history_entrys]);
+                                     'historie_objekts' => $previousEntrys]);
     }
     
     // Erzeugen eines Dateinamens fuer den Export von Faellen.
@@ -228,7 +235,7 @@ class CaseDetailController extends AbstractController {
     /**
      * @Route("/fall/{id}/downloadWord/", name="download_case_word", requirements={"id"=".+"})
      */
-    public function download_case_word(Request $request, $id) {
+    public function download_case_word(Request $request, EntityManagerInterface $entityManager, $id) {
        
         $case = $this->get_case($id);
         
@@ -242,7 +249,9 @@ class CaseDetailController extends AbstractController {
         
         $usr= $this->get('security.token_storage')->getToken()->getUser();
         
-        $history_entrys = $this->getinvolvedObjectsFromCase($case);
+
+        $assetRepository = $entityManager->getRepository(Asset::class);
+        $previousEntrys = $assetRepository->findPreviouslyInvolvedInCase($case);
         
         $user = $em->getRepository(Nutzer::class)->findOneBy(array('id' => $usr->getId())); // muss geklaert werden
         
@@ -305,11 +314,11 @@ class CaseDetailController extends AbstractController {
            }
         }
         
-        $count_HObjects = count($history_entrys);
+        $count_HObjects = count($previousEntrys);
         $templateProcessor->cloneRow('Hdesc.oid.text', $count_HObjects);
         
         for($i = 1;$i <= $count_HObjects;$i++){
-           $currentObject = ($history_entrys[$i-1]);
+           $currentObject = ($previousEntrys[$i-1]);
            $templateProcessor->setValue("Hdesc.oid.text#".$i             ,$currentObject['barcode_id']); 
            $templateProcessor->setValue("Hdesc.name.text#".$i            ,$currentObject['name']);
            $templateProcessor->setValue("Hdesc.lstatus.text#".$i         ,$this->translator->trans(\App\Entity\Objekt::getStatusNameFromId($currentObject['status_id'])) );

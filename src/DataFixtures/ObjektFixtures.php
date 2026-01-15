@@ -293,8 +293,8 @@ class ObjektFixtures extends Fixture implements DependentFixtureInterface
             $obj->setNutzer($entry['nutzer']);
             $obj->setName($entry['name']);
             $obj->setVerwendung($entry['verwendung']);
-            $obj->setKategorie($entry['kategorie_id']);
-            $obj->setStatus($entry['status_id']);
+            $obj->setCategory($entry['kategorie_id']);
+            $obj->setState($entry['status_id']);
             $manager->persist($obj);
             $this->addReference(self::OBJEKT_REFERENCE.$id, $obj);
         }
@@ -321,9 +321,9 @@ class ObjektFixtures extends Fixture implements DependentFixtureInterface
         $hw4 = $manager->find(Objekt::class, 'DTHW00004');
         $hw6 = $manager->find(Objekt::class, 'DTHW00006');
         $hw2->setStandort($hw6);
-        $hw2->setStatus(7);
+        $hw2->setState(7);
         $hw4->setStandort($hw2);
-        $hw4->setStatus(7);
+        $hw4->setState(7);
 
         $manager->persist($hw2);
         $manager->persist($hw4);
@@ -335,13 +335,13 @@ class ObjektFixtures extends Fixture implements DependentFixtureInterface
         $his_hw2 = new HistorieObjekt($hw2);
         $his_hw2->setVerwendung('(TEST)Wird zum Lagern von Asservaten gebraucht');
         $his_hw2->setSystemaktion(0);
-        $his_hw2->setStatusId(0);
+        $his_hw2->setState(0);
         $his_hw2->setNutzerId($hw2->getNutzer());
         $his_hw2->setZeitstempelumsetzung($his_hw2->getZeitstempel());
         $his_hw4 = new HistorieObjekt($hw4);
         $his_hw4->setVerwendung('(TEST)Für Mobilen Einsatz');
         $his_hw4->setSystemaktion(0);
-        $his_hw4->setStatusId(0);
+        $his_hw4->setState(0);
         $his_hw4->setNutzerId($hw4->getNutzer());
         $his_hw4->setZeitstempelumsetzung($his_hw4->getZeitstempel());
 

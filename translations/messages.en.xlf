@@ -431,7 +431,7 @@
                 <source>when.object.arrived</source>
                 <target>Date of arrival:</target>
             </trans-unit>
-            <trans-unit id="add_object">
+            <trans-unit id="add_asset">
                 <source>add.object</source>
                 <target>Add Object</target>
             </trans-unit>

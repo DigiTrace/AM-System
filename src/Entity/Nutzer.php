@@ -3,6 +3,8 @@
 namespace App\Entity;
 
 use App\Repository\NutzerRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
@@ -66,6 +68,18 @@ class Nutzer implements UserInterface, PasswordAuthenticatedUserInterface
     // Benoetigt zur temporaren Verarbeitung des Passwords
     // wird auch nicht in die Datenbank gespeichert
     private $plainPassword;
+
+    #[ORM\OneToMany(mappedBy: 'lastChangeBy', targetEntity: AssetHistory::class)]
+    private Collection $assetHistories;
+
+    #[ORM\OneToMany(mappedBy: 'reservedBy', targetEntity: AssetHistory::class)]
+    private Collection $reservedAssetHistories;
+
+    public function __construct()
+    {
+        $this->assetHistories = new ArrayCollection();
+        $this->reservedAssetHistories = new ArrayCollection();
+    }
 
 
 
@@ -232,6 +246,66 @@ class Nutzer implements UserInterface, PasswordAuthenticatedUserInterface
     public function setPlainPassword(string $plainPassword): self
     {
         $this->plainPassword = $plainPassword;
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, AssetHistory>
+     */
+    public function getAssetHistories(): Collection
+    {
+        return $this->assetHistories;
+    }
+
+    public function addAssetHistory(AssetHistory $assetHistory): static
+    {
+        if (!$this->assetHistories->contains($assetHistory)) {
+            $this->assetHistories->add($assetHistory);
+            $assetHistory->setLastChangeBy($this);
+        }
+
+        return $this;
+    }
+
+    public function removeAssetHistory(AssetHistory $assetHistory): static
+    {
+        if ($this->assetHistories->removeElement($assetHistory)) {
+            // set the owning side to null (unless already changed)
+            if ($assetHistory->getLastChangeBy() === $this) {
+                $assetHistory->setLastChangeBy(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, AssetHistory>
+     */
+    public function getReservedAssetHistories(): Collection
+    {
+        return $this->reservedAssetHistories;
+    }
+
+    public function addReservedAssetHistory(AssetHistory $reservedAssetHistory): static
+    {
+        if (!$this->reservedAssetHistories->contains($reservedAssetHistory)) {
+            $this->reservedAssetHistories->add($reservedAssetHistory);
+            $reservedAssetHistory->setReservedBy($this);
+        }
+
+        return $this;
+    }
+
+    public function removeReservedAssetHistory(AssetHistory $reservedAssetHistory): static
+    {
+        if ($this->reservedAssetHistories->removeElement($reservedAssetHistory)) {
+            // set the owning side to null (unless already changed)
+            if ($reservedAssetHistory->getReservedBy() === $this) {
+                $reservedAssetHistory->setReservedBy(null);
+            }
+        }
+
         return $this;
     }
 

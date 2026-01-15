@@ -84,15 +84,15 @@
                     </tr>
                 </thead>
                 <tbody>
-                {% for objekt in reservedObjects %}  
+                {% for asset in reservedAssets %}  
                     <tr>
-                        <td style='font-family: courier;font-size: large'>{{ objekt.getBarcode }}</td>
-                        <td >{{ categorytemp[objekt.getKategorie]|trans }}</td>
+                        <td style='font-family: courier;font-size: large'>{{ asset.getBarcode }}</td>
+                        <td >{{ asset.getCategory | trans }}</td>
                         <td>
-                            <a href='{{ path('detail_object', {'id': objekt.getBarcode}) }}'>{{ objekt.getName }}<a/>
+                            <a href='{{ path('details_asset', {'id': asset.getBarcode}) }}'>{{ asset.getName }}<a/>
                         </td>
                         <td>
-                            <a href='{{ path("unreserve_object", {'id': objekt.getBarcode })}}' data-toggle="tooltip" data-placement="top" title="{{ 'action.unbind.reserved'|trans }}">
+                            <a href='{{ path("unreserve_asset", {'id': asset.getBarcode })}}' data-toggle="tooltip" data-placement="top" title="{{ 'action.unbind.reserved'|trans }}">
                                 <span class="glyphicon glyphicon-remove"></span>
                             </a>
                         </td>
