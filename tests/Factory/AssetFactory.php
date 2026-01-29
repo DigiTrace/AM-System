@@ -42,6 +42,7 @@ final class AssetFactory extends PersistentProxyObjectFactory
      */
     public function __construct()
     {
+        parent::__construct();
     }
 
     public static function class(): string
@@ -108,9 +109,9 @@ final class AssetFactory extends PersistentProxyObjectFactory
         ->afterPersist(function (Asset $asset, array $attributes) {
             if (static::$generateDrive) {
                 // if asset is storage device, add entry for that with given barcode
-                if (AssetCategory::Hdd == $attributes['category'] || AssetCategory::ExhibitHdd == $attributes['category']) {
-                    DatentraegerFactory::new()->create([
-                        'barcode' => $attributes['barcode'],
+                if ($asset->isDrive()) {
+                    DriveFactory::new()->create([
+                        'barcode' => $asset,
                     ]);
                 }
             }

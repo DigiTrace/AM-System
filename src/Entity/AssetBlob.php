@@ -22,7 +22,7 @@ class AssetBlob
     #[Assert\File(mimeTypes: ['image/jpeg'])]
     protected ?string $picture;
 
-    #[ORM\Column(type: 'string', nullable: true, name: 'bildPfad')]
+    #[ORM\Column(type: 'string', nullable: true, name: 'bild_pfad')]
     #[Assert\File(mimeTypes: ['image/jpeg'])]
     private ?string $path;
 

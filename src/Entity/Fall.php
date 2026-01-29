@@ -110,8 +110,8 @@ class Fall
   
 
     
-    #[ORM\OneToMany(targetEntity: "Objekt", mappedBy: "fall_id")]
-    protected $objekte;
+    #[ORM\OneToMany(targetEntity: "Asset", mappedBy: "fall_id")]
+    protected $assets;
 
     #[ORM\OneToMany(mappedBy: 'case', targetEntity: AssetHistory::class)]
     private Collection $assetHistories;
@@ -119,33 +119,33 @@ class Fall
     
     
     /**
-     * Add objekt
+     * Add asset
      *
-     * @param \App\Entity\Objekt $objekt
+     * @param \App\Entity\Asset $asset
      *
      * @return Fall
      */
-    public function addObjekt(\App\Entity\Objekt $objekt)
+    public function addAsset(\App\Entity\Asset $asset)
     {
-        $this->objekte[] = $objekt;
+        $this->assets[] = $asset;
 
         return $this;
     }
 
     /**
-     * Remove objekt
+     * Remove asset
      *
-     * @param \App\Entity\Objekt $objekt
+     * @param \App\Entity\Asset $asset
      */
-    public function removeObjekt(\App\Entity\Objekt $objekt)
+    public function removeAsset(\App\Entity\Asset $asset)
     {
-        $this->objekte->removeElement($objekt);
+        $this->assets->removeElement($asset);
     }
     
     
     
-    public function getObjekte(){
-        return $this->objekte;
+    public function getAssets(){
+        return $this->assets;
     }
 
     

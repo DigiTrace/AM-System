@@ -29,6 +29,11 @@ abstract class BaseWebTestCase extends WebTestCase
         return $client;
     }
 
+    protected function getUser($username) {
+        $userRepository = static::getContainer()->get(NutzerRepository::class);
+        return $userRepository->findOneByUsername('user');
+    }
+
     /**
      * Asserts that given criteria matches a database entry for given repository.
      * @param string $repository

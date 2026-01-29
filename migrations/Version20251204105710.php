@@ -14,13 +14,12 @@ final class Version20251204105710 extends AbstractMigration
 {
     public function getDescription(): string
     {
-        return 'Added `storage_override` column to ams_Objekt and ams_Historie_Objekt';
+        return 'Added `storage_override` column to ams_Objekt';
     }
 
     public function up(Schema $schema): void
     {
         // this up() migration is auto-generated, please modify it to your needs
-        $this->addSql('ALTER TABLE ams_Historie_Objekt ADD storage_override TINYINT(1) DEFAULT NULL');
         $this->addSql('ALTER TABLE ams_Objekt ADD storage_override TINYINT(1) DEFAULT NULL');
     }
 
@@ -28,6 +27,5 @@ final class Version20251204105710 extends AbstractMigration
     {
         // this down() migration is auto-generated, please modify it to your needs
         $this->addSql('ALTER TABLE ams_Objekt DROP storage_override');
-        $this->addSql('ALTER TABLE ams_Historie_Objekt DROP storage_override');
     }
 }

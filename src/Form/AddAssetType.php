@@ -7,6 +7,8 @@ use App\Entity\Fall;
 use App\Enum\AssetCategory as Category;
 use App\Validator\Barcode;
 use Doctrine\ORM\EntityManagerInterface;
+use Faker\Container\Container;
+use ReflectionProperty;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Event\PostSubmitEvent;
@@ -60,6 +62,7 @@ class AddAssetType extends AbstractType
                 'attr' => [
                     'size' => '6',
                 ],
+                'constraints' => new Constraints\NotBlank(),
                 'required' => true,
             ])
             ->add('usage', Field\TextareaType::class, [
@@ -119,9 +122,10 @@ class AddAssetType extends AbstractType
         // add listener to remove drive depending on category
         $builder->addEventListener(FormEvents::SUBMIT, function (SubmitEvent $event): void {
             $data = $event->getData();
+            $rp = new ReflectionProperty(Asset::class, 'category');
 
             // remove drive attr if asset is not drive
-            if (!$data->isDrive()) {
+            if ($rp->isInitialized($data) && !$data->isDrive()) {
                 $data->setDrive(null);
             }
         });

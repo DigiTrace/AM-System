@@ -28,10 +28,10 @@ class Asset
     #[ORM\Column(type: Types::TEXT)]
     private ?string $name = null;
 
-    #[ORM\Column(type: 'integer', enumType: Category::class, name: 'kategorie_id')]
+    #[ORM\Column(type: 'integer', enumType: Category::class, name: 'kategorie_id', nullable: false)]
     private Category $category;
 
-    #[ORM\Column(type: 'integer', enumType: State::class, name: 'status_id')]
+    #[ORM\Column(type: 'integer', enumType: State::class, name: 'status_id', nullable: false)]
     #[AppConstraints\AssetState()]
     private State $state;
 
@@ -83,7 +83,7 @@ class Asset
     #[ORM\InverseJoinColumn(name: 'hdd', referencedColumnName: 'barcode_id')]
     private Collection $hdds;
 
-    #[ORM\OneToOne(mappedBy: 'asset', cascade: ['persist', 'remove'])]
+    #[ORM\OneToOne(mappedBy: 'asset', cascade: ['persist', 'remove'], fetch: 'EXTRA_LAZY')]
     private ?AssetBlob $assetBlob = null;
 
     #[ORM\OneToMany(mappedBy: 'asset', targetEntity: AssetHistory::class)]

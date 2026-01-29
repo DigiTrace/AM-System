@@ -584,7 +584,7 @@
 
         <a href='{{ path("edit_asset",{id:id})}}'> <span class="glyphicon glyphicon-edit"></span> {{ 'action.edit' | trans }}</a><br>
         {% if asset.getPicture == null and asset.getPicturePath == null %}
-        <a href='{{ path("upload_pic",{id:id})}}'> <span class="glyphicon glyphicon-upload"></span> {{ 'action.upload.image' | trans }}</a><br>
+        <a href='{{ path("upload_picture_asset",{id:id})}}'> <span class="glyphicon glyphicon-upload"></span> {{ 'action.upload.image' | trans }}</a><br>
         {% endif %}
         
                 

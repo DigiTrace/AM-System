@@ -11,7 +11,7 @@ use Doctrine\ORM\Mapping as ORM;
  * @author Ben Brooksnieder
  */
 #[ORM\Entity(repositoryClass: DriveRepository::class)]
-# #[ORM\Table(name: "ams_Datentraeger")]
+// #[ORM\Table(name: "ams_Datentraeger")]
 class Drive
 {
     #[ORM\OneToOne(inversedBy: 'drive', cascade: ['persist', 'remove'])]

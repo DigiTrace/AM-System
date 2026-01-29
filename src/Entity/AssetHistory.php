@@ -51,9 +51,6 @@ class AssetHistory
     #[ORM\JoinColumn(name: 'standort', referencedColumnName: 'barcode_id', nullable: true)]
     private ?Asset $location = null;
 
-    #[ORM\Column(nullable: true)]
-    private ?bool $storageOverride = null;
-
     #[ORM\Column(type: Types::DATETIME_MUTABLE, name: 'zeitstempel')]
     private ?\DateTimeInterface $lastUpdatedOn = null;
 
@@ -94,7 +91,6 @@ class AssetHistory
         $entry->setReservedBy($asset->getReservedBy());
         $entry->setCase($asset->getCase());
         $entry->setLocation($asset->getLocation());
-        $entry->setStorageOverride($asset->isStorageOverride());
         $entry->setLastUpdatedOn($asset->getLastUpdatedOn());
         $entry->setLastUpdatePerformedOn($asset->getLastUpdatePerformedOn());
 
@@ -115,7 +111,6 @@ class AssetHistory
 
     public function __construct()
     {
-        $this->storage = new ArrayCollection();
         $this->images = new ArrayCollection();
     }
 
@@ -216,18 +211,6 @@ class AssetHistory
     public function setLocation(?Asset $location): static
     {
         $this->location = $location;
-
-        return $this;
-    }
-
-    public function isStorageOverride(): ?bool
-    {
-        return $this->storageOverride;
-    }
-
-    public function setStorageOverride(?bool $storageOverride): static
-    {
-        $this->storageOverride = $storageOverride;
 
         return $this;
     }

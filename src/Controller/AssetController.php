@@ -4,13 +4,11 @@ namespace App\Controller;
 
 use App\Entity\Asset;
 use App\Entity\AssetHistory;
-use App\Entity\Drive;
 use App\Entity\Fall;
 use App\Enum\AssetCategory as Category;
 use App\Enum\AssetState as State;
 use App\Form\ActionAssetType;
 use App\Form\AddAssetType;
-use App\Form\BatchAssetActionType;
 use App\Form\EditAssetType;
 use App\Form\SimpleAssetSearchType;
 use App\Form\UploadPictureType;
@@ -22,6 +20,7 @@ use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Session\SessionInterface;
+use Symfony\Component\PropertyAccess\PropertyAccess;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
@@ -38,8 +37,8 @@ use Symfony\Contracts\Translation\TranslatorInterface;
  * - [x] Null action
  * - [x] Use action
  * - [x] Destroy action
- * - [x] Delivery action
  * - [x] Lost action
+ * - [x] Handover action
  * - [x] Reserve action
  * - [x] Unreserve action
  * - [x] Pull out action
@@ -65,7 +64,7 @@ class AssetController extends BaseController
     /**
      * Return list of all assets, with optional search (simple or advanced) applied.
      */
-    #[Route(data: '/dev/objekte', name: 'search_assets')]
+    #[Route(data: '/objekte', name: 'search_assets')]
     public function searchAssets(
         Request $request,
         SessionInterface $session,
@@ -112,7 +111,11 @@ class AssetController extends BaseController
         }
 
         // no search query or parse error, apply default asset listing
-        $query ??= $this->entityManager->createQuery('SELECT asset FROM App:Asset asset');
+        if ($query === null) {
+            $repo = $this->entityManager->getRepository(Asset::class);
+            $query = $repo->createQueryBuilder('asset')->getQuery();
+
+        }
 
         // populate paginator
         $pagination = $paginator->paginate(
@@ -181,7 +184,7 @@ class AssetController extends BaseController
      * Durch das Scannen des jeweiligen Barcodes soll automatisch zur
      * Detailansicht des jeweiligen Objektes geführt wird.
      */
-    #[Route(data: '/dev/objekte-scanner', name: 'scan_assets')]
+    #[Route(data: '/objekte-scanner', name: 'scan_assets')]
     public function assetScanner(Request $request)
     {
         $searchidform = $this->createFormBuilder()
@@ -217,7 +220,7 @@ class AssetController extends BaseController
      *
      * @todo Test
      */
-    #[Route(data: '/dev/objekt/anlegen', name: 'add_asset')]
+    #[Route(data: '/objekt/anlegen', name: 'add_asset')]
     public function add(Request $request)
     {
         $form = $this->createForm(AddAssetType::class, null, []);
@@ -228,7 +231,7 @@ class AssetController extends BaseController
              * @var Asset
              */
             $asset = $form->getData();
-            $asset->setState(State::Edited); // TODO Not State::Added?
+            $asset->setState(State::Added); // TODO Not State::Added?
             $asset->setModifiedBy($this->getUser());
             $asset->setLastUpdatedOn(new \DateTime());
 
@@ -285,7 +288,7 @@ class AssetController extends BaseController
      * @param Request $request Symfony request
      * @param string  $id      DT-ID of object
      */
-    #[Route('/dev/objekt/{id}', name: 'details_asset')]
+    #[Route('/objekt/{id}', name: 'details_asset')]
     public function details(string $id, Request $request)
     {
         // query database for object
@@ -308,7 +311,7 @@ class AssetController extends BaseController
     /**
      * Show form to edit asset or handle asset edit form request.
      */
-    #[Route(data: '/dev/objekt/{id}/editieren', name: 'edit_asset')]
+    #[Route(data: '/objekt/{id}/editieren', name: 'edit_asset')]
     public function edit(string $id, Request $request)
     {
         // query database for asset
@@ -323,35 +326,55 @@ class AssetController extends BaseController
 
         // create history entry, but don't persist yet
         $history = AssetHistory::fromAsset($asset);
+        $drive = $asset->getDrive();
+
+        // simulate state change to verify that it is legitimate action
+        $currentState = $asset->getState();
+        $asset->setState(State::Edited);
 
         // proccess form
         $form = $this->createForm(EditAssetType::class, $asset, []);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
+            // restore state for change calculation
+            $asset->setState($currentState);
             // check if entity has changed
             $uow = $this->entityManager->getUnitOfWork();
             $uow->computeChangeSets();
-            $changes = $uow->getEntityChangeSet($asset);
-
-            if (empty($changes)) {
+            $asset_changes = $uow->getEntityChangeSet($asset);
+            $drive_changes = $asset->isDrive() ? $uow->getEntityChangeSet($drive) : [];
+            
+            // changes are detected, refresh entities, reapply changes and commit
+            if (empty($drive_changes) && empty($asset_changes)) {
                 $this->addFlash('info', 'asset.action.edit.no_changes_made');
-            } else {
+            }
+            else {       
+                $propertyAccesor = PropertyAccess::createPropertyAccessor();
+                if ($drive_changes) {
+                    $uow->refresh($drive);
+                    foreach ($drive_changes as $key => $value) {
+                        $propertyAccesor->setValue($drive, $key, $value['1']);
+                    }
+                    $this->entityManager->persist($drive);
+                }
+                
+                $uow->refresh($asset);
+                foreach ($asset_changes as $key => $value) {
+                    $propertyAccesor->setValue($asset, $key, $value['1']);
+                }
+                
+                $asset->setState(State::Edited);
                 $asset->setSystemAction(false);
                 $asset->setModifiedBy($this->getUser());
                 $asset->setLastUpdatedOn(new \DateTime());
-
                 $this->entityManager->persist($asset);
                 $this->entityManager->persist($history);
 
-                if ($asset->isDrive()) {
-                    $this->entityManager->persist($asset->getDrive());
-                }
-
                 $this->entityManager->flush();
                 $this->addFlash('success', 'asset.action.edit.success');
-
-                return $this->redirectToRoute('details_asset', ['id' => $asset->getBarcode()]);
+                
+                return $this->redirectToRoute('details_asset', ['id' => $asset->getBarcode()]);        
             }
         } else {
             foreach ($form->getErrors() as $error) {
@@ -369,7 +392,7 @@ class AssetController extends BaseController
     /**
      * Show form to neutralize drive asset.
      */
-    #[Route(data: '/dev/objekt/{id}/neutralisieren', name: 'neutralize_asset')]
+    #[Route(data: '/objekt/{id}/neutralisieren', name: 'neutralize_asset')]
     public function neutralize(string $id, Request $request)
     {
         // query database for asset
@@ -463,7 +486,7 @@ class AssetController extends BaseController
      *
      * @see action()
      */
-    #[Route(data: '/dev/objekt/{id}/nullen', name: 'clean_asset')]
+    #[Route(data: '/objekt/{id}/nullen', name: 'clean_asset')]
     public function cleanAction(string $id, Request $request)
     {
         $options = [
@@ -482,7 +505,7 @@ class AssetController extends BaseController
      *
      * @see action()
      */
-    #[Route(data: '/dev/objekt/{id}/vernichtet', name: 'destroy_asset')]
+    #[Route(data: '/objekt/{id}/vernichtet', name: 'destroy_asset')]
     public function destroyAction(string $id, Request $request)
     {
         $options = [
@@ -503,7 +526,7 @@ class AssetController extends BaseController
      *
      * @see action()
      */
-    #[Route(data: '/dev/objekt/{id}/uebergeben', name: 'handover_asset')]
+    #[Route(data: '/objekt/{id}/uebergeben', name: 'handover_asset')]
     public function handoverAction(string $id, Request $request)
     {
         $options = [
@@ -524,7 +547,7 @@ class AssetController extends BaseController
      *
      * @see action()
      */
-    #[Route(data: '/dev/objekt/{id}/reservieren', name: 'reserve_asset')]
+    #[Route(data: '/objekt/{id}/reservieren', name: 'reserve_asset')]
     public function reserveAction(string $id, Request $request)
     {
         $options = [
@@ -543,7 +566,7 @@ class AssetController extends BaseController
      *
      * @see action()
      */
-    #[Route(data: '/dev/objekt/{id}/verloren', name: 'lost_asset')]
+    #[Route(data: '/objekt/{id}/verloren', name: 'lost_asset')]
     public function lostAction(string $id, Request $request)
     {
         $options = [
@@ -565,7 +588,7 @@ class AssetController extends BaseController
      *
      * @see action()
      */
-    #[Route(data: '/dev/objekt/{id}/einlegen/in/', name: 'store_asset')]
+    #[Route(data: '/objekt/{id}/einlegen/in/', name: 'store_asset')]
     public function storeAction(string $id, Request $request)
     {
         $repo = $this->entityManager->getRepository(Asset::class);
@@ -593,7 +616,7 @@ class AssetController extends BaseController
      *
      * @see action()
      */
-    #[Route(data: '/dev/objekt/{id}/entnehmen', name: 'pull_out_asset')]
+    #[Route(data: '/objekt/{id}/entnehmen', name: 'pull_out_asset')]
     public function pullOutOfContainerAction(string $id, Request $request)
     {
         $options = [
@@ -615,7 +638,7 @@ class AssetController extends BaseController
      *
      * @see action()
      */
-    #[Route(data: '/dev/objekt/{id}/in/fall/', name: 'add_case_asset')]
+    #[Route(data: '/objekt/{id}/in/fall/', name: 'add_case_asset')]
     public function addToCaseAction(string $id, Request $request)
     {
         $repo = $this->entityManager->getRepository(Fall::class);
@@ -643,7 +666,7 @@ class AssetController extends BaseController
      *
      * @see action()
      */
-    #[Route(data: '/dev/objekt/{id}/aus/Fall/entfernen', name: 'remove_case_asset')]
+    #[Route(data: '/objekt/{id}/aus/Fall/entfernen', name: 'remove_case_asset')]
     public function removeFromCaseAction(string $id, Request $request)
     {
         $options = [
@@ -665,7 +688,7 @@ class AssetController extends BaseController
      *
      * @see action()
      */
-    #[Route(data: '/dev/objekt/{id}/reservierung/aufheben', name: 'unreserve_asset')]
+    #[Route(data: '/objekt/{id}/reservierung/aufheben', name: 'unreserve_asset')]
     public function unbindReservationAction(string $id, Request $request)
     {
         $options = [
@@ -684,7 +707,7 @@ class AssetController extends BaseController
      *
      * @see action()
      */
-    #[Route(data: '/dev/objekt/{id}/verwenden', name: 'use_asset')]
+    #[Route(data: '/objekt/{id}/verwenden', name: 'use_asset')]
     public function useAction(string $id, Request $request)
     {
         $options = [
@@ -702,7 +725,7 @@ class AssetController extends BaseController
      *
      * @see action()
      */
-    #[Route(data: '/dev/objekt/{id}/Asservatenimage/speichern/', name: 'save_image_on_drive_asset')]
+    #[Route(data: '/objekt/{id}/Asservatenimage/speichern/', name: 'save_image_on_drive_asset')]
     public function saveImageOnDriveAction(string $id, Request $request)
     {
         $repo = $this->entityManager->getRepository(Asset::class);
@@ -901,7 +924,7 @@ class AssetController extends BaseController
      *
      * @see action()
      */
-    #[Route(data: '/dev/objekt/{id}/upload', name: 'upload_picture_asset')]
+    #[Route(data: '/objekt/{id}/upload', name: 'upload_picture_asset')]
     public function uploadPictureAction(string $id, Request $request)
     {
         $asset = $this->entityManager->getRepository(Asset::class)->find($id);
@@ -1036,7 +1059,7 @@ class AssetController extends BaseController
      *
      * @api
      */
-    #[Route(data: '/dev/asset/cases', name: 'add_asset_query_cases')]
+    #[Route(data: '/asset/cases', name: 'add_asset_query_cases')]
     public function listCaseOptions(Request $request): JsonResponse
     {
         $query = $request->get('query', '');
@@ -1073,7 +1096,7 @@ class AssetController extends BaseController
      *
      * @api
      */
-    #[Route(data: '/dev/asset/locations', name: 'asset_action_query_locations')]
+    #[Route(data: '/asset/locations', name: 'asset_action_query_locations')]
     public function listStorageOptions(Request $request): JsonResponse
     {
         $query = $request->get('query', '');
@@ -1108,7 +1131,7 @@ class AssetController extends BaseController
      *
      * @api
      */
-    #[Route(data: '/dev/asset/image_targets', name: 'asset_action_query_image_targets')]
+    #[Route(data: '/asset/image_targets', name: 'asset_action_query_image_targets')]
     public function listHddImageTargets(Request $request): JsonResponse
     {
         $query = $request->get('query', '');
@@ -1143,7 +1166,7 @@ class AssetController extends BaseController
      *
      * @api
      */
-    #[Route(data: '/dev/asset/image_sources', name: 'asset_action_query_image_sources')]
+    #[Route(data: '/asset/image_sources', name: 'asset_action_query_image_sources')]
     public function listHddImageSources(Request $request): JsonResponse
     {
         $query = $request->get('query', '');
