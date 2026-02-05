@@ -157,13 +157,9 @@
                 });
 
                 // case search handler
-                $(`#${AA_CASE_SEARCH_FIELD}`).on("change", function(){
+                $(`#${AA_CASE_SEARCH_FIELD}`).on("keydown", function(){
                     const data = $(this).val();
                     const url = '{{ path('add_asset_query_cases') }}';
-                    
-                    if (data.length < 1) {
-                        return;
-                    }
                     
                     // improve performance by canceling old requests
                     if (prevRequest != null) {

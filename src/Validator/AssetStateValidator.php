@@ -80,7 +80,7 @@ class AssetStateValidator extends ConstraintValidator
                     ->addViolation();
                 }
                 break;
-            case State::AddedToCase:
+            case State::AssignedCase:
                 if ($original && null !== $original['case']) {
                     $this->context->buildViolation('asset.state.added_to_case.still_assigned')
                     ->addViolation();

@@ -500,7 +500,7 @@ class ExtendedAssetSearchTest extends KernelTestCase
         ];
 
         $samples = [
-            $factory->hdd()->create(['barcode' => 'DTHD00001', 'status' => State::AddedToCase, 'fall' => $cases[0]]),
+            $factory->hdd()->create(['barcode' => 'DTHD00001', 'status' => State::AssignedCase, 'fall' => $cases[0]]),
             $factory->hdd()->create(['barcode' => 'DTHD00002', 'status' => AssetState::PulledOutOfContainer, 'fall' => $cases[1]]),
             $factory->record()->create(['barcode' => 'DTAS00003']),
             $factory->record()->create(['barcode' => 'DTAS00004']),
@@ -537,7 +537,7 @@ class ExtendedAssetSearchTest extends KernelTestCase
         ];
 
         $samples = [
-            $factory->hdd()->create(['barcode' => 'DTHD00001', 'status' => State::AddedToCase, 'fall' => $cases[0]]),
+            $factory->hdd()->create(['barcode' => 'DTHD00001', 'status' => State::AssignedCase, 'fall' => $cases[0]]),
             $factory->hdd()->create(['barcode' => 'DTHD00002', 'status' => AssetState::PulledOutOfContainer, 'fall' => $cases[1]]),
             $factory->record()->create(['barcode' => 'DTAS00003']),
             $factory->record()->create(['barcode' => 'DTAS00004']),

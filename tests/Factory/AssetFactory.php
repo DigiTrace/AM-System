@@ -3,6 +3,7 @@
 namespace App\Tests\Factory;
 
 use App\Entity\Asset;
+use App\Entity\Fall;
 use App\Entity\Nutzer;
 use App\Enum\AssetCategory;
 use App\Enum\AssetState;
@@ -87,6 +88,7 @@ final class AssetFactory extends PersistentProxyObjectFactory
             'modifiedBy' => LazyValue::memoize([NutzerFactory::class, 'createOne']),
             'lastUpdatedOn' => self::faker()->dateTime(),
             'lastUpdatePerformedOn' => self::faker()->dateTime(),
+            'storageOverride' => null,
         ];
 
         return $defaults;
@@ -179,6 +181,22 @@ final class AssetFactory extends PersistentProxyObjectFactory
         return $this->with([
             'state' => AssetState::Reserved,
             'reservedBy' => $user,
+        ]);
+    }
+
+    public function storedIn(Asset $container): self 
+    {
+        return $this->with([
+            'state' => AssetState::StoredInContainer,
+            'location' => $container,
+        ]);
+    }
+
+    public function assignedToCase(Fall $case): self 
+    {
+        return $this->with([
+            'state' => AssetState::AssignedCase,
+            'case' => $case,
         ]);
     }
 }

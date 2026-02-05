@@ -579,7 +579,7 @@
                 <a href='{{ path("remove_case_asset",{id:id})}}'> <span class="glyphicon glyphicon-export"></span> {{ 'action.removed.from.case' | trans }}</a><br>
            {% endif %}
         {% else %}
-          <a href='{{ path("add_case_asset",{id:id})}}'> <span class="glyphicon glyphicon-import"></span> {{ 'action.added.to.case' | trans }}</a><br>
+          <a href='{{ path("assign_case_asset",{id:id})}}'> <span class="glyphicon glyphicon-import"></span> {{ 'action.added.to.case' | trans }}</a><br>
         {% endif %}
 
         <a href='{{ path("edit_asset",{id:id})}}'> <span class="glyphicon glyphicon-edit"></span> {{ 'action.edit' | trans }}</a><br>

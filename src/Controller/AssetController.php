@@ -155,7 +155,7 @@ class AssetController extends BaseController
             
     //         // if a Objects has to be stored or added to case, this action cant
     //         // proceed, if contextthing isnt set
-    //         if(($temp["newstatus"] == State::AddedToCase ||
+    //         if(($temp["newstatus"] == State::AssignedCase ||
     //             $temp["newstatus"] == State::StoredInContainer) &&
     //             $temp["contextthings"] == null){
                 
@@ -249,7 +249,7 @@ class AssetController extends BaseController
             if (null !== $case) {
                 $history = AssetHistory::fromAsset($asset);
                 $asset->setCase($case);
-                $asset->setState(State::AddedToCase);
+                $asset->setState(State::AssignedCase);
                 $asset->setUsage('Aufgrund der Eintragung automatisiert hinzugefügt');
                 $asset->setLastUpdatedOn(new \DateTime());
 
@@ -422,7 +422,7 @@ class AssetController extends BaseController
         } elseif (null !== $asset->getLocation()) {
             $asset->setState(State::StoredInContainer);
         } elseif (null !== $asset->getCase()) {
-            $asset->setState(State::AddedToCase);
+            $asset->setState(State::AssignedCase);
         } else {
             $this->addFlash('danger', 'asset.action.neutralize.already_neutralized');
 
@@ -634,12 +634,12 @@ class AssetController extends BaseController
     }
 
     /**
-     * Show adding to case action.
+     * Show assigning to case action.
      *
      * @see action()
      */
-    #[Route(data: '/objekt/{id}/in/fall/', name: 'add_case_asset')]
-    public function addToCaseAction(string $id, Request $request)
+    #[Route(data: '/objekt/{id}/in/fall/', name: 'assign_case_asset')]
+    public function assignCaseAction(string $id, Request $request)
     {
         $repo = $this->entityManager->getRepository(Fall::class);
 
@@ -658,7 +658,7 @@ class AssetController extends BaseController
             'api_url' => 'add_asset_query_cases',
         ];
 
-        return $this->action($id, State::AddedToCase, $options, $request);
+        return $this->action($id, State::AssignedCase, $options, $request);
     }
 
     /**
@@ -756,26 +756,24 @@ class AssetController extends BaseController
             'confirm' => false,
             'usage_required' => true,
             'not_before' => $isSource ? $source->getLastUpdatePerformedOn() : null,
+            'selector' => [
+                'name' => 'asset',
+                'mapped' => false,
+                'class' => Asset::class,
+                'label' => fn (Asset $asset) => $asset->getBarcode().' | '.$asset->getName(),
+            ],
         ];
 
         if ($isSource) {
-            $options['selector'] = [
-                'name' => 'asset',
-                'mapped' => null,
-                'class' => Asset::class,
-                'label' => fn (Asset $asset) => $asset->getBarcode().' | '.$asset->getName(),
-                'choices' => $repo->findAllHddImageTargetAssets($source, null, 10),
-                'model' => fn ($query, $limit) => $repo->findAllHddImageTargetAssets($source, $query, $limit),
-            ];
+            $options['selector']['choices'] = $repo->findAllHddImageTargetAssets($source, null, 10);
+            $options['selector']['model'] = fn ($query, $limit) => $repo->findAllHddImageTargetAssets($source, $query, $limit);
         } else {
-            $options['selector'] = [
-                'name' => 'asset',
-                'mapped' => null,
-                'class' => Asset::class,
-                'label' => fn (Asset $asset) => $asset->getBarcode().' | '.$asset->getName(),
-                'choices' => $repo->findAllHddImageSourceAssets($target, null, 10),
-                'model' => fn ($query, $limit) => $repo->findAllHddImageSourceAssets($target, $query, $limit),
-            ];
+            $options['selector']['choices'] = $repo->findAllHddImageSourceAssets($target, null, 10);
+            $options['selector']['model'] = fn ($query, $limit) => $repo->findAllHddImageSourceAssets($target, $query, $limit);
+        }
+
+        if ($isSource) {
+            $source->setState(State::SavedImage);
         }
 
         $form = $this->createForm(ActionAssetType::class, $source, $options);
@@ -785,6 +783,7 @@ class AssetController extends BaseController
             if ($isSource) {
                 $target = $form->get('asset')->getData();
                 if (!$target->isHddImageTarget()) {
+                    // todo throw error
                 }
             } else {
                 // apply form values to source
@@ -793,15 +792,16 @@ class AssetController extends BaseController
 
                 $usage = $form->get('usage')->getData();
                 $lastUpdatePerformedOn = $form->get('lastUpdatePerformedOn')->getData();
+                $source->setState(State::SavedImage);
                 $source->setUsage($usage);
                 $source->setLastUpdatePerformedOn($lastUpdatePerformedOn);
                 if (!$source->isHddImageSource()) {
+                    // todo throw error
                 }
             }
 
             // update source
             $source->setSystemAction(false);
-            $source->setState(State::SavedImage);
             $source->setModifiedBy($this->getUser());
             $source->setLastUpdatedOn(new \DateTime());
 
@@ -1053,8 +1053,6 @@ class AssetController extends BaseController
      * Helper function to list available cases to link to asset when adding new assets.
      * The request parameter `query` can optionally be used to filter results.
      *
-     * @todo Test
-     *
      * @see add()
      *
      * @api
@@ -1063,15 +1061,14 @@ class AssetController extends BaseController
     public function listCaseOptions(Request $request): JsonResponse
     {
         $query = $request->get('query', '');
+
         if (empty(\trim($query))) {
-            return new JsonResponse([
-                'update' => false,
-                'data' => [],
-            ]);
+            $query = null;
         }
 
         $repository = $this->entityManager->getRepository(Fall::class);
-        $cases = $repository->findBySimpleSearch($query, 6);
+        $cases = $repository->findBySimpleSearch($query, 10);
+
         $data = [];
         foreach ($cases as $case) {
             $data[] = [
@@ -1089,8 +1086,6 @@ class AssetController extends BaseController
     /**
      * Helper function to list available storage locations when storing asset.
      * The request parameter `query` can optionally be used to filter results.
-     *
-     * @todo Test
      *
      * @see storeAction()
      *
@@ -1125,8 +1120,6 @@ class AssetController extends BaseController
     /**
      * Helper function to list available targets for a hdd image.
      *
-     * @todo Test
-     *
      * @see saveImageOnDriveAction()
      *
      * @api
@@ -1159,8 +1152,6 @@ class AssetController extends BaseController
 
     /**
      * Helper function to list available sources for a hdd image.
-     *
-     * @todo Test
      *
      * @see saveImageOnDriveAction()
      *

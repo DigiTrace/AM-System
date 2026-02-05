@@ -21,7 +21,7 @@ enum AssetState: int implements TranslatableInterface
     case Lost = 6;
     case StoredInContainer = 7;
     case PulledOutOfContainer = 8;
-    case AddedToCase = 9;
+    case AssignedCase = 9;
     case RemovedFromCase = 10;
     case UnbindReservation = 11;
     case Used = 12;
@@ -48,7 +48,7 @@ enum AssetState: int implements TranslatableInterface
             'status.lost' => self::Lost,
             'status.stored.in.container' => self::StoredInContainer,
             'status.pulled.out.of.container' => self::PulledOutOfContainer,
-            'status.added.to.case' => self::AddedToCase,
+            'status.added.to.case' => self::AssignedCase,
             'status.removed.from.case' => self::RemovedFromCase,
             'status.unbind.reservation' => self::UnbindReservation,
             'status.used' => self::Used,
@@ -73,7 +73,7 @@ enum AssetState: int implements TranslatableInterface
             self::Lost => false,
             self::StoredInContainer => true,
             self::PulledOutOfContainer => true,
-            self::AddedToCase => true,
+            self::AssignedCase => true,
             self::RemovedFromCase => true,
             self::UnbindReservation => true,
             self::Used => true,
@@ -135,7 +135,7 @@ enum AssetState: int implements TranslatableInterface
             self::Lost,
             self::StoredInContainer,
             self::PulledOutOfContainer,
-            self::AddedToCase,
+            self::AssignedCase,
             self::RemovedFromCase,
             self::UnbindReservation,
             self::Used,
@@ -165,7 +165,7 @@ enum AssetState: int implements TranslatableInterface
             self::Lost => 'status.lost',
             self::StoredInContainer => 'status.stored.in.container',
             self::PulledOutOfContainer => 'status.pulled.out.of.container',
-            self::AddedToCase => 'status.added.to.case',
+            self::AssignedCase => 'status.added.to.case',
             self::RemovedFromCase => 'status.removed.from.case',
             self::UnbindReservation => 'status.unbind.reservation',
             self::Used => 'status.used',

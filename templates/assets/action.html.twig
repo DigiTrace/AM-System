@@ -87,12 +87,7 @@
                 // location search handler
                 $(`#${SEARCH_FIELD}`).on("keydown", function(){
                     const data = $(this).val();
-                    const url = '{{ path(options.api_url) }}';
-                    
-                    if (data.length < 1) {
-                        return;
-                    }
-                    
+                    const url = '{{ path(options.api_url) }}';                    
                     
                     // improve performance by canceling old requests
                     if (prevRequest != null) {

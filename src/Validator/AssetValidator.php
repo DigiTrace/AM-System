@@ -54,7 +54,7 @@ class AssetValidator extends ConstraintValidator
                 }
 
                 break;
-            case State::AddedToCase:
+            case State::AssignedCase:
                 if (null === $asset->getCase()) {
                     $this->context->buildViolation('asset.state.added_to_case.not_assigned')
                     ->addViolation();
