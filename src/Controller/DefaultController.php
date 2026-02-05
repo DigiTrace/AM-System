@@ -24,7 +24,7 @@
 namespace App\Controller;
 
 use App\Entity\Asset;
-use App\Entity\Fall;
+use App\Entity\CaseFile;
 use App\Entity\Nutzer;
 use Doctrine\Persistence\ManagerRegistry;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
@@ -52,7 +52,7 @@ class DefaultController extends BaseController
         $reservedAssets = $repository->findAllReservedByUser($user);
 
         // get open cases
-        $repository = $doctrine->getRepository(Fall::class);
+        $repository = $doctrine->getRepository(CaseFile::class);
         $cases = $repository->findAllOpen(10);
 
         return $this->render('default/index.html.twig', [

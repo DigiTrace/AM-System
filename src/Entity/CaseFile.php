@@ -21,16 +21,16 @@
 namespace App\Entity;
 
 use App\Enum\CaseSecrecy;
-use App\Repository\FallRepository;
+use App\Repository\CaseRepository;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
 use Doctrine\Common\Collections\ArrayCollection;
 
 
-#[ORM\Entity(repositoryClass: FallRepository::class)]
+#[ORM\Entity(repositoryClass: CaseRepository::class)]
 #[ORM\Table(name: "ams_Fall")]
-class Fall
+class CaseFile
 {    
     public function __construct() {
         $time = new \DateTime('NOW');
@@ -117,7 +117,7 @@ class Fall
      *
      * @param \App\Entity\Asset $asset
      *
-     * @return Fall
+     * @return CaseFile
      */
     public function addAsset(\App\Entity\Asset $asset)
     {
@@ -183,7 +183,7 @@ class Fall
      *
      * @param string $beschreibung
      *
-     * @return Fall
+     * @return CaseFile
      */
     public function setBeschreibung($beschreibung)
     {
@@ -197,7 +197,7 @@ class Fall
      *
      * @param \DateTime $zeitstempel
      *
-     * @return Fall
+     * @return CaseFile
      */
     public function setZeitstempel($zeitstempel)
     {

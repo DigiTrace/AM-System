@@ -4,7 +4,7 @@ namespace App\Controller;
 
 use App\Entity\Asset;
 use App\Entity\AssetHistory;
-use App\Entity\Fall;
+use App\Entity\CaseFile;
 use App\Enum\AssetCategory as Category;
 use App\Enum\AssetState as State;
 use App\Form\ActionAssetType;
@@ -641,7 +641,7 @@ class AssetController extends BaseController
     #[Route(data: '/objekt/{id}/in/fall/', name: 'assign_case_asset')]
     public function assignCaseAction(string $id, Request $request)
     {
-        $repo = $this->entityManager->getRepository(Fall::class);
+        $repo = $this->entityManager->getRepository(CaseFile::class);
 
         $options = [
             'form' => [
@@ -649,8 +649,8 @@ class AssetController extends BaseController
                 'usage_required' => true,
                 'selector' => [
                     'name' => 'case',
-                    'class' => Fall::class,
-                    'label' => fn (Fall $case) => $case->getCaseId().' | '.$case->getBeschreibung(),
+                    'class' => CaseFile::class,
+                    'label' => fn (CaseFile $case) => $case->getCaseId().' | '.$case->getBeschreibung(),
                     'choices' => $repo->findBySimpleSearch('%%', 10),
                     'model' => fn ($query, $limit) => $repo->findBySimpleSearch($query, $limit),
                 ],
@@ -1066,7 +1066,7 @@ class AssetController extends BaseController
             $query = null;
         }
 
-        $repository = $this->entityManager->getRepository(Fall::class);
+        $repository = $this->entityManager->getRepository(CaseFile::class);
         $cases = $repository->findBySimpleSearch($query, 10);
 
         $data = [];

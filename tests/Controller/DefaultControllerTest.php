@@ -20,7 +20,7 @@
 namespace App\Tests\Controller;
 
 use App\Tests\_support\BaseWebTestCase;
-use App\Tests\Factory\FallFactory;
+use App\Tests\Factory\CaseFactory;
 use App\Tests\Factory\NutzerFactory;
 use App\Tests\Factory\AssetFactory;
 
@@ -109,7 +109,7 @@ class DefaultControllerTest extends BaseWebTestCase
     {
         // setup
         $assetFactory = AssetFactory::new();
-        $caseFactory = FallFactory::new();
+        $caseFactory = CaseFactory::new();
         $userFactory = NutzerFactory::new();
 
         // create cases

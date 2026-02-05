@@ -3,7 +3,7 @@
 namespace App\Tests\Factory;
 
 use App\Entity\Asset;
-use App\Entity\Fall;
+use App\Entity\CaseFile;
 use App\Entity\Nutzer;
 use App\Enum\AssetCategory;
 use App\Enum\AssetState;
@@ -192,7 +192,7 @@ final class AssetFactory extends PersistentProxyObjectFactory
         ]);
     }
 
-    public function assignedToCase(Fall $case): self 
+    public function assignedToCase(CaseFile $case): self 
     {
         return $this->with([
             'state' => AssetState::AssignedCase,

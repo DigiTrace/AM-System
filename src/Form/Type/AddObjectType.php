@@ -223,7 +223,7 @@ class AddObjectType extends AbstractType
                 $em = $this->em;
 
                 $query = $em->createQuery('SELECT f '
-                    .'FROM App:Fall f '
+                    .'FROM App:CaseFile f '
                     .'WHERE f.beschreibung like :search '
                     .'OR f.case_id like :search '
                     .'ORDER BY f.zeitstempel_beginn DESC ')

@@ -7,7 +7,7 @@ use App\Enum\AssetCategory as Category;
 use App\Enum\AssetState as State;
 use App\Service\ExtendedAssetSearch;
 use App\Tests\Factory\DriveFactory;
-use App\Tests\Factory\FallFactory;
+use App\Tests\Factory\CaseFactory;
 use App\Tests\Factory\NutzerFactory;
 use App\Tests\Factory\AssetFactory;
 use DateTime;
@@ -494,7 +494,7 @@ class ExtendedAssetSearchTest extends KernelTestCase
     public function testCaseQuery() {
         $search = $this->getInstance();
         $factory = AssetFactory::new();
-        $caseFactory = FallFactory::new();
+        $caseFactory = CaseFactory::new();
 
         $cases = [
             $caseFactory->active()->create(['case_id' => 'Fall 1']),
@@ -531,7 +531,7 @@ class ExtendedAssetSearchTest extends KernelTestCase
     public function testCaseActiveQuery() {
         $search = $this->getInstance();
         $factory = AssetFactory::new();
-        $caseFactory = FallFactory::new();
+        $caseFactory = CaseFactory::new();
 
         $cases = [
             $caseFactory->active()->create(['case_id' => 'Aktiv 1']),

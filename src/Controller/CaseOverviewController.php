@@ -29,7 +29,7 @@ use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
-use App\Entity\Fall;
+use App\Entity\CaseFile;
 
 
 # NEU 
@@ -92,7 +92,7 @@ class CaseOverviewController extends AbstractController
             
             #$em    = $this->get('doctrine.orm.entity_manager');
             $em = $doctrine->getManager();
-            $dql   = "SELECT c FROM App:Fall c";
+            $dql   = "SELECT c FROM App:CaseFile c";
             $query = $em->createQuery($dql);
             
         }
@@ -152,7 +152,7 @@ class CaseOverviewController extends AbstractController
                 
         // Suche nach neuen Ids
         $query = $em->createQuery('SELECT f '
-            . 'FROM App:Fall f '
+            . 'FROM App:CaseFile f '
             . 'where f.case_id like :caseid')
                ->setParameter('caseid',"%".$case->getCaseId()."%")
                 ->setMaxResults(1);
@@ -169,7 +169,7 @@ class CaseOverviewController extends AbstractController
     {
 	
         $error = "";
-        $new_case = new Fall();
+        $new_case = new CaseFile();
         
         $addform = $this->createFormBuilder($new_case,array('attr' => array('onsubmit' => "return alertbeforesubmit()")))
                 ->add("case_id", TextType::class, array('label' => 'case_id','required' => true))
@@ -204,7 +204,7 @@ class CaseOverviewController extends AbstractController
                 
                 // Suche nach neuen Ids
                 /*$query = $em->createQuery('SELECT f '
-                    . 'FROM App:Fall f '
+                    . 'FROM App:CaseFile f '
                     . "order by f.newid desc")
                         ->setMaxResults(1);*/
                 
@@ -291,7 +291,7 @@ class CaseOverviewController extends AbstractController
     
     private function create_search_query(ManagerRegistry $doctrine,$searchword){
         
-      $repository = $doctrine->getRepository(Fall::class); 
+      $repository = $doctrine->getRepository(CaseFile::class); 
       
       $query = $repository->createQueryBuilder('c');
       $query->leftjoin("App:Asset"         , "o","WITH" ,"c.id = o.case");
@@ -482,7 +482,7 @@ class CaseOverviewController extends AbstractController
         else{
             $em = $doctrine->getManager();
             $query = $em->createQuery('SELECT c '
-                    . 'FROM App:Fall c '
+                    . 'FROM App:CaseFile c '
                     . "WHERE c.beschreibung like :search "
                     . "OR c.case_id like :search ")
                     ->setParameter('search',"%".$searchword."%");  

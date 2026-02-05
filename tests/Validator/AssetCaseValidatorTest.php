@@ -5,7 +5,7 @@ namespace App\Tests\Validator;
 use App\Enum\AssetState;
 use App\Tests\_support\AssertViolations;
 use App\Tests\Factory\AssetFactory;
-use App\Tests\Factory\FallFactory;
+use App\Tests\Factory\CaseFactory;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 

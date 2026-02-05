@@ -2,7 +2,7 @@
 
 namespace App\DataFixtures;
 
-use App\Entity\Fall;
+use App\Entity\CaseFile;
 use App\Enum\CaseSecrecy;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Persistence\ObjectManager;
@@ -59,7 +59,7 @@ class FallFixtures extends Fixture
 
         foreach ($config as $id => $entry) {
             // add case
-            $case = new Fall();
+            $case = new CaseFile();
             $case->setistAktiv($entry['active']);
             $case->setCaseId($entry['case_id']);
             $case->setDOS($entry['dos']);

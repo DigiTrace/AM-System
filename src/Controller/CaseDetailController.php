@@ -69,7 +69,7 @@ class CaseDetailController extends AbstractController {
         $em = $this->getDoctrine()->getManager();
          
         $query = $em->createQuery('SELECT f '
-            . 'FROM App:Fall f '
+            . 'FROM App:CaseFile f '
             . 'where f.case_id = :caseid ')
                ->setParameter('caseid',$id)
                 ->setMaxResults(1);

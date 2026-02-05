@@ -2,9 +2,9 @@
 
 namespace App\Tests\Controller;
 
-use App\Repository\FallRepository;
+use App\Repository\CaseRepository;
 use App\Tests\_support\BaseWebTestCase;
-use App\Tests\Factory\FallFactory;
+use App\Tests\Factory\CaseFactory;
 
 /**
  * @author Ben Brooksnieder
@@ -68,7 +68,7 @@ class CaseControllerTest extends BaseWebTestCase
      */
     public function testDetailUrls($url)
     {
-        $factory = FallFactory::new();
+        $factory = CaseFactory::new();
         $case = $factory->active()->create();
 
         $client = static::createClient();
@@ -99,7 +99,7 @@ class CaseControllerTest extends BaseWebTestCase
         // look into hmtl whether case was rendered and processed correctly
         $this->assertSelectorTextContains("tr:contains('{$params['id']}')", $params['desc']);
 
-        $this->seeInDatabase(FallRepository::class, [
+        $this->seeInDatabase(CaseRepository::class, [
             'case_id' => $params['id'],
             'beschreibung' => $params['desc'],
         ]);
@@ -126,7 +126,7 @@ class CaseControllerTest extends BaseWebTestCase
         ]);
         $this->assertResponseIsSuccessful();
         $this->assertSelectorExists('span.glyphicon-exclamation-sign');
-        $this->dontSeeInDatabase(FallRepository::class, [
+        $this->dontSeeInDatabase(CaseRepository::class, [
             'case_id' => $params['id'],
             'beschreibung' => $params['desc'],
         ]);
@@ -158,7 +158,7 @@ class CaseControllerTest extends BaseWebTestCase
         $this->assertResponseIsSuccessful();
         $this->assertSelectorTextContains('div.alert-danger', 'used');
 
-        $this->seeInDatabase(FallRepository::class, [
+        $this->seeInDatabase(CaseRepository::class, [
             'case_id' => $params['id'],
             'beschreibung' => $params['desc'],
         ], 1);

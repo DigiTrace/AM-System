@@ -45,7 +45,7 @@ class AssetHistory
 
     #[ORM\ManyToOne(inversedBy: 'assetHistories')]
     #[ORM\JoinColumn(name: 'fall_id', nullable: true)]
-    private ?Fall $case = null;
+    private ?CaseFile $case = null;
 
     #[ORM\ManyToOne(inversedBy: 'storageHistories')]
     #[ORM\JoinColumn(name: 'standort', referencedColumnName: 'barcode_id', nullable: true)]
@@ -191,12 +191,12 @@ class AssetHistory
         return $this;
     }
 
-    public function getCase(): ?Fall
+    public function getCase(): ?CaseFile
     {
         return $this->case;
     }
 
-    public function setCase(?Fall $case): static
+    public function setCase(?CaseFile $case): static
     {
         $this->case = $case;
 

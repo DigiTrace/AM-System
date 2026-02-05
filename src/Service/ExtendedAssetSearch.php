@@ -184,9 +184,9 @@ class ExtendedAssetSearch
         if ($this->historyLocationJoin)
             $builder->leftjoin("App:Asset", "h_location", "WITH", "h_location.barcode = h_asset.location");
         if ($this->caseJoin) //  "case" is SQL keyword -> we use "_case"
-            $builder->leftjoin("App:Fall", "_case", "WITH", "_case.id = asset.case");
+            $builder->leftjoin("App:CaseFile", "_case", "WITH", "_case.id = asset.case");
         if ($this->historyCaseJoin)
-            $builder->leftjoin("App:Fall", "h_case", "WITH", "h_case.id = h_asset.case");
+            $builder->leftjoin("App:CaseFile", "h_case", "WITH", "h_case.id = h_asset.case");
 
         // place query
         $builder->where($exprs);

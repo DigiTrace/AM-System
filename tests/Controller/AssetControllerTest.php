@@ -9,7 +9,7 @@ use App\Repository\AssetRepository;
 use App\Repository\DriveRepository;
 use App\Tests\_support\BaseWebTestCase;
 use App\Tests\Factory\AssetFactory;
-use App\Tests\Factory\FallFactory;
+use App\Tests\Factory\CaseFactory;
 use Symfony\Component\HttpFoundation\JsonResponse;
 
 /**
@@ -188,7 +188,7 @@ class AssetControllerTest extends BaseWebTestCase
      */
     public function testAddValidWithCase($asset, $drive = null)
     {
-        $caseFactory = FallFactory::new();
+        $caseFactory = CaseFactory::new();
         $case = $caseFactory->create();
 
         // setup
@@ -1074,7 +1074,7 @@ class AssetControllerTest extends BaseWebTestCase
     {
         $client = static::createClient();
         $factory = AssetFactory::new();
-        $caseFactory = FallFactory::new();
+        $caseFactory = CaseFactory::new();
 
         $case = $caseFactory->create();
         $asset = $factory->assignedToCase($case->_real())->create();
@@ -1144,7 +1144,7 @@ class AssetControllerTest extends BaseWebTestCase
     {
         $client = static::createClient();
         $factory = AssetFactory::new();
-        $caseFactory = FallFactory::new();
+        $caseFactory = CaseFactory::new();
 
         $case = $caseFactory->create();
         $container = $factory->container()->create();
@@ -1460,7 +1460,7 @@ class AssetControllerTest extends BaseWebTestCase
     {
         $client = static::createClient();
         $factory = AssetFactory::new();
-        $caseFactory = FallFactory::new();
+        $caseFactory = CaseFactory::new();
 
         $case = $caseFactory->create();
         $asset = $factory->create();
@@ -1515,7 +1515,7 @@ class AssetControllerTest extends BaseWebTestCase
     {
         $client = static::createClient();
         $factory = AssetFactory::new();
-        $caseFactory = FallFactory::new();
+        $caseFactory = CaseFactory::new();
 
         $case = $caseFactory->create();
         $asset = $factory
@@ -1811,7 +1811,7 @@ class AssetControllerTest extends BaseWebTestCase
     public function testListCaseOptions()
     {
         $client = static::createClient();
-        $factory = FallFactory::new();
+        $factory = CaseFactory::new();
 
         $cases = $factory->many(5)->create();
 

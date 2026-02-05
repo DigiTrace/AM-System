@@ -2,7 +2,7 @@
 
 namespace App\Repository;
 
-use App\Entity\Fall;
+use App\Entity\CaseFile;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -11,11 +11,11 @@ use Doctrine\Persistence\ManagerRegistry;
  *
  * @author Ben Brooksnieder
  */
-class FallRepository extends ServiceEntityRepository
+class CaseRepository extends ServiceEntityRepository
 {
     public function __construct(ManagerRegistry $registry)
     {
-        parent::__construct($registry, Fall::class);
+        parent::__construct($registry, CaseFile::class);
     }
 
     /**
@@ -23,7 +23,7 @@ class FallRepository extends ServiceEntityRepository
      *
      * @param int|null $limit optional limit max number of results
      *
-     * @return Fall[]
+     * @return CaseFile[]
      */
     public function findAllOpen(?int $limit = null): array
     {
@@ -48,7 +48,7 @@ class FallRepository extends ServiceEntityRepository
      * @param mixed    $search Search input
      * @param int|null $limit  Optional limit
      *
-     * @return Fall[]
+     * @return CaseFile[]
      */
     public function findBySimpleSearch(mixed $search, ?int $limit): array
     {

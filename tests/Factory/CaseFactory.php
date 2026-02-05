@@ -2,7 +2,7 @@
 
 namespace App\Tests\Factory;
 
-use App\Entity\Fall;
+use App\Entity\CaseFile;
 use App\Enum\CaseSecrecy;
 use Doctrine\ORM\EntityRepository;
 use Zenstruck\Foundry\Persistence\PersistentProxyObjectFactory;
@@ -10,25 +10,25 @@ use Zenstruck\Foundry\Persistence\Proxy;
 use Zenstruck\Foundry\Persistence\ProxyRepositoryDecorator;
 
 /**
- * @extends PersistentProxyObjectFactory<Fall>
+ * @extends PersistentProxyObjectFactory<CaseFile>
  *
- * @method        Fall|Proxy                                create(array|callable $attributes = [])
- * @method static Fall|Proxy                                createOne(array $attributes = [])
- * @method static Fall|Proxy                                find(object|array|mixed $criteria)
- * @method static Fall|Proxy                                findOrCreate(array $attributes)
- * @method static Fall|Proxy                                first(string $sortedField = 'id')
- * @method static Fall|Proxy                                last(string $sortedField = 'id')
- * @method static Fall|Proxy                                random(array $attributes = [])
- * @method static Fall|Proxy                                randomOrCreate(array $attributes = [])
+ * @method        CaseFile|Proxy                                create(array|callable $attributes = [])
+ * @method static CaseFile|Proxy                                createOne(array $attributes = [])
+ * @method static CaseFile|Proxy                                find(object|array|mixed $criteria)
+ * @method static CaseFile|Proxy                                findOrCreate(array $attributes)
+ * @method static CaseFile|Proxy                                first(string $sortedField = 'id')
+ * @method static CaseFile|Proxy                                last(string $sortedField = 'id')
+ * @method static CaseFile|Proxy                                random(array $attributes = [])
+ * @method static CaseFile|Proxy                                randomOrCreate(array $attributes = [])
  * @method static EntityRepository|ProxyRepositoryDecorator repository()
- * @method static Fall[]|Proxy[]                            all()
- * @method static Fall[]|Proxy[]                            createMany(int $number, array|callable $attributes = [])
- * @method static Fall[]|Proxy[]                            createSequence(iterable|callable $sequence)
- * @method static Fall[]|Proxy[]                            findBy(array $attributes)
- * @method static Fall[]|Proxy[]                            randomRange(int $min, int $max, array $attributes = [])
- * @method static Fall[]|Proxy[]                            randomSet(int $number, array $attributes = [])
+ * @method static CaseFile[]|Proxy[]                            all()
+ * @method static CaseFile[]|Proxy[]                            createMany(int $number, array|callable $attributes = [])
+ * @method static CaseFile[]|Proxy[]                            createSequence(iterable|callable $sequence)
+ * @method static CaseFile[]|Proxy[]                            findBy(array $attributes)
+ * @method static CaseFile[]|Proxy[]                            randomRange(int $min, int $max, array $attributes = [])
+ * @method static CaseFile[]|Proxy[]                            randomSet(int $number, array $attributes = [])
  */
-final class FallFactory extends PersistentProxyObjectFactory
+final class CaseFactory extends PersistentProxyObjectFactory
 {
     /**
      * @see https://symfony.com/bundles/ZenstruckFoundryBundle/current/index.html#factories-as-services
@@ -41,7 +41,7 @@ final class FallFactory extends PersistentProxyObjectFactory
 
     public static function class(): string
     {
-        return Fall::class;
+        return CaseFile::class;
     }
 
     /**

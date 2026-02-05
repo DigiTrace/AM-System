@@ -4,7 +4,7 @@ namespace App\Repository;
 
 use App\Entity\Asset;
 use App\Entity\AssetHistory;
-use App\Entity\Fall;
+use App\Entity\CaseFile;
 use App\Enum\AssetCategory;
 use App\Enum\AssetState;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
@@ -62,11 +62,11 @@ class AssetRepository extends ServiceEntityRepository
     /**
      * Get all assets (objects) that were previously involved with a specific case.
      *
-     * @param Fall $case Associated case
+     * @param CaseFile $case Associated case
      *
      * @return Asset[]
      */
-    public function findPreviouslyInvolvedInCase(Fall $case): array
+    public function findPreviouslyInvolvedInCase(CaseFile $case): array
     {
         // TODO optimize query
         $builder = $this->createQueryBuilder('a')

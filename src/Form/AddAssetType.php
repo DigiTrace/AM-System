@@ -3,7 +3,7 @@
 namespace App\Form;
 
 use App\Entity\Asset;
-use App\Entity\Fall;
+use App\Entity\CaseFile;
 use App\Enum\AssetCategory as Category;
 use App\Validator\Barcode;
 use Doctrine\ORM\EntityManagerInterface;
@@ -101,8 +101,8 @@ class AddAssetType extends AbstractType
             ->add('case', EntityType::class, [
                 'label' => 'asset.add.form.case',
                 'placeholder' => 'asset.add.form.no_case',
-                'class' => Fall::class,
-                'choice_label' => fn (Fall $case) => $case->getCaseId().' | '.$case->getBeschreibung(),
+                'class' => CaseFile::class,
+                'choice_label' => fn (CaseFile $case) => $case->getCaseId().' | '.$case->getBeschreibung(),
                 'choices' => [],
                 'attr' => ['size' => '7'],
                 'required' => false,
@@ -135,13 +135,13 @@ class AddAssetType extends AbstractType
             $data = $event->getData();
             $form = $event->getForm();
 
-            $repository = $this->entityManager->getRepository(Fall::class);
+            $repository = $this->entityManager->getRepository(CaseFile::class);
             $cases = $repository->findBySimpleSearch($data, 6);
 
             $form->getParent()->add('case', EntityType::class, [
                 'label' => 'asset.add.form.case',
-                'class' => Fall::class,
-                'choice_label' => fn (Fall $case) => $case->getCaseId().' | '.$case->getBeschreibung(),
+                'class' => CaseFile::class,
+                'choice_label' => fn (CaseFile $case) => $case->getCaseId().' | '.$case->getBeschreibung(),
                 'choices' => $cases,
                 'placeholder' => 'asset.add.form.no_case',
                 'attr' => ['size' => '7'],

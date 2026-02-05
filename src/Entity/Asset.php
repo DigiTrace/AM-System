@@ -55,7 +55,7 @@ class Asset
     #[ORM\ManyToOne]
     #[ORM\JoinColumn(name: 'fall_id', nullable: true)]
     #[AppConstraints\AssetCase()]
-    private ?Fall $case = null;
+    private ?CaseFile $case = null;
 
     #[ORM\ManyToOne(targetEntity: self::class, inversedBy: 'storage')]
     #[ORM\JoinColumn(name: 'standort', referencedColumnName: 'barcode_id', nullable: true)]
@@ -338,12 +338,12 @@ class Asset
         return $this;
     }
 
-    public function getCase(): ?Fall
+    public function getCase(): ?CaseFile
     {
         return $this->case;
     }
 
-    public function setCase(?Fall $case): static
+    public function setCase(?CaseFile $case): static
     {
         $this->case = $case;
 
