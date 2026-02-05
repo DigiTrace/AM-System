@@ -20,6 +20,7 @@
 namespace App\Controller;
 
 //use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
+use App\Enum\CaseSecrecy;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -179,7 +180,7 @@ class CaseOverviewController extends AbstractController
                                                     'placeholder'=> false,
                                                      'expanded' => false,
                                                      'multiple' => false,
-                                                     'data' => Fall::DEGREE_OF_SECRECY_CONFIDENTIAL,
+                                                     'data' => CaseSecrecy::Confidential,
                                                      'choices' => $dosarray,
                                                      'choice_label' => function($dosarray, $key, $index) {
                                                                                  return $index;

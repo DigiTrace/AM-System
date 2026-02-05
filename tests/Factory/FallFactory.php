@@ -3,6 +3,7 @@
 namespace App\Tests\Factory;
 
 use App\Entity\Fall;
+use App\Enum\CaseSecrecy;
 use Doctrine\ORM\EntityRepository;
 use Zenstruck\Foundry\Persistence\PersistentProxyObjectFactory;
 use Zenstruck\Foundry\Persistence\Proxy;
@@ -52,12 +53,9 @@ final class FallFactory extends PersistentProxyObjectFactory
     {
         return [
             'beschreibung' => self::faker()->text(40),
-            'DOS' => array_rand([
-                Fall::DEGREE_OF_SECRECY_PUBLIC,
-                Fall::DEGREE_OF_SECRECY_INTERNAL,
-                Fall::DEGREE_OF_SECRECY_CONFIDENTIAL,
-                Fall::DEGREE_OF_SECRECY_SECRET,
-            ]),
+            'DOS' => self::faker()->randomElement(
+                array_map(fn($c) => $c->value, CaseSecrecy::cases())
+            ),
             'zeitstempel' => self::faker()->dateTime(),
             'case_id' => self::faker()->randomLetter() . self::faker()->randomNumber(4),
             'istAktiv' => true,

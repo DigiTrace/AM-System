@@ -3,6 +3,7 @@
 namespace App\DataFixtures;
 
 use App\Entity\Fall;
+use App\Enum\CaseSecrecy;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Persistence\ObjectManager;
 
@@ -22,35 +23,35 @@ class FallFixtures extends Fixture
             [
                 'active' => true,
                 'case_id' => 'XIVv2',
-                'dos' => Fall::DEGREE_OF_SECRECY_CONFIDENTIAL,
+                'dos' => CaseSecrecy::Confidential->value,
                 'desc' => '(TEST)Computersabotage',
                 'timestamp' => date_create(),
             ],
             [
                 'active' => true,
                 'case_id' => 'TLG',
-                'dos' => Fall::DEGREE_OF_SECRECY_CONFIDENTIAL,
+                'dos' => CaseSecrecy::Confidential->value,
                 'desc' => '(TEST)Einbruch im Hochsicherheitstrakt beim HIER BEKANNTE FIRMA EINTRAGEN. Laptop mit HIER WICHTIGE DATENBESTAND EINFÜGEN Daten entwendet',
                 'timestamp' => date_create(),
             ],
             [
                 'active' => true,
                 'case_id' => 'Müller/c1',
-                'dos' => Fall::DEGREE_OF_SECRECY_CONFIDENTIAL,
+                'dos' => CaseSecrecy::Confidential->value,
                 'desc' => '(TEST)Auf seinen privaten Rechner wurde eine Bitcoinsoftware per Malware installiert',
                 'timestamp' => date_create(),
             ],
             [
                 'active' => true,
                 'case_id' => '78/98',
-                'dos' => Fall::DEGREE_OF_SECRECY_CONFIDENTIAL,
+                'dos' => CaseSecrecy::Confidential->value,
                 'desc' => '(TEST)Verdacht auf Besitz von KiPo',
                 'timestamp' => date_create(),
             ],
             [
                 'active' => true,
                 'case_id' => 'Schmidt AG',
-                'dos' => Fall::DEGREE_OF_SECRECY_CONFIDENTIAL,
+                'dos' => CaseSecrecy::Confidential->value,
                 'desc' => '(TEST)Pentest des Front Webservers',
                 'timestamp' => date_create(),
             ],
