@@ -82,7 +82,8 @@ final class AssetFactory extends PersistentProxyObjectFactory
     protected function defaults(): array|callable
     {
         $defaults = [
-            'name' => self::faker()->text(),
+            'name' => self::faker()->text(10),
+            'note' => self::faker()->text(20),
             'category' => self::faker()->randomElement(AssetCategory::cases()),
             'state' => AssetState::Added, // for simplicity, only support newly added assets
             'modifiedBy' => LazyValue::memoize([NutzerFactory::class, 'createOne']),

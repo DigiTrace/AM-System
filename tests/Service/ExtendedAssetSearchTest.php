@@ -812,9 +812,9 @@ class ExtendedAssetSearchTest extends KernelTestCase
         $factory = AssetFactory::new();
         $driveFactory = DriveFactory::new();
 
-        $equipment = [
-            $factory->equipment()->create(['barcode' => 'DTHW00001']),
-            $factory->equipment()->create(['barcode' => 'DTHW00002']),
+        $records = [
+            $factory->record()->create(['barcode' => 'DTHW00011']),
+            $factory->record()->create(['barcode' => 'DTHW00022']),
         ];
 
         $factory->disableAutomaticDriveGeneration();
@@ -840,10 +840,12 @@ class ExtendedAssetSearchTest extends KernelTestCase
             'model:t',
         ], $samples, 'getBarcode');
 
+        # todo fix very weird bug in this test (when executed form directory)
+        
         // test all non drives
         $this->testQuery($search, [
             'model:f',
-        ], $equipment, 'getBarcode');
+        ], $records, 'getBarcode');
 
         // test for specific
         $this->testQuery($search, [
