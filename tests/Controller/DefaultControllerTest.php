@@ -22,7 +22,7 @@ namespace App\Tests\Controller;
 use App\Tests\_support\BaseWebTestCase;
 use App\Tests\Factory\FallFactory;
 use App\Tests\Factory\NutzerFactory;
-use App\Tests\Factory\ObjektFactory;
+use App\Tests\Factory\AssetFactory;
 
 /**
  * @author Ben Brooksnieder
@@ -108,7 +108,7 @@ class DefaultControllerTest extends BaseWebTestCase
     public function testDashboard()
     {
         // setup
-        $objektFactory = ObjektFactory::new();
+        $assetFactory = AssetFactory::new();
         $caseFactory = FallFactory::new();
         $userFactory = NutzerFactory::new();
 
@@ -117,10 +117,10 @@ class DefaultControllerTest extends BaseWebTestCase
         $closed = $caseFactory->inactive()->createMany(3);
 
         // create objects
-        $reserved = $objektFactory
+        $reserved = $assetFactory
             ->reservedBy($userFactory->find(['username' =>'user'])->_real())
             ->createMany(3);
-        $unreserved = $objektFactory->createMany(3);
+        $unreserved = $assetFactory->createMany(3);
 
         // do request
         $client = static::createClient();

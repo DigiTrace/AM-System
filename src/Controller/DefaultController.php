@@ -27,7 +27,6 @@ use App\Entity\Asset;
 use App\Entity\Fall;
 use App\Entity\Nutzer;
 use Doctrine\Persistence\ManagerRegistry;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 use Symfony\Component\HttpFoundation\Request;
@@ -35,9 +34,9 @@ use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Routing\Annotation\Route;
 
 /**
- * 
+ * @author Ben Brooksnieder
  */
-class DefaultController extends AbstractController
+class DefaultController extends BaseController
 {
     /**
      * Show dashboard with information about recent cases and reserved objects.

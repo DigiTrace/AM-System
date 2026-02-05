@@ -172,21 +172,21 @@ class ExtendedAssetSearch
         if ($this->driveJoin)
             $builder->leftjoin("App:Drive", "drive", "WITH", "drive.barcode = asset.barcode");
         if ($this->userJoin)
-            $builder->leftjoin("App:Nutzer", "user", "WITH", "user.id = asset.nutzer_id");
+            $builder->leftjoin("App:Nutzer", "user", "WITH", "user.id = asset.modifiedBy");
         if ($this->historyUserJoin)
-            $builder->leftjoin("App:Nutzer", "h_user", "WITH", "h_user.id = h_asset.nutzer_id");
+            $builder->leftjoin("App:Nutzer", "h_user", "WITH", "h_user.id = h_asset.modifiedBy");
         if ($this->reservedUserJoin)
-            $builder->leftjoin("App:Nutzer", "reserver", "WITH", "reserver.id = asset.reserviert_von");
+            $builder->leftjoin("App:Nutzer", "reserver", "WITH", "reserver.id = asset.reservedBy");
         if ($this->historyReservedUserJoin)
-            $builder->leftjoin("App:Nutzer", "h_reserver", "WITH", "h_reserver.id = h_asset.reserviert_von");
+            $builder->leftjoin("App:Nutzer", "h_reserver", "WITH", "h_reserver.id = h_asset.reservedBy");
         if ($this->locationJoin)
             $builder->leftjoin("App:Asset", "location", "WITH", "location.barcode = asset.location");
         if ($this->historyLocationJoin)
             $builder->leftjoin("App:Asset", "h_location", "WITH", "h_location.barcode = h_asset.location");
         if ($this->caseJoin) //  "case" is SQL keyword -> we use "_case"
-            $builder->leftjoin("App:Fall", "_case", "WITH", "_case.id = asset.fall_id");
+            $builder->leftjoin("App:Fall", "_case", "WITH", "_case.id = asset.case");
         if ($this->historyCaseJoin)
-            $builder->leftjoin("App:Fall", "h_case", "WITH", "h_case.id = h_asset.fall_id ");
+            $builder->leftjoin("App:Fall", "h_case", "WITH", "h_case.id = h_asset.case");
 
         // place query
         $builder->where($exprs);
@@ -205,31 +205,31 @@ class ExtendedAssetSearch
      */
     protected function matchQueryKey(string $key, $data) {
         return match (strtolower($key)) {
-            'c','k','cat','kat','category','kategorie'      => $this->categoryQuery($data['neg'], $data['val']),
-            's','status'                                    => $this->statusQuery($data['neg'], $data['val']),
-            'b','barcode'                                   => $this->barcodeQuery($data['neg'], $data['val']), 
-            'n','name'                                      => $this->nameQuery($data['neg'], $data['val']),
-            'info','note','notiz'                           => $this->noteQuery($data['neg'], $data['val']),
-            'mdesc','desc','description','beschreibung'     => $this->descriptionQuery($data['neg'], $data['val']),
-            'hdesc','history_description'                   => $this->historyDescriptionQuery($data['neg'], $data['val']),
-            'u','mu','user'                                 => $this->userChangeQuery($data['neg'], $data['val']),
-            'hu',                                           => $this->historyUserChangeQuery($data['neg'], $data['val']),
-            'r','mr','reserved','reserviert'                => $this->reservedQuery($data['neg'], $data['val']),
-            'hr','history_reserved'                         => $this->historyReservedQuery($data['neg'], $data['val']),
-            'l','mstoredin','storage','location','container'=> $this->locationQuery($data['neg'], $data['val']),
-            'hl','hstoredin','histroy_location'             => $this->historyLocationQuery($data['neg'], $data['val']),
-            'f' , 'mcase' ,'case',  'fall'                  => $this->caseQuery($data['neg'], $data['val']),
-            'hc', 'hcase' ,'history_case'                   => $this->historyCaseQuery($data['neg'], $data['val']),
-            'caseactive', 'fall_aktiv'                      => $this->caseActiveQuery($data['neg'], $data['val']),
-            'type' , 'bauart'                               => $this->typeQuery($data['neg'], $data['val']),
-            'ff' , 'form_factor' , 'form_faktor'            => $this->formFactorQuery($data['neg'], $data['val']),
-            'size' , 'groesse'                              => $this->sizeQuery($data['neg'], $data['val']),
-            'prod','manufacturer','hersteller'              => $this->manufacturerQuery($data['neg'], $data['val']),
-            'modell' , 'model'                              => $this->modelQuery($data['neg'], $data['val']),
-            'pn' , 'product_number','produkt_nummer'        => $this->productNumberQuery($data['neg'], $data['val']),
-            'sn' , 'serial_number','serien_nummer'          => $this->serialNumberQuery($data['neg'], $data['val']),
-            'connection','connector','anschluss'            => $this->connectorQuery($data['neg'], $data['val']),
-            'd', 'ed', 'mdate', 'date'                      => $this->dateQuery($data['neg'], $data['val']),
+            'c','k','cat','kat','category','kategorie'                      => $this->categoryQuery($data['neg'], $data['val']),
+            's','state', 'status'                                           => $this->statusQuery($data['neg'], $data['val']),
+            'b','barcode'                                                   => $this->barcodeQuery($data['neg'], $data['val']), 
+            'n','name'                                                      => $this->nameQuery($data['neg'], $data['val']),
+            'info','note','notiz'                                           => $this->noteQuery($data['neg'], $data['val']),
+            'musage', 'usage', 'mdesc','desc','description','beschreibung'  => $this->usageQuery($data['neg'], $data['val']),
+            'husage', 'history_usage', 'hdesc','history_description'        => $this->historyUsageQuery($data['neg'], $data['val']),
+            'u','mu','user'                                                 => $this->modifiedByQuery($data['neg'], $data['val']),
+            'hu', 'history_user'                                            => $this->historyModifiedByQuery($data['neg'], $data['val']),
+            'r','mr','reserved','reserviert'                                => $this->reservedQuery($data['neg'], $data['val']),
+            'hr','history_reserved'                                         => $this->historyReservedQuery($data['neg'], $data['val']),
+            'l','mstoredin','storage','location','container'                => $this->locationQuery($data['neg'], $data['val']),
+            'hl','hstoredin','histroy_location'                             => $this->historyLocationQuery($data['neg'], $data['val']),
+            'f' , 'mcase' ,'case',  'fall'                                  => $this->caseQuery($data['neg'], $data['val']),
+            'hc', 'hcase' ,'history_case'                                   => $this->historyCaseQuery($data['neg'], $data['val']),
+            'caseactive', 'fall_aktiv'                                      => $this->caseActiveQuery($data['neg'], $data['val']),
+            'type' , 'bauart'                                               => $this->typeQuery($data['neg'], $data['val']),
+            'ff' , 'form_factor' , 'form_faktor'                            => $this->formFactorQuery($data['neg'], $data['val']),
+            'size' , 'groesse'                                              => $this->sizeQuery($data['neg'], $data['val']),
+            'prod','manufacturer','hersteller'                              => $this->manufacturerQuery($data['neg'], $data['val']),
+            'modell' , 'model'                                              => $this->modelQuery($data['neg'], $data['val']),
+            'pn' , 'product_number','produkt_nummer'                        => $this->productNumberQuery($data['neg'], $data['val']),
+            'sn' , 'serial_number','serien_nummer'                          => $this->serialNumberQuery($data['neg'], $data['val']),
+            'connection','connector','anschluss'                            => $this->connectorQuery($data['neg'], $data['val']),
+            'd', 'ed', 'mdate', 'date'                                      => $this->dateQuery($data['neg'], $data['val']),
             default => $this->addError('danger', 'eas.error.tag.unknown', ['tag' => $key]) && false,
         };
     }
@@ -327,12 +327,12 @@ class ExtendedAssetSearch
     }
 
     /**
-     * Description matching.
+     * Usage matching.
      * @param bool $neg Whether to negate query.
      * @param array $values Matching values.
      * @return Comparison|Orx|string
      */
-    protected function descriptionQuery(bool $neg, array $values): Comparison|Orx|string {
+    protected function usageQuery(bool $neg, array $values): Comparison|Orx|string {
         if (1 == count($values) && ($bool = $this->to_bool($values[0])) !== null){
             return $this->existenceQuery('asset.usage', $neg xor $bool);
         }
@@ -341,12 +341,12 @@ class ExtendedAssetSearch
     }
 
     /**
-     * Historic description matching.
+     * Historic usage matching.
      * @param bool $neg Whether to negate query.
      * @param array $values Matching values.
      * @return Comparison|Orx|string
      */
-    protected function historyDescriptionQuery(bool $neg, array $values): Comparison|Orx|string {
+    protected function historyUsageQuery(bool $neg, array $values): Comparison|Orx|string {
         $this->historyJoin = true;
         if (1 == count($values) && ($bool = $this->to_bool($values[0])) !== null){
             return $this->existenceQuery('h_asset.usage', $neg xor $bool);
@@ -361,7 +361,7 @@ class ExtendedAssetSearch
      * @param array $values Matching values.
      * @return Comparison|Orx
      */
-    protected function userChangeQuery(bool $neg, array $values): Comparison|Orx {
+    protected function modifiedByQuery(bool $neg, array $values): Comparison|Orx {
         $this->userJoin = true;
         
         return $this->stringQuery('user.fullname', $neg, $values);
@@ -373,7 +373,7 @@ class ExtendedAssetSearch
      * @param array $values Matching values.
      * @return Comparison|Orx
      */
-    protected function historyUserChangeQuery(bool $neg, array $values): Comparison|Orx {
+    protected function historyModifiedByQuery(bool $neg, array $values): Comparison|Orx {
         $this->historyJoin = true;
         $this->historyUserJoin = true;
         return $this->stringQuery('h_user.fullname', $neg, $values);

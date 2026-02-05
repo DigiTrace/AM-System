@@ -83,28 +83,6 @@ class CaseDetailController extends AbstractController {
         
         
     }
-    
-    /**
-     * @deprecated  Use `ObjektRepositoy::findPreviouslyInvolvedInCase` instead
-     * @param mixed $case
-     */
-    private function getinvolvedObjectsFromCase($case){
-        $em = $this->getDoctrine()->getManager();
-        $query = $em->createQuery("SELECT distinct o.barcode_id,"
-                . "o.name,"
-                . "so.barcode_id AS standort,"
-                . "o.state,"
-                . "o.zeitstempelderumsetzung,"
-                . "so.name AS Standortname  "
-                    . "FROM App:Objekt o "
-                    . "JOIN App:HistorieObjekt ho with ho.barcode_id = o.barcode_id "
-                    . "LEFT JOIN App:Objekt so with so.barcode_id = o.standort "
-                    . "WHERE ho.fall_id = :case AND "
-                    . "(o.fall_id != :case OR  o.fall_id is null)")
-                    ->setParameter("case",$case->getId());  
-        return $query->getResult();
-        
-    }
 
     public function notifyUserAboutCaseAlteration(ManagerRegistry $doctrine,$case,$mailer,$security){
         
@@ -162,7 +140,7 @@ class CaseDetailController extends AbstractController {
         /*
          * hier wird eines der Faelle im Detail angezeigt,
          * Dadurch erhält man Zugriff auf die fuer den Fall verwendeten
-         * Objekte.
+         * Assets.
          */
         $case = $this->get_case($id);
 
@@ -297,11 +275,11 @@ class CaseDetailController extends AbstractController {
         }
         
         
-        $count_MObjects = $case->getObjekte()->count();
+        $count_MObjects = $case->getAssets()->count();
         $templateProcessor->cloneRow('Mdesc.oid.text', $count_MObjects);
         
         for($i = 1;$i <= $count_MObjects;$i++){
-           $currentObject = ($case->getObjekte()[$i-1]);
+           $currentObject = ($case->getAssets()[$i-1]);
            $templateProcessor->setValue("Mdesc.oid.text#".$i             ,$currentObject->getBarcode()); 
            $templateProcessor->setValue("Mdesc.name.text#".$i            ,$currentObject->getName());
            $templateProcessor->setValue("Mdesc.lstatus.text#".$i         ,$this->translator->trans($currentObject->getStatusName()) );
@@ -321,7 +299,7 @@ class CaseDetailController extends AbstractController {
            $currentObject = ($previousEntrys[$i-1]);
            $templateProcessor->setValue("Hdesc.oid.text#".$i             ,$currentObject['barcode_id']); 
            $templateProcessor->setValue("Hdesc.name.text#".$i            ,$currentObject['name']);
-           $templateProcessor->setValue("Hdesc.lstatus.text#".$i         ,$this->translator->trans(\App\Entity\Objekt::getStatusNameFromId($currentObject['status_id'])) );
+           $templateProcessor->setValue("Hdesc.lstatus.text#".$i         ,$this->translator->trans($currentObject['state']) );
            $templateProcessor->setValue("Hdesc.last.action.done.text#".$i,$currentObject['zeitstempelderumsetzung']->format("d.m.y H:i") );
            if($currentObject['standort'] != null){
                 $templateProcessor->setValue("Hdesc.container.text#".$i       ,$currentObject['standort']." ".$currentObject['Standortname']);

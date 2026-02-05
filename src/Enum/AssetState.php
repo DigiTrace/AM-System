@@ -104,6 +104,7 @@ enum AssetState: int implements TranslatableInterface
      * Returns list of states which allow updating without changing state.
      *
      * - `self::Used`,
+     * - `self::Edited`,
      * - `self::StoredInContainer`,
      * - `self::SavedImage`,
      *

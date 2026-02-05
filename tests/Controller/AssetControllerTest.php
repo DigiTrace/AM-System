@@ -132,17 +132,10 @@ class AssetControllerTest extends BaseWebTestCase
         $name = 'add_asset';
         $form = $crawler->selectButton($name.'[save]')->form();
 
-        // add asset parameters
-        foreach ($asset as $key => $value) {
-            $form["{$name}[{$key}]"] = $value ?? '';
-        }
+        $formdata = $asset;
+        if ($drive) $formdata['drive'] = $drive;
 
-        // add datentraeger paramters
-        foreach ($drive ?? [] as $key => $value) {
-            $form["{$name}[drive][{$key}]"] = $value ?? '';
-        }
-
-        $client->submit($form);
+        $client->submit($form, [$name => $formdata]);
         $this->assertResponseRedirects("/objekt/{$asset['barcode']}");
 
         // default values
@@ -1288,8 +1281,9 @@ class AssetControllerTest extends BaseWebTestCase
         $form = $crawler->selectButton($name.'[save]')->form();
 
         // query first for search results
-        $form["{$name}[selector_search]"] = $container->getBarcode();
-        $crawler = $client->submit($form);
+        $crawler = $client->submit($form, [
+            $name => ['selector_search' => $container->getBarcode()],
+        ]);
         $form = $crawler->selectButton($name.'[save]')->form();
 
         // add location
@@ -1298,12 +1292,7 @@ class AssetControllerTest extends BaseWebTestCase
             'location' => $container->getBarcode(),
         ];
 
-        // populate form
-        foreach ($data as $key => $value) {
-            $form["{$name}[{$key}]"] = $value ?? '';
-        }
-
-        $client->submit($form);
+        $client->submit($form, [$name => $data]);
         $this->assertResponseRedirects("/objekt/$barcode");
 
         $data['barcode'] = $barcode;
@@ -1342,8 +1331,9 @@ class AssetControllerTest extends BaseWebTestCase
         $form = $crawler->selectButton($name.'[save]')->form();
 
         // query first for search results
-        $form["{$name}[selector_search]"] = $container->getBarcode();
-        $crawler = $client->submit($form);
+        $crawler = $client->submit($form, [
+            $name => ['selector_search' => $container->getBarcode()],
+        ]);
         $form = $crawler->selectButton($name.'[save]')->form();
 
         // add location
@@ -1352,12 +1342,7 @@ class AssetControllerTest extends BaseWebTestCase
             'location' => $container->getBarcode(),
         ];
 
-        // populate form
-        foreach ($data as $key => $value) {
-            $form["{$name}[{$key}]"] = $value ?? '';
-        }
-
-        $client->submit($form);
+        $client->submit($form, [$name => $data]);
         $this->assertResponseRedirects("/objekt/$barcode");
 
         $data['barcode'] = $barcode;
@@ -1398,8 +1383,9 @@ class AssetControllerTest extends BaseWebTestCase
         $form = $crawler->selectButton($name.'[save]')->form();
 
         // query first for search results
-        $form["{$name}[selector_search]"] = $container->getBarcode();
-        $crawler = $client->submit($form);
+        $crawler = $client->submit($form, [
+            $name => ['selector_search' => $container->getBarcode()],
+        ]);
         $form = $crawler->selectButton($name.'[save]')->form();
 
         // add location
@@ -1410,11 +1396,9 @@ class AssetControllerTest extends BaseWebTestCase
 
         // invalid argument for location parameter
         $this->expectException(\InvalidArgumentException::class);
-        foreach ($data as $key => $value) {
-            $form["{$name}[{$key}]"] = $value ?? '';
-        }
-
-        $client->submit($form);
+        $client->submit($form, [
+            $name => $data,
+        ]);
         $this->assertResponseRedirects("/objekt/$barcode");
 
         // assert no changes made to database
