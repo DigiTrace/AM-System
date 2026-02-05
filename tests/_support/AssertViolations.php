@@ -14,8 +14,8 @@ trait AssertViolations
         assertCount(0, $violations);
     }
     
-    public function assertViolationsContainsMessage(ConstraintViolationListInterface $violations, string $message) {
-        assertNotCount(0, $violations);
+    public function assertViolationsContainsMessage(ConstraintViolationListInterface $violations, string $message, $debug = null) {
+        // assertNotCount(0, $violations);
         $found = false;
         foreach ($violations as $value) {
             if ($value->getMessage() == $message) {
@@ -23,6 +23,7 @@ trait AssertViolations
                 break;
             }
         }
-        assertTrue($found, "Did not find '$message' in violations");
+        $debug ??= "Did not find '$message' in violations";
+        assertTrue($found, $debug);
     }
 }
