@@ -104,7 +104,7 @@ class Fall
   
 
     
-    #[ORM\OneToMany(targetEntity: "Asset", mappedBy: "fall_id")]
+    #[ORM\OneToMany(targetEntity: "Asset", mappedBy: "case")]
     protected $assets;
 
     #[ORM\OneToMany(mappedBy: 'case', targetEntity: AssetHistory::class)]

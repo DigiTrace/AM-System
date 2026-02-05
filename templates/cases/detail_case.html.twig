@@ -84,7 +84,7 @@
  {% endblock %}
  {% block content2 %}
        
-    <h3>{% trans %}container_listed_objects{% endtrans %}</h3>
+    <h3>{% trans %}container_listed_assets{% endtrans %}</h3>
     <table class="table">
      <thead>
        <tr>
@@ -97,26 +97,26 @@
      </thead>
      <tbody>
 
-         {% for asset in fall.getObjekte %}
+        {% for asset in fall.getAssets %}
 
-         <tr style="cursor:pointer" onclick="window.location.href='{{ path('details_asset', {'id': asset.getBarcode}) }}'">
+         <tr style="cursor:pointer" onclick="window.location.href='{{ path('details_asset', {'id': asset.barcode}) }}'">
             <td style='font-family: courier;font-size: large'>
-                <a href="{{ path('details_asset', {'id': asset.getBarcode}) }}">
-                {{ asset.getBarcode }}
+                <a href="{{ path('details_asset', {'id': asset.barcode}) }}">
+                {{ asset.barcode }}
                 </a>
             </td>
             <td>
-                <a href="{{ path('details_asset', {'id': asset.getBarcode}) }}">
+                <a href="{{ path('details_asset', {'id': asset.barcode}) }}">
                     {{ asset.getName }}
                 </a>
             </td>
-            <td>{{ asset.getState | trans }}</td>
+            <td>{{ asset.state | trans }}</td>
             <td>{{ asset.lastUpdatePerformedOn | date('d.m.y H:i') }}</td>
             <td>
-                {% if object.getLocation == false %}
+                {% if asset.location == false %}
                 /
                 {% else %}
-                <a href='{{ path('details_asset', {'id': object.getLocation.getBarcode}) }}' >{{ object.getLocation.getBarcode }} | {{ object.getLocation.getName }} </a></td>
+                <a href='{{ path('details_asset', {'id': asset.location.barcode}) }}' >{{ asset.location.barcode }} | {{ asset.location.getName }} </a></td>
                 {% endif %}
             </td>
        </tr>
@@ -131,7 +131,7 @@
      
      
      
-    <h3>{% trans %}case_listed_history_objects{% endtrans %}</h3>
+    <h3>{% trans %}case_listed_history_assets{% endtrans %}</h3>
     <table class="table">
      <thead>
        <tr>
@@ -143,27 +143,26 @@
        </tr>
      </thead>
      <tbody>
+         {% for history_asset in history_assets %}
 
-         {% for history_asset in historie_objekts %}
-
-         <tr style="cursor:pointer" onclick="window.location.href='{{ path('details_asset', {'id': history_asset['barcode_id']}) }}'">
+         <tr style="cursor:pointer" onclick="window.location.href='{{ path('details_asset', {'id': history_asset.barcode}) }}'">
             <td style='font-family: courier;font-size: large'>
-                <a href="{{ path('details_asset', {'id': history_asset['barcode_id']}) }}">
-                {{ history_asset['barcode_id'] }}
+                <a href="{{ path('details_asset', {'id': history_asset.barcode}) }}">
+                {{ history_asset.barcode }}
                 </a>
             </td>
             <td>
-                <a href="{{ path('details_asset', {'id': history_asset['barcode_id']}) }}">
-                    {{ history_asset['name'] }}
+                <a href="{{ path('details_asset', {'id': history_asset.barcode}) }}">
+                    {{ history_asset.name }}
                 </a>
             </td>
-            <td>{{ history_asset['state'].toTranslatableString | trans }}</td>
-            <td>{{ history_asset['zeitstempelderumsetzung']|date('d.m.y H:i') }}</td>
+            <td>{{ history_asset.state | trans }}</td>
+            <td>{{ history_asset.lastUpdatePerformedOn | date('d.m.y H:i') }}</td>
             <td>
-                {% if history_asset['standort'] == false %}
+                {% if history_asset.location == false %}
                 /
                 {% else %}
-                <a href='{{ path('details_asset', {'id': history_asset['standort']}) }}' >{{ history_asset['standort'] }} | {{ history_asset['Standortname'] }} </a></td>
+                <a href='{{ path('details_asset', {'id': history_asset.location}) }}' >{{ history_asset.location }} | {{ history_asset.name }} </a></td>
                 {% endif %}
             </td>
        </tr>

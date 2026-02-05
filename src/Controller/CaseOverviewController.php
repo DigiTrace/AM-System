@@ -21,6 +21,7 @@ namespace App\Controller;
 
 //use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use App\Enum\CaseSecrecy;
+use Symfony\Component\Form\Extension\Core\Type\EnumType;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -169,19 +170,25 @@ class CaseOverviewController extends AbstractController
 	
         $error = "";
         $new_case = new Fall();
-        $dosarray = Fall::getDOSList();
         
         $addform = $this->createFormBuilder($new_case,array('attr' => array('onsubmit' => "return alertbeforesubmit()")))
                 ->add("case_id", TextType::class, array('label' => 'case_id','required' => true))
                 ->add('beschreibung',  TextareaType::class,array('label' => 'case_description'))
                 ->add('save',SubmitType::class,array('label' => 'add_new_case'))
                 
+                // ->add('dos', EnumType::class, [
+                //     'class' => CaseSecrecy::class,
+                //     'data' => CaseSecrecy::Confidential,
+                //     'choices' => CaseSecrecy::cases(),
+                //     'choice_value' => fn($val) => $val->value,
+                // ])
+                
                 ->add('dos', ChoiceType::class,array('required' => false,
                                                     'placeholder'=> false,
                                                      'expanded' => false,
                                                      'multiple' => false,
-                                                     'data' => CaseSecrecy::Confidential,
-                                                     'choices' => $dosarray,
+                                                     'data' => CaseSecrecy::Confidential->value,
+                                                     'choices' => array_map(fn($c) => $c->value, CaseSecrecy::cases()),
                                                      'choice_label' => function($dosarray, $key, $index) {
                                                                                  return $index;
                                                      }))

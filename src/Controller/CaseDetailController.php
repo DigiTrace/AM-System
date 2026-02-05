@@ -179,7 +179,7 @@ class CaseDetailController extends AbstractController {
         
         return $this->render('cases/detail_case.html.twig',
                                     ['fall' => $case,
-                                     'historie_objekts' => $previousEntrys]);
+                                     'history_assets' => $previousEntrys]);
     }
     
     // Erzeugen eines Dateinamens fuer den Export von Faellen.
