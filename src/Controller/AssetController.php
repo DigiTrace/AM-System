@@ -298,7 +298,7 @@ class AssetController extends BaseController
         if (null == $asset) {
             $this->addFlash('danger', 'object_was_not_found');
 
-            return $this->redirectToRoute('search_objects');
+            return $this->redirectToRoute('search_assets');
         }
 
         // render object detail view
@@ -321,7 +321,7 @@ class AssetController extends BaseController
         if (null == $asset) {
             $this->addFlash('danger', 'object_was_not_found');
 
-            return $this->redirectToRoute('search_objects');
+            return $this->redirectToRoute('search_assets');
         }
 
         // create history entry, but don't persist yet
@@ -402,7 +402,7 @@ class AssetController extends BaseController
         if (null == $asset) {
             $this->addFlash('danger', 'object_was_not_found');
 
-            return $this->redirectToRoute('search_objects');
+            return $this->redirectToRoute('search_assets');
         }
 
         // action only allowed for drives
@@ -734,7 +734,7 @@ class AssetController extends BaseController
         if (null == $asset) {
             $this->addFlash('danger', 'object_was_not_found');
 
-            return $this->redirectToRoute('search_objects');
+            return $this->redirectToRoute('search_assets');
         }
 
         if (!$asset->isHddImageSource() && !$asset->isHddImageTarget()) {
@@ -851,7 +851,7 @@ class AssetController extends BaseController
         if (null == $asset) {
             $this->addFlash('danger', 'object_was_not_found');
 
-            return $this->redirectToRoute('search_objects');
+            return $this->redirectToRoute('search_assets');
         }
 
         // create history entry, but don't persist yet
@@ -932,7 +932,7 @@ class AssetController extends BaseController
         if (null == $asset) {
             $this->addFlash('danger', 'object_was_not_found');
 
-            return $this->redirectToRoute('search_objects');
+            return $this->redirectToRoute('search_assets');
         }
 
         // if image is set, redirect
