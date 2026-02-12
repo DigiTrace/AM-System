@@ -23,10 +23,21 @@
         </testsuite>
     </testsuites>
 
-    <coverage processUncoveredFiles="true">
+    <coverage processUncoveredFiles="true"
+              pathCoverage="false" 
+              cacheDirectory=".phpunit/cache" >
         <include>
             <directory suffix=".php">src</directory>
         </include>
+        <exclude>
+            <directory suffix=".php">src/Purger</directory>
+            <directory suffix=".php">src/DataFixtures</directory>
+        </exclude>
+        <report>
+            <html outputDirectory=".phpunit/coverage/html" lowUpperBound="50" highLowerBound="90"/>
+            <php outputFile=".phpunit/coverage/coverage.php"/>
+            <text outputFile="php://stdout" showUncoveredFiles="false" showOnlySummary="true"/>
+        </report>
     </coverage>
 
     <listeners>
