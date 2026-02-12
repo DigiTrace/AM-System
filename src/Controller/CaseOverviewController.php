@@ -162,86 +162,86 @@ class CaseOverviewController extends AbstractController
     }
     
     
-    /**
-     * @Route("/fall/anlegen", name="add_case")
-     */
-    public function add_case(Request $request,ManagerRegistry $doctrine,Security $security, MailerInterface $mailer)
-    {
+    // /**
+    //  * @Route("/fall/anlegen", name="add_case")
+    //  */
+    // public function add_case(Request $request,ManagerRegistry $doctrine,Security $security, MailerInterface $mailer)
+    // {
 	
-        $error = "";
-        $new_case = new CaseFile();
+    //     $error = "";
+    //     $new_case = new CaseFile();
         
-        $addform = $this->createFormBuilder($new_case,array('attr' => array('onsubmit' => "return alertbeforesubmit()")))
-                ->add("caseId", TextType::class, array('label' => 'caseId','required' => true))
-                ->add('description',  TextareaType::class,array('label' => 'case_description'))
-                ->add('save',SubmitType::class,array('label' => 'add_new_case'))
+    //     $addform = $this->createFormBuilder($new_case,array('attr' => array('onsubmit' => "return alertbeforesubmit()")))
+    //             ->add("caseId", TextType::class, array('label' => 'caseId','required' => true))
+    //             ->add('description',  TextareaType::class,array('label' => 'case_description'))
+    //             ->add('save',SubmitType::class,array('label' => 'add_new_case'))
                 
-                // ->add('dos', EnumType::class, [
-                //     'class' => CaseSecrecy::class,
-                //     'data' => CaseSecrecy::Confidential,
-                //     'choices' => CaseSecrecy::cases(),
-                //     'choice_value' => fn($val) => $val->value,
-                // ])
+    //             // ->add('dos', EnumType::class, [
+    //             //     'class' => CaseSecrecy::class,
+    //             //     'data' => CaseSecrecy::Confidential,
+    //             //     'choices' => CaseSecrecy::cases(),
+    //             //     'choice_value' => fn($val) => $val->value,
+    //             // ])
                 
-                ->add('secrecy', EnumType::class,array('required' => false,
-                "class" => CaseSecrecy::class,
-                                                    'placeholder'=> false,
-                                                     'expanded' => false,
-                                                     'multiple' => false,
-                                                     'data' => CaseSecrecy::Confidential,
-                                                     'choices' => CaseSecrecy::cases(),
-                                                     'choice_label' => function($dosarray, $key, $index) {
-                                                                                 return $index;
-                                                     }))
-                ->getForm();
+    //             ->add('secrecy', EnumType::class,array('required' => false,
+    //             "class" => CaseSecrecy::class,
+    //                                                 'placeholder'=> false,
+    //                                                  'expanded' => false,
+    //                                                  'multiple' => false,
+    //                                                  'data' => CaseSecrecy::Confidential,
+    //                                                  'choices' => CaseSecrecy::cases(),
+    //                                                  'choice_label' => function($dosarray, $key, $index) {
+    //                                                                              return $index;
+    //                                                  }))
+    //             ->getForm();
         
-        $addform->handleRequest($request);
+    //     $addform->handleRequest($request);
 
-        if ($addform->isSubmitted() && $addform->isValid()) {
-            if($this->get_case($doctrine,$new_case) == null){
+    //     if ($addform->isSubmitted() && $addform->isValid()) {
+    //         if($this->get_case($doctrine,$new_case) == null){
                 
             
-                $em = $doctrine->getManager();
+    //             $em = $doctrine->getManager();
                 
-                // Suche nach neuen Ids
-                /*$query = $em->createQuery('SELECT f '
-                    . 'FROM App:CaseFile f '
-                    . "order by f.newid desc")
-                        ->setMaxResults(1);*/
+    //             // Suche nach neuen Ids
+    //             /*$query = $em->createQuery('SELECT f '
+    //                 . 'FROM App:CaseFile f '
+    //                 . "order by f.newid desc")
+    //                     ->setMaxResults(1);*/
                 
-                // Wenn kein alternative Id vorhanden ist, wird neu Initialisiert
-                /*if($query->getResult() != null){
-                    if($query->getResult()[0]->getNewId() == null){
-                        $newid = 1;
-                    }
-                    else{
-                        $newid = $query->getResult()[0]->getNewId() + 1;
-                    }
-                }
-                else{
-                    $newid = 0;
-                }
+    //             // Wenn kein alternative Id vorhanden ist, wird neu Initialisiert
+    //             /*if($query->getResult() != null){
+    //                 if($query->getResult()[0]->getNewId() == null){
+    //                     $newid = 1;
+    //                 }
+    //                 else{
+    //                     $newid = $query->getResult()[0]->getNewId() + 1;
+    //                 }
+    //             }
+    //             else{
+    //                 $newid = 0;
+    //             }
                 
-                $new_case->setId(strval($newid));
-                $new_case->setNewId($newid);*/
+    //             $new_case->setId(strval($newid));
+    //             $new_case->setNewId($newid);*/
 		
-                $em->persist($new_case);
-                $em->flush();
+    //             $em->persist($new_case);
+    //             $em->flush();
                 
                 
-                $this->notifyUserAboutCaseCreation($doctrine,$new_case,$mailer,$security);
+    //             $this->notifyUserAboutCaseCreation($doctrine,$new_case,$mailer,$security);
                 
-                return $this->redirectToRoute('search_case');
-            }
-            else{
-                $this->addFlash('danger','caseId_already_used');
-            }
+    //             return $this->redirectToRoute('search_case');
+    //         }
+    //         else{
+    //             $this->addFlash('danger','caseId_already_used');
+    //         }
             
-        }
-        return $this->render('default/add_case_form.html.twig', array(
-            'addform' => $addform->createView()
-        ));
-    }
+    //     }
+    //     return $this->render('default/add_case_form.html.twig', array(
+    //         'addform' => $addform->createView()
+    //     ));
+    // }
     
     public function notifyUserAboutCaseCreation(ManagerRegistry $doctrine,$new_case,$mailer,$security){
         
