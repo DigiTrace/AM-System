@@ -2,10 +2,12 @@
 
 namespace App\DataFixtures;
 
-use App\Entity\Datentraeger;
-use App\Entity\HistorieObjekt;
+use App\Entity\Asset;
+use App\Entity\AssetHistory;
+use App\Entity\Drive;
 use App\Entity\Nutzer;
-use App\Entity\Objekt;
+use App\Enum\AssetCategory;
+use App\Enum\AssetState;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Common\DataFixtures\DependentFixtureInterface;
 use Doctrine\Persistence\ObjectManager;
@@ -15,10 +17,10 @@ use Doctrine\Persistence\ObjectManager;
  *
  * @author Ben Brooksnieder
  */
-class ObjektFixtures extends Fixture implements DependentFixtureInterface
+class AssetFixtures extends Fixture implements DependentFixtureInterface
 {
-    public const OBJEKT_REFERENCE = 'dt-objekt-';
-    public const DATENTRAEGER_REFERENCE = 'dt-datentraeger-';
+    public const ASSET_REFERENCE = 'dt-objekt-';
+    public const DRIVE_REFERENCE = 'dt-datentraeger-';
     public function getDependencies(): array
     {
         return [
@@ -34,31 +36,28 @@ class ObjektFixtures extends Fixture implements DependentFixtureInterface
         // config for all objekte
         $config = [
             [
-                'barcode_id' => 'DTAS00001',
+                'barcode' => 'DTAS00001',
                 'nutzer' => $user1,
                 'name' => '(TEST)Hitachi Festplatte',
-                'verwendung' => '(TEST)Sind gelöschte Beweise drauf',
-                'kategorie_id' => 0,
-                'kategorie' => 'category.exhibit',
-                'status_id' => 0,
+                'usage' => '(TEST)Sind gelöschte Beweise drauf',
+                'category' => AssetCategory::Exhibit,
+                'state' => AssetState::Added,
             ],
             [
-                'barcode_id' => 'DTHW00007',
+                'barcode' => 'DTHW00007',
                 'nutzer' => $user1,
                 'name' => '(TEST)Thinkpad e330',
-                'verwendung' => '(TEST)Ediscovery',
-                'kategorie_id' => 1,
-                'kategorie' => 'category.equipment',
-                'status_id' => 0,
+                'usage' => '(TEST)Ediscovery',
+                'category' => AssetCategory::Equipment,
+                'state' => AssetState::Added,
             ],
             [
-                'barcode_id' => 'DTHD00021',
+                'barcode' => 'DTHD00021',
                 'nutzer' => $user1,
                 'name' => '(TEST)Toshiba 2 TB 2.5 Zoll externe Festplatte',
-                'verwendung' => '(TEST)Wird für Ein Asservat benötigt',
-                'kategorie_id' => 3,
-                'kategorie' => 'category.hdd',
-                'status_id' => 0,
+                'usage' => '(TEST)Wird für Ein Asservat benötigt',
+                'category' => AssetCategory::Hdd,
+                'state' => AssetState::Added,
                 'hdd' => [
                     'bauart' => '',
                     'formfaktor' => '',
@@ -72,22 +71,20 @@ class ObjektFixtures extends Fixture implements DependentFixtureInterface
                 ],
             ],
             [
-                'barcode_id' => 'DTHW00001',
+                'barcode' => 'DTHW00001',
                 'nutzer' => $user1,
                 'name' => '(TEST)Encase Koffer mit speziffischen Inhalt',
-                'verwendung' => '',
-                'kategorie_id' => 1,
-                'kategorie' => 'category.equipment',
-                'status_id' => 0,
+                'usage' => '',
+                'category' => AssetCategory::Equipment,
+                'state' => AssetState::Added,
             ],
             [
-                'barcode_id' => 'DTHD00022',
+                'barcode' => 'DTHD00022',
                 'nutzer' => $user1,
                 'name' => '(TEST)Toshiba 500GB',
-                'verwendung' => '(TEST)Austauschplatte Für den Server',
-                'kategorie_id' => 3,
-                'kategorie' => 'category.hdd',
-                'status_id' => 0,
+                'usage' => '(TEST)Austauschplatte Für den Server',
+                'category' => AssetCategory::Hdd,
+                'state' => AssetState::Added,
                 'hdd' => [
                     'bauart' => 'intern',
                     'formfaktor' => '3,5',
@@ -101,13 +98,12 @@ class ObjektFixtures extends Fixture implements DependentFixtureInterface
                 ],
             ],
             [
-                'barcode_id' => 'DTHD00023',
+                'barcode' => 'DTHD00023',
                 'nutzer' => $user1,
                 'name' => '(TEST)Toshiba 2 TB 2.5 Zoll externe Festplatte',
-                'verwendung' => '(TEST)Notfallplatte für Forensikkoffer',
-                'kategorie_id' => 3,
-                'kategorie' => 'category.hdd',
-                'status_id' => 0,
+                'usage' => '(TEST)Notfallplatte für Forensikkoffer',
+                'category' => AssetCategory::Hdd,
+                'state' => AssetState::Added,
                 'hdd' => [
                     'bauart' => 'extern',
                     'formfaktor' => '2,5',
@@ -121,67 +117,60 @@ class ObjektFixtures extends Fixture implements DependentFixtureInterface
                 ],
             ],
             [
-                'barcode_id' => 'DTHW00002',
+                'barcode' => 'DTHW00002',
                 'nutzer' => $user1,
                 'name' => '(TEST)Schrank',
-                'verwendung' => '(TEST)Wird zum Lagern von Asservaten gebraucht',
-                'kategorie_id' => 2,
-                'kategorie' => 'category.container',
-                'status_id' => 0,
+                'usage' => '(TEST)Wird zum Lagern von Asservaten gebraucht',
+                'category' => AssetCategory::Container,
+                'state' => AssetState::Added,
             ],
             [
-                'barcode_id' => 'DTHW00003',
+                'barcode' => 'DTHW00003',
                 'nutzer' => $user3,
                 'name' => '(TEST)Papierbox',
-                'verwendung' => '(TEST)Wird zum Lagern von HDDs gebraucht',
-                'kategorie_id' => 2,
-                'kategorie' => 'category.container',
-                'status_id' => 0,
+                'usage' => '(TEST)Wird zum Lagern von HDDs gebraucht',
+                'category' => AssetCategory::Container,
+                'state' => AssetState::Added,
             ],
             [
-                'barcode_id' => 'DTHW00004',
+                'barcode' => 'DTHW00004',
                 'nutzer' => $user1,
                 'name' => '(TEST)Peli Case',
-                'verwendung' => '(TEST)Für Mobilen Einsatz',
-                'kategorie_id' => 2,
-                'kategorie' => 'category.container',
-                'status_id' => 0,
+                'usage' => '(TEST)Für Mobilen Einsatz',
+                'category' => AssetCategory::Container,
+                'state' => AssetState::Added,
             ],
             [
-                'barcode_id' => 'DTHW00005',
+                'barcode' => 'DTHW00005',
                 'nutzer' => $user3,
                 'name' => '(TEST)Pappkarton',
-                'verwendung' => '(TEST)Zwecks Dringlichkeit in das System eingetragen, nicht im Regen stehen lassen',
-                'kategorie_id' => 2,
-                'kategorie' => 'category.container',
-                'status_id' => 0,
+                'usage' => '(TEST)Zwecks Dringlichkeit in das System eingetragen, nicht im Regen stehen lassen',
+                'category' => AssetCategory::Container,
+                'state' => AssetState::Added,
             ],
             [
-                'barcode_id' => 'DTAS00002',
+                'barcode' => 'DTAS00002',
                 'nutzer' => $user1,
                 'name' => '(TEST)Selbstbau Rechner i7 mit Nvidia GTX 970 SLI',
-                'verwendung' => '(TEST)Eine remote Bitcoinsoftware wurde installiert und auf ein unbekannte Konto gemint',
-                'kategorie_id' => 0,
-                'kategorie' => 'category.exhibit',
-                'status_id' => 0,
+                'usage' => '(TEST)Eine remote Bitcoinsoftware wurde installiert und auf ein unbekannte Konto gemint',
+                'category' => AssetCategory::Exhibit,
+                'state' => AssetState::Added,
             ],
             [
-                'barcode_id' => 'DTAS00003',
+                'barcode' => 'DTAS00003',
                 'nutzer' => $user3,
                 'name' => '(TEST)NAS Server QNAP Server',
-                'verwendung' => '(TEST)Es wurden Spuren von KiPo Material gefunden',
-                'kategorie_id' => 0,
-                'kategorie' => 'category.exhibit',
-                'status_id' => 0,
+                'usage' => '(TEST)Es wurden Spuren von KiPo Material gefunden',
+                'category' => AssetCategory::Exhibit,
+                'state' => AssetState::Added,
             ],
             [
-                'barcode_id' => 'DTHD00020',
+                'barcode' => 'DTHD00020',
                 'nutzer' => $user1,
                 'name' => '(TEST)WD 256 GB 3.5 Zoll externe Intern',
-                'verwendung' => '(TEST)Gefunden aus einem älteren Rechner',
-                'kategorie_id' => 3,
-                'kategorie' => 'category.hdd',
-                'status_id' => 0,
+                'usage' => '(TEST)Gefunden aus einem älteren Rechner',
+                'category' => AssetCategory::Hdd,
+                'state' => AssetState::Added,
                 'hdd' => [
                     'bauart' => 'intern',
                     'formfaktor' => '3,5',
@@ -195,13 +184,12 @@ class ObjektFixtures extends Fixture implements DependentFixtureInterface
                 ],
             ],
             [
-                'barcode_id' => 'DTHD00024',
+                'barcode' => 'DTHD00024',
                 'nutzer' => $user1,
                 'name' => '(TEST)Hitachi Ultrastar 1TB',
-                'verwendung' => '',
-                'kategorie_id' => 3,
-                'kategorie' => 'category.hdd',
-                'status_id' => 0,
+                'usage' => '',
+                'category' => AssetCategory::Hdd,
+                'state' => AssetState::Added,
                 'hdd' => [
                     'bauart' => 'intern',
                     'formfaktor' => '3,5',
@@ -215,13 +203,12 @@ class ObjektFixtures extends Fixture implements DependentFixtureInterface
                 ],
             ],
             [
-                'barcode_id' => 'DTHD00025',
+                'barcode' => 'DTHD00025',
                 'nutzer' => $user1,
                 'name' => '(TEST)Hitachi Ultrastar 2TB',
-                'verwendung' => '',
-                'kategorie_id' => 3,
-                'kategorie' => 'category.hdd',
-                'status_id' => 0,
+                'usage' => '',
+                'category' => AssetCategory::Hdd,
+                'state' => AssetState::Added,
                 'hdd' => [
                     'bauart' => 'intern',
                     'formfaktor' => '3,5',
@@ -235,13 +222,12 @@ class ObjektFixtures extends Fixture implements DependentFixtureInterface
                 ],
             ],
             [
-                'barcode_id' => 'DTAS00004',
+                'barcode' => 'DTAS00004',
                 'nutzer' => $user1,
                 'name' => '(TEST)Intel SSD 430 256GB',
-                'verwendung' => '',
-                'kategorie_id' => 5,
-                'kategorie' => 'category.exhibit.hdd',
-                'status_id' => 0,
+                'usage' => '',
+                'category' => AssetCategory::ExhibitHdd,
+                'state' => AssetState::Added,
                 'hdd' => [
                     'bauart' => 'intern',
                     'formfaktor' => '2,5',
@@ -255,13 +241,12 @@ class ObjektFixtures extends Fixture implements DependentFixtureInterface
                 ],
             ],
             [
-                'barcode_id' => 'DTAS00005',
+                'barcode' => 'DTAS00005',
                 'nutzer' => $user1,
                 'name' => '(TEST)Hitachi 20 GB hdd',
-                'verwendung' => 'Befinden sich verschüsselte Daten',
-                'kategorie_id' => 5,
-                'kategorie' => 'category.exhibit.hdd',
-                'status_id' => 0,
+                'usage' => 'Befinden sich verschüsselte Daten',
+                'category' => AssetCategory::ExhibitHdd,
+                'state' => AssetState::Added,
                 'hdd' => [
                     'bauart' => 'intern',
                     'formfaktor' => '3,5',
@@ -275,28 +260,27 @@ class ObjektFixtures extends Fixture implements DependentFixtureInterface
                 ],
             ],
             [
-                'barcode_id' => 'DTHW00006',
+                'barcode' => 'DTHW00006',
                 'nutzer' => $user3,
                 'name' => '(TEST)Werkzeugregal',
-                'verwendung' => '(TEST)Von einem Schwedischen Versandhandel besorgt',
-                'kategorie_id' => 2,
-                'kategorie' => 'category.container',
-                'status_id' => 0,
+                'usage' => '(TEST)Von einem Schwedischen Versandhandel besorgt',
+                'category' => AssetCategory::Container,
+                'state' => AssetState::Added,
             ],
         ];
 
-        // first add Objekt
+        // first add Asset
         foreach ($config as $id => $entry) {
             // add objekt
-            $obj = new Objekt();
-            $obj->setBarcode($entry['barcode_id']);
-            $obj->setNutzer($entry['nutzer']);
+            $obj = new Asset();
+            $obj->setBarcode($entry['barcode']);
+            $obj->setModifiedBy($entry['nutzer']);
             $obj->setName($entry['name']);
-            $obj->setVerwendung($entry['verwendung']);
-            $obj->setCategory($entry['kategorie_id']);
+            $obj->setUsage($entry['usage']);
+            $obj->setCategory($entry['category']);
             $obj->setState($entry['status_id']);
             $manager->persist($obj);
-            $this->addReference(self::OBJEKT_REFERENCE.$id, $obj);
+            $this->addReference(self::ASSET_REFERENCE.$id, $obj);
         }
 
         // save all to db
@@ -308,22 +292,22 @@ class ObjektFixtures extends Fixture implements DependentFixtureInterface
             if (!key_exists('hdd', $entry)) {
                 continue;
             }
-            $entry['hdd']['barcode_id'] = $entry['barcode_id'];
-            $hdd = new Datentraeger($entry['hdd']);
+            $entry['hdd']['barcode'] = $entry['barcode'];
+            $hdd = new Drive($entry['hdd']);
             $manager->persist($hdd);
-            $this->addReference(self::DATENTRAEGER_REFERENCE.$id, $hdd);
+            $this->addReference(self::DRIVE_REFERENCE.$id, $hdd);
         }
         // save all to db
         $manager->flush();
 
-        // add standort relations
-        $hw2 = $manager->find(Objekt::class, 'DTHW00002');
-        $hw4 = $manager->find(Objekt::class, 'DTHW00004');
-        $hw6 = $manager->find(Objekt::class, 'DTHW00006');
-        $hw2->setStandort($hw6);
-        $hw2->setState(7);
-        $hw4->setStandort($hw2);
-        $hw4->setState(7);
+        // add location relations
+        $hw2 = $manager->find(Asset::class, 'DTHW00002');
+        $hw4 = $manager->find(Asset::class, 'DTHW00004');
+        $hw6 = $manager->find(Asset::class, 'DTHW00006');
+        $hw2->setLocation($hw6);
+        $hw2->setState(AssetState::StoredInContainer);
+        $hw4->setLocation($hw2);
+        $hw4->setState(AssetState::StoredInContainer);
 
         $manager->persist($hw2);
         $manager->persist($hw4);
@@ -332,18 +316,18 @@ class ObjektFixtures extends Fixture implements DependentFixtureInterface
         $manager->flush();
 
         // Historie objects
-        $his_hw2 = new HistorieObjekt($hw2);
-        $his_hw2->setVerwendung('(TEST)Wird zum Lagern von Asservaten gebraucht');
-        $his_hw2->setSystemaktion(0);
-        $his_hw2->setState(0);
-        $his_hw2->setNutzerId($hw2->getNutzer());
-        $his_hw2->setZeitstempelumsetzung($his_hw2->getZeitstempel());
-        $his_hw4 = new HistorieObjekt($hw4);
-        $his_hw4->setVerwendung('(TEST)Für Mobilen Einsatz');
-        $his_hw4->setSystemaktion(0);
-        $his_hw4->setState(0);
-        $his_hw4->setNutzerId($hw4->getNutzer());
-        $his_hw4->setZeitstempelumsetzung($his_hw4->getZeitstempel());
+        $his_hw2 = AssetHistory::fromAsset($hw2);
+        $his_hw2->setusage('(TEST)Wird zum Lagern von Asservaten gebraucht');
+        $his_hw2->setSystemAction(0);
+        $his_hw2->setState(AssetState::Added);
+        $his_hw2->setModifiedBy($hw2->getModifiedBy());
+        $his_hw2->setLastUpdatePerformedOn($hw2->getLastUpdatedOn());
+        $his_hw4 = AssetHistory::fromAsset($hw4);
+        $his_hw4->setusage('(TEST)Für Mobilen Einsatz');
+        $his_hw4->setSystemAction(0);
+        $his_hw4->setState(AssetState::Added);
+        $his_hw4->setModifiedBy($hw4->getModifiedBy());
+        $his_hw4->setLastUpdatePerformedOn($hw4->getLastUpdatedOn());
 
         $manager->persist($his_hw2);
         $manager->persist($his_hw4);
