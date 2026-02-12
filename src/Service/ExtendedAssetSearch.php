@@ -455,10 +455,10 @@ class ExtendedAssetSearch
         $this->caseJoin = true;
 
         if (1 == count($values) && ($bool = $this->to_bool($values[0])) !== null){
-            return $this->existenceQuery('_case.case_id', $neg xor $bool);
+            return $this->existenceQuery('_case.caseId', $neg xor $bool);
         }
 
-        return $this->stringQuery('_case.case_id', $neg, $values);
+        return $this->stringQuery('_case.caseId', $neg, $values);
     }
 
     /**
@@ -472,17 +472,17 @@ class ExtendedAssetSearch
         $this->historyCaseJoin = true;
 
         if (1 == count($values) && ($bool = $this->to_bool($values[0])) !== null){
-            return $this->existenceQuery('h_case.case_id', $neg xor $bool);
+            return $this->existenceQuery('h_case.caseId', $neg xor $bool);
         }
 
-        return $this->stringQuery('h_case.case_id', $neg, $values);
+        return $this->stringQuery('h_case.caseId', $neg, $values);
     }
 
     protected function caseActiveQuery(bool $neg, array $values): Andx|Comparison|Func|Orx|string|null {
         $this->caseJoin = true;
 
         if (1 == count($values) && ($bool = $this->to_bool($values[0])) !== null){
-            return $this->equalQuery('_case.istAktiv', $neg, [$bool]);
+            return $this->equalQuery('_case.active', $neg, [$bool]);
         }
 
         $this->addError('warning', 'eas.error.caseactive.invalid');

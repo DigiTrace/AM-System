@@ -52,13 +52,11 @@ final class CaseFactory extends PersistentProxyObjectFactory
     protected function defaults(): array|callable
     {
         return [
-            'beschreibung' => self::faker()->text(40),
-            'DOS' => self::faker()->randomElement(
-                array_map(fn($c) => $c->value, CaseSecrecy::cases())
-            ),
-            'zeitstempel' => self::faker()->dateTime(),
-            'case_id' => self::faker()->randomLetter() . self::faker()->randomNumber(4),
-            'istAktiv' => true,
+            'caseId' => self::faker()->randomLetter() . self::faker()->randomNumber(4),
+            'description' => self::faker()->text(40),
+            'secrecy' => self::faker()->randomElement(CaseSecrecy::cases()),
+            'openedOn' => self::faker()->dateTime(),
+            'active' => true,
         ];
     }
 
@@ -74,11 +72,11 @@ final class CaseFactory extends PersistentProxyObjectFactory
 
     public function active(): self
     {
-        return $this->with(['istAktiv' => true]);
+        return $this->with(['active' => true]);
     }
 
     public function inactive(): self
     {
-        return $this->with(['istAktiv' => false]);
+        return $this->with(['active' => false]);
     }
 }

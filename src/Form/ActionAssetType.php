@@ -16,6 +16,11 @@ use Symfony\Component\Form\FormEvents;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Validator\Constraints as Constraints;
 
+/**
+ * Form for applying asset action.
+ * 
+ * @author Ben Brooksnieder
+ */
 class ActionAssetType extends AbstractType
 {
     public function __construct(private EntityManagerInterface $entityManager)

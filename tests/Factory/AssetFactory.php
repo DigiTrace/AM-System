@@ -113,9 +113,10 @@ final class AssetFactory extends PersistentProxyObjectFactory
             if (static::$generateDrive) {
                 // if asset is storage device, add entry for that with given barcode
                 if ($asset->isDrive()) {
-                    DriveFactory::new()->create([
+                    $drive = DriveFactory::new()->create([
                         'barcode' => $asset,
                     ]);
+                    $asset->setDrive($drive->_real());
                 }
             }
         });

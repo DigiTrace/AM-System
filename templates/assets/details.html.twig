@@ -107,22 +107,22 @@
                                     {% else %}
 
                                        <a href="{{ path('detail_case', {'id': asset.getCase.getCaseId }) }}">
-                                            {{ asset.getCase.getCaseId }} | {{ asset.getCase.getBeschreibung | slice(0,60) }}... 
+                                            {{ asset.getCase.getCaseId }} | {{ asset.getCase.getDescription | slice(0,60) }}... 
                                        </a>
                                        
-                                       {% if asset.getCase.getDOS != ""%}
+                                       {% if asset.getCase.getSecrecy != ""%}
                                            <br> <span 
-                                            {% if asset.getCase.getDOS == "DOS_PUBLIC"%}
+                                            {% if asset.getCase.getSecrecy == "DOS_PUBLIC"%}
                                                 class="label label-success"
-                                            {% elseif asset.getCase.getDOS == "DOS_INTERNAL"%}
+                                            {% elseif asset.getCase.getSecrecy == "DOS_INTERNAL"%}
                                                 class="label label-primary"
-                                            {% elseif asset.getCase.getDOS == "DOS_CONFIDENTIAL"%}
+                                            {% elseif asset.getCase.getSecrecy == "DOS_CONFIDENTIAL"%}
                                                 class="label label-warning"
-                                            {% elseif asset.getCase.getDOS == "DOS_SECRET"%}
+                                            {% elseif asset.getCase.getSecrecy == "DOS_SECRET"%}
                                                 class="label label-danger"
                                            {% endif %}
                                            >
-                                            {{ asset.getCase.getDOS | trans}}   
+                                            {{ asset.getCase.getSecrecy | trans}}   
                                            </span>
                                        {% endif %}
                                     {% endif %}

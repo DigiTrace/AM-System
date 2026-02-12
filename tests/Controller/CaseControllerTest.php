@@ -37,7 +37,7 @@ class CaseControllerTest extends BaseWebTestCase
     public function invalidCaseProvider()
     {
         yield 'empty ID' => [['id' => '', 'desc' => 'Fall ohne ID darf es nicht geben']];
-        yield 'empty description' => [['id' => 'Fall ohne Beschreibung darf es nicht geben', 'desc' => '']];
+        yield 'empty description' => [['id' => 'Fall ohne description darf es nicht geben', 'desc' => '']];
     }
 
     /**
@@ -89,8 +89,8 @@ class CaseControllerTest extends BaseWebTestCase
         // make form request
         $form = $crawler->selectButton('add_new_case')->form();
         $client->submit($form, [
-            'form[case_id]' => $params['id'],
-            'form[beschreibung]' => $params['desc'],
+            'form[caseId]' => $params['id'],
+            'form[description]' => $params['desc'],
         ]);
         $this->assertResponseRedirects("/faelle");
         $client->followRedirect();
@@ -100,8 +100,8 @@ class CaseControllerTest extends BaseWebTestCase
         $this->assertSelectorTextContains("tr:contains('{$params['id']}')", $params['desc']);
 
         $this->seeInDatabase(CaseRepository::class, [
-            'case_id' => $params['id'],
-            'beschreibung' => $params['desc'],
+            'caseId' => $params['id'],
+            'description' => $params['desc'],
         ]);
 
         return $client;
@@ -121,14 +121,14 @@ class CaseControllerTest extends BaseWebTestCase
         // make form request
         $form = $crawler->selectButton('add_new_case')->form();
         $client->submit($form, [
-            'form[case_id]' => $params['id'],
-            'form[beschreibung]' => $params['desc'],
+            'form[caseId]' => $params['id'],
+            'form[description]' => $params['desc'],
         ]);
         $this->assertResponseIsSuccessful();
         $this->assertSelectorExists('span.glyphicon-exclamation-sign');
         $this->dontSeeInDatabase(CaseRepository::class, [
-            'case_id' => $params['id'],
-            'beschreibung' => $params['desc'],
+            'caseId' => $params['id'],
+            'description' => $params['desc'],
         ]);
         return $client;
     }
@@ -151,16 +151,16 @@ class CaseControllerTest extends BaseWebTestCase
         $crawler = $client->request('GET', '/fall/anlegen');
         $form = $crawler->selectButton('add_new_case')->form();
         $client->submit($form, [
-            'form[case_id]' => $params['id'],
-            'form[beschreibung]' => $params['desc'],
+            'form[caseId]' => $params['id'],
+            'form[description]' => $params['desc'],
         ]);
 
         $this->assertResponseIsSuccessful();
         $this->assertSelectorTextContains('div.alert-danger', 'used');
 
         $this->seeInDatabase(CaseRepository::class, [
-            'case_id' => $params['id'],
-            'beschreibung' => $params['desc'],
+            'caseId' => $params['id'],
+            'description' => $params['desc'],
         ], 1);
 
         return $client;

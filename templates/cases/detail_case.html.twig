@@ -41,12 +41,12 @@
 
              <tr>
                <td>{% trans %}case_desc{% endtrans %}</td>
-               <td>{{  fall.getBeschreibung | nl2br}}</td>
+               <td>{{  fall.getDescription | nl2br}}</td>
              </tr>
              <tr>
                <td>{% trans %}case_isactiv{% endtrans %}</td>
                <td>
-                   {% if fall.istAktiv == true%}
+                   {% if fall.isActive == true%}
                     Ja
                    {% else %}
                     nein
@@ -56,28 +56,28 @@
              <tr>
                <td>{% trans %}case_dos{% endtrans %}</td>
                <td>
-                   {% if fall.getDOS == ""%}
+                   {% if fall.getSecrecy == ""%}
                         {% trans %}dos_not_set{% endtrans %}
                    {% else %}
                        <span 
-                        {% if fall.getDOS == "DOS_PUBLIC"%}
+                        {% if fall.getSecrecy == "DOS_PUBLIC"%}
                             class="label label-success"
-                        {% elseif fall.getDOS == "DOS_INTERNAL"%}
+                        {% elseif fall.getSecrecy == "DOS_INTERNAL"%}
                             class="label label-primary"
-                        {% elseif fall.getDOS == "DOS_CONFIDENTIAL"%}
+                        {% elseif fall.getSecrecy == "DOS_CONFIDENTIAL"%}
                             class="label label-warning"
-                        {% elseif fall.getDOS == "DOS_SECRET"%}
+                        {% elseif fall.getSecrecy == "DOS_SECRET"%}
                             class="label label-danger"
                        {% endif %}
                        >
-                        {{ fall.getDOS | trans}}   
+                        {{ fall.getSecrecy | trans}}   
                        </span>
                    {% endif %}
                 </td>
              </tr>
              <tr>
                  <td>{% trans %}case_timestamp{% endtrans %}</td>
-                 <td>{{ fall.getZeitstempel|date('d.m.y H:i') }}</td>
+                 <td>{{ fall.getOpenedOn|date('d.m.y H:i') }}</td>
              </tr>
          </table>
             

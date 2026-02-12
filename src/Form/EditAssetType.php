@@ -7,19 +7,13 @@ use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Event\PostSetDataEvent;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
-use App\Entity\CaseFile;
-use App\Enum\AssetCategory as Category;
-use App\Validator\Barcode;
-use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
-use Symfony\Component\Form\Event\PostSubmitEvent;
-use Symfony\Component\Form\Event\SubmitEvent;
 use Symfony\Component\Form\Extension\Core\Type as Field;
-use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\FormEvents;
 use Symfony\Component\Validator\Constraints;
 
 /**
+ * Form for editing asset name and note.
+ * 
  * @author Ben Brooksnieder
  */
 class EditAssetType extends AbstractType

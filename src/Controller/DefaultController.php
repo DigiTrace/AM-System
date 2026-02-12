@@ -26,12 +26,13 @@ namespace App\Controller;
 use App\Entity\Asset;
 use App\Entity\CaseFile;
 use App\Entity\Nutzer;
-use Doctrine\Persistence\ManagerRegistry;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Security\Core\Security;
 
 /**
  * @author Ben Brooksnieder
@@ -42,17 +43,17 @@ class DefaultController extends BaseController
      * Show dashboard with information about recent cases and reserved objects.
      */
     #[Route('/', name: 'homepage')]
-    public function index(Request $request, ManagerRegistry $doctrine)
+    public function index(Request $request, EntityManagerInterface $entityManager, Security $security)
     {
         // get user
-        $user = $this->get('security.token_storage')->getToken()->getUser();
+        $user = $security->getUser();
 
         // get all reserved objects
-        $repository = $doctrine->getRepository(Asset::class);
+        $repository = $entityManager->getRepository(Asset::class);
         $reservedAssets = $repository->findAllReservedByUser($user);
 
         // get open cases
-        $repository = $doctrine->getRepository(CaseFile::class);
+        $repository = $entityManager->getRepository(CaseFile::class);
         $cases = $repository->findAllOpen(10);
 
         return $this->render('default/index.html.twig', [
@@ -63,6 +64,7 @@ class DefaultController extends BaseController
 
     /**
      * Show changelog.
+     * @codeCoverageIgnore
      */
     #[Route('/changelog', name: 'changelog')]
     public function changelog(Request $request)
@@ -74,10 +76,10 @@ class DefaultController extends BaseController
      * Change language view and logic.
      */
     #[Route('/profil/change-language', name: 'change_language')]
-    public function changeLanguage(Request $request, RequestStack $requestStack)
+    public function changeLanguage(Request $request, RequestStack $requestStack, EntityManagerInterface $entityManager, Security $security)
     {
         // get user
-        $user = $this->get('security.token_storage')->getToken()->getUser();
+        $user = $security->getUser();
 
         // create form to select from available languages
         $form = $this->createFormBuilder(null, [])
@@ -96,12 +98,10 @@ class DefaultController extends BaseController
         if ($form->isSubmitted()
                 && $form->isValid()) {
             // set language
-            $em = $this->getDoctrine()->getManager();
-
-            $nutzer = $em->getRepository(Nutzer::class)->find($user);
+            $nutzer = $entityManager->getRepository(Nutzer::class)->find($user);
 
             $nutzer->SetLanguage($form->getData()['language']);
-            $em->flush();
+            $entityManager->flush();
 
             $session = $requestStack->getSession();
 

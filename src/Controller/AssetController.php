@@ -650,7 +650,7 @@ class AssetController extends BaseController
                 'selector' => [
                     'name' => 'case',
                     'class' => CaseFile::class,
-                    'label' => fn (CaseFile $case) => $case->getCaseId().' | '.$case->getBeschreibung(),
+                    'label' => fn (CaseFile $case) => $case->getCaseId().' | '.$case->getDescription(),
                     'choices' => $repo->findBySimpleSearch('%%', 10),
                     'model' => fn ($query, $limit) => $repo->findBySimpleSearch($query, $limit),
                 ],
@@ -1073,7 +1073,7 @@ class AssetController extends BaseController
         foreach ($cases as $case) {
             $data[] = [
                 'val' => $case->getId(),
-                'text' => $case->getCaseId().' | '.$case->getBeschreibung(),
+                'text' => $case->getCaseId().' | '.$case->getDescription(),
             ];
         }
 

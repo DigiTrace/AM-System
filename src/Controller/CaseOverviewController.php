@@ -108,7 +108,7 @@ class CaseOverviewController extends AbstractController
             $request->query->getInt('page', 1)/*page number*/,
             $session->get('anzahleintraege')/*limit per page*/ ,
             array(
-                'defaultSortFieldName' => 'c.zeitstempel_beginn',
+                'defaultSortFieldName' => 'c.openedOn',
                 'defaultSortDirection' => 'desc',
             )
         );
@@ -153,7 +153,7 @@ class CaseOverviewController extends AbstractController
         // Suche nach neuen Ids
         $query = $em->createQuery('SELECT f '
             . 'FROM App:CaseFile f '
-            . 'where f.case_id like :caseid')
+            . 'where f.caseId like :caseid')
                ->setParameter('caseid',"%".$case->getCaseId()."%")
                 ->setMaxResults(1);
         
@@ -172,8 +172,8 @@ class CaseOverviewController extends AbstractController
         $new_case = new CaseFile();
         
         $addform = $this->createFormBuilder($new_case,array('attr' => array('onsubmit' => "return alertbeforesubmit()")))
-                ->add("case_id", TextType::class, array('label' => 'case_id','required' => true))
-                ->add('beschreibung',  TextareaType::class,array('label' => 'case_description'))
+                ->add("caseId", TextType::class, array('label' => 'caseId','required' => true))
+                ->add('description',  TextareaType::class,array('label' => 'case_description'))
                 ->add('save',SubmitType::class,array('label' => 'add_new_case'))
                 
                 // ->add('dos', EnumType::class, [
@@ -183,12 +183,13 @@ class CaseOverviewController extends AbstractController
                 //     'choice_value' => fn($val) => $val->value,
                 // ])
                 
-                ->add('dos', ChoiceType::class,array('required' => false,
+                ->add('secrecy', EnumType::class,array('required' => false,
+                "class" => CaseSecrecy::class,
                                                     'placeholder'=> false,
                                                      'expanded' => false,
                                                      'multiple' => false,
-                                                     'data' => CaseSecrecy::Confidential->value,
-                                                     'choices' => array_map(fn($c) => $c->value, CaseSecrecy::cases()),
+                                                     'data' => CaseSecrecy::Confidential,
+                                                     'choices' => CaseSecrecy::cases(),
                                                      'choice_label' => function($dosarray, $key, $index) {
                                                                                  return $index;
                                                      }))
@@ -233,7 +234,7 @@ class CaseOverviewController extends AbstractController
                 return $this->redirectToRoute('search_case');
             }
             else{
-                $this->addFlash('danger','case_id_already_used');
+                $this->addFlash('danger','caseId_already_used');
             }
             
         }
@@ -319,8 +320,8 @@ class CaseOverviewController extends AbstractController
                             PREG_SET_ORDER);
                 
         
-        $simplewhereconditions= array("caseid" => "c.case_id",
-                                "desc" => "c.beschreibung");
+        $simplewhereconditions= array("caseid" => "c.caseId",
+                                "desc" => "c.description");
 
 
         
@@ -401,13 +402,13 @@ class CaseOverviewController extends AbstractController
                             switch ($mdatematch['operator']):
                             case "<":
                             case ">":
-                                $query->andwhere("DATE_DIFF(c.zeitstempel_beginn,:parameter".$indexparameter.") ".$mdatematch['operator']." 0 ");
+                                $query->andwhere("DATE_DIFF(c.openedOn,:parameter".$indexparameter.") ".$mdatematch['operator']." 0 ");
                                 break;
                             case "!":
-                                $query->andwhere("DATE_DIFF(c.zeitstempel_beginn,:parameter".$indexparameter.") != 0 ");
+                                $query->andwhere("DATE_DIFF(c.openedOn,:parameter".$indexparameter.") != 0 ");
                                 break;
                             case "":
-                                $query->andwhere("DATE_DIFF(c.zeitstempel_beginn,:parameter".$indexparameter.") = 0 ");
+                                $query->andwhere("DATE_DIFF(c.openedOn,:parameter".$indexparameter.") = 0 ");
                                 break;
                             endswitch;
                             $parameters["parameter".$indexparameter] = new \DateTime($mdatematch['day']."-".$mdatematch['month']."-".$mdatematch['year']);
@@ -432,11 +433,11 @@ class CaseOverviewController extends AbstractController
                     switch ($match['value']):
                         case "True":
                         case "true":
-                            $query->andwhere("c.istAktiv = true");
+                            $query->andwhere("c.active = true");
                             break;
                         case "false":
                         case "False":
-                            $query->andwhere("c.istAktiv = false");
+                            $query->andwhere("c.active = false");
                             break;
                         default :
                             $this->addFlash("danger",'only.boolean.values.allowed');
@@ -483,8 +484,8 @@ class CaseOverviewController extends AbstractController
             $em = $doctrine->getManager();
             $query = $em->createQuery('SELECT c '
                     . 'FROM App:CaseFile c '
-                    . "WHERE c.beschreibung like :search "
-                    . "OR c.case_id like :search ")
+                    . "WHERE c.description like :search "
+                    . "OR c.caseId like :search ")
                     ->setParameter('search',"%".$searchword."%");  
         }
         return $query;

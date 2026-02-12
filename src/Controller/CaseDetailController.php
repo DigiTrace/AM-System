@@ -21,6 +21,7 @@ namespace App\Controller;
 
 //use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use App\Entity\Asset;
+use App\Entity\CaseFile;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\Request;
@@ -55,12 +56,7 @@ use PhpOffice\PhpWord\TemplateProcessor;
 
 class CaseDetailController extends AbstractController {
     
-    private $translator;
-
-    public function __construct(TranslatorInterface $translator)
-    {
-        $this->translator = $translator;
-    }
+    public function __construct(private EntityManagerInterface $entityManager){}
 
 
 
@@ -70,7 +66,7 @@ class CaseDetailController extends AbstractController {
          
         $query = $em->createQuery('SELECT f '
             . 'FROM App:CaseFile f '
-            . 'where f.case_id = :caseid ')
+            . 'where f.caseId = :caseid ')
                ->setParameter('caseid',$id)
                 ->setMaxResults(1);
         
@@ -124,40 +120,27 @@ class CaseDetailController extends AbstractController {
         
     }
 
-
-
-
-
-
-
-
-
-
     /**
-     * @Route("/fall/{id}/anzeigen/", name="detail_case", requirements={"id"=".+"})
+     * Case details page.
      */
-    public function details_case(Request $request, EntityManagerInterface $entityManager, $id) {
-        /*
-         * hier wird eines der Faelle im Detail angezeigt,
-         * Dadurch erhält man Zugriff auf die fuer den Fall verwendeten
-         * Assets.
-         */
-        $case = $this->get_case($id);
+    #[Route('/fall/{id}/anzeigen/', name: 'detail_case', requirements: ['id' => '.+'])]
+    public function details(Request $request, string $id)
+    {
+        $case = $this->entityManager->getRepository(CaseFile::class)->findOneBy(['caseId' => $id]);
 
-        
-        if (!$case) {
-            $this->addFlash('danger','case_not_found');
-            return $this->redirectToRoute('search_case');
+        // check if case was found
+        if (null == $case) {
+            $this->addFlash('danger', 'case_not_found');
+
+            return $this->redirectToRoute('search_cases');
         }
-        
-        $assetRepository = $entityManager->getRepository(Asset::class);
-        $previousEntrys = $assetRepository->findPreviouslyInvolvedInCase($case);
-        
-    
-        
-        return $this->render('cases/detail_case.html.twig',
-                                    ['fall' => $case,
-                                     'history_assets' => $previousEntrys]);
+
+        $previous = $this->entityManager->getRepository(Asset::class)->findPreviouslyInvolvedInCase($case);
+
+        return $this->render('cases/detail_case.html.twig', [
+            'fall' => $case,
+            'history_assets' => $previous,
+        ]);
     }
     
     // Erzeugen eines Dateinamens fuer den Export von Faellen.
@@ -189,9 +172,9 @@ class CaseDetailController extends AbstractController {
         
 
         $changeform = $this->createFormBuilder($case, array('attr' => array('onsubmit' => "return alertbeforesubmit()")))
-                ->add("case_id", TextType::class, array('label' => 'case_id', 'required' => true))
-                ->add('beschreibung', TextareaType::class, array('label' => 'case_description'))
-                ->add('istAktiv', CheckboxType::class, array('label' => 'case_isactiv','required' => false))
+                ->add("caseId", TextType::class, array('label' => 'caseId', 'required' => true))
+                ->add('description', TextareaType::class, array('label' => 'case_description'))
+                ->add('active', CheckboxType::class, array('label' => 'case_isactiv','required' => false))
                 ->add('save', SubmitType::class, array('label' => 'button_update_case'))
                 ->getForm();
 
@@ -213,7 +196,7 @@ class CaseDetailController extends AbstractController {
     /**
      * @Route("/fall/{id}/downloadWord/", name="download_case_word", requirements={"id"=".+"})
      */
-    public function download_case_word(Request $request, EntityManagerInterface $entityManager, $id) {
+    public function download_case_word(Request $request, TranslatorInterface $translator, $id) {
        
         $case = $this->get_case($id);
         
@@ -228,32 +211,32 @@ class CaseDetailController extends AbstractController {
         $usr= $this->get('security.token_storage')->getToken()->getUser();
         
 
-        $assetRepository = $entityManager->getRepository(Asset::class);
+        $assetRepository = $this->entityManager->getRepository(Asset::class);
         $previousEntrys = $assetRepository->findPreviouslyInvolvedInCase($case);
         
         $user = $em->getRepository(Nutzer::class)->findOneBy(array('id' => $usr->getId())); // muss geklaert werden
         
         $replaceText=array(
-            'case_details' => $this->translator->trans('case_details %context%',array("%context%" => $case->getcaseid())),
-            'export.docx.header' => $this->translator->trans('export.docx.header'),
-            'case_id' => $this->translator->trans('case_id'),
-            'case_id_text' => $case->getCaseId(),
-            'case_description' => $this->translator->trans('case_description'),
-            'case_description_text' => $case->getBeschreibung(),
-            'case_dos' => $this->translator->trans('case_dos'),
-            'case_dos_text' => $this->translator->trans($case->getDOS()),
-            'case_isactiv' => $this->translator->trans('case_isactiv'),
-            'case_isactiv_text' => ($case->istAktiv() == true ? "Ja" : "Nein"),
-            'case_timestamp' => $this->translator->trans('case_timestamp'),
-            'case_timestamp_text' => $case->getZeitstempel()->format("'d.m.y H:i'"),
-            'desc.oid'=> $this->translator->trans('desc.oid'),
-            'desc.name'=> $this->translator->trans('desc.name'),
-            'desc.lstatus'=> $this->translator->trans('desc.lstatus'),
-            'desc.last.action.done'=> $this->translator->trans('desc.last.action.done'),
-            'desc.container'=> $this->translator->trans('desc.container'),
-            'container_listed_objects'=> $this->translator->trans('container_listed_objects'),
-            'case_listed_history_objects'=> $this->translator->trans('case_listed_history_objects'),
-            'userstamp'=> $this->translator->trans('report.generated.by.user.%user%.on.%time%',array("%user%" => $user->getFullname(),'%time%' => date('d.m.y H:i')))
+            'case_details' => $translator->trans('case_details %context%',array("%context%" => $case->getcaseid())),
+            'export.docx.header' => $translator->trans('export.docx.header'),
+            'caseId' => $translator->trans('caseId'),
+            'caseId_text' => $case->getCaseId(),
+            'case_description' => $translator->trans('case_description'),
+            'case_description_text' => $case->getDescription(),
+            'case_dos' => $translator->trans('case_dos'),
+            'case_dos_text' => $translator->trans($case->getSecrecy()->value),
+            'case_isactiv' => $translator->trans('case_isactiv'),
+            'case_isactiv_text' => ($case->isActive() == true ? "Ja" : "Nein"),
+            'case_timestamp' => $translator->trans('case_timestamp'),
+            'case_timestamp_text' => $case->getOpenedOn()->format("'d.m.y H:i'"),
+            'desc.oid'=> $translator->trans('desc.oid'),
+            'desc.name'=> $translator->trans('desc.name'),
+            'desc.lstatus'=> $translator->trans('desc.lstatus'),
+            'desc.last.action.done'=> $translator->trans('desc.last.action.done'),
+            'desc.container'=> $translator->trans('desc.container'),
+            'container_listed_objects'=> $translator->trans('container_listed_objects'),
+            'case_listed_history_objects'=> $translator->trans('case_listed_history_objects'),
+            'userstamp'=> $translator->trans('report.generated.by.user.%user%.on.%time%',array("%user%" => $user->getFullname(),'%time%' => date('d.m.y H:i')))
         );
 
         
@@ -282,7 +265,7 @@ class CaseDetailController extends AbstractController {
            $currentObject = ($case->getAssets()[$i-1]);
            $templateProcessor->setValue("Mdesc.oid.text#".$i             ,$currentObject->getBarcode()); 
            $templateProcessor->setValue("Mdesc.name.text#".$i            ,$currentObject->getName());
-           $templateProcessor->setValue("Mdesc.lstatus.text#".$i         ,$this->translator->trans($currentObject->getStatusName()) );
+           $templateProcessor->setValue("Mdesc.lstatus.text#".$i         ,$translator->trans($currentObject->getStatusName()) );
            $templateProcessor->setValue("Mdesc.last.action.done.text#".$i,$currentObject->getZeitstempelumsetzung()->format("d.m.y H:i") );
            if($currentObject->getStandort() != null){
                 $templateProcessor->setValue("Mdesc.container.text#".$i       ,$currentObject->getStandort()->getBarcode()." ".$currentObject->getStandort()->getName() );
@@ -299,7 +282,7 @@ class CaseDetailController extends AbstractController {
            $currentObject = ($previousEntrys[$i-1]);
            $templateProcessor->setValue("Hdesc.oid.text#".$i             ,$currentObject['barcode_id']); 
            $templateProcessor->setValue("Hdesc.name.text#".$i            ,$currentObject['name']);
-           $templateProcessor->setValue("Hdesc.lstatus.text#".$i         ,$this->translator->trans($currentObject['state']) );
+           $templateProcessor->setValue("Hdesc.lstatus.text#".$i         ,$translator->trans($currentObject['state']) );
            $templateProcessor->setValue("Hdesc.last.action.done.text#".$i,$currentObject['zeitstempelderumsetzung']->format("d.m.y H:i") );
            if($currentObject['standort'] != null){
                 $templateProcessor->setValue("Hdesc.container.text#".$i       ,$currentObject['standort']." ".$currentObject['Standortname']);

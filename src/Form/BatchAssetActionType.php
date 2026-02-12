@@ -128,8 +128,8 @@ class BatchAssetActionType extends AbstractType
                     
         //             $query = $em->createQuery('SELECT f '
         //                 . 'FROM App:CaseFile f '
-        //                 . "WHERE f.beschreibung like :search "
-        //                 . "OR f.case_id like :search ")
+        //                 . "WHERE f.description like :search "
+        //                 . "OR f.caseId like :search ")
         //                 ->setParameter('search',"%".$searchbox."%")
         //                 ->setMaxResults(6); 
 

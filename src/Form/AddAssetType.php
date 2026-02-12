@@ -7,7 +7,6 @@ use App\Entity\CaseFile;
 use App\Enum\AssetCategory as Category;
 use App\Validator\Barcode;
 use Doctrine\ORM\EntityManagerInterface;
-use Faker\Container\Container;
 use ReflectionProperty;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Symfony\Component\Form\AbstractType;
@@ -21,6 +20,8 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Validator\Constraints;
 
 /**
+ * Form to add asset.
+ * 
  * @author Ben Brooksnieder
  */
 class AddAssetType extends AbstractType
@@ -102,7 +103,7 @@ class AddAssetType extends AbstractType
                 'label' => 'asset.add.form.case',
                 'placeholder' => 'asset.add.form.no_case',
                 'class' => CaseFile::class,
-                'choice_label' => fn (CaseFile $case) => $case->getCaseId().' | '.$case->getBeschreibung(),
+                'choice_label' => fn (CaseFile $case) => $case->getCaseId().' | '.$case->getDescription(),
                 'choices' => [],
                 'attr' => ['size' => '7'],
                 'required' => false,
@@ -141,7 +142,7 @@ class AddAssetType extends AbstractType
             $form->getParent()->add('case', EntityType::class, [
                 'label' => 'asset.add.form.case',
                 'class' => CaseFile::class,
-                'choice_label' => fn (CaseFile $case) => $case->getCaseId().' | '.$case->getBeschreibung(),
+                'choice_label' => fn (CaseFile $case) => $case->getCaseId().' | '.$case->getDescription(),
                 'choices' => $cases,
                 'placeholder' => 'asset.add.form.no_case',
                 'attr' => ['size' => '7'],

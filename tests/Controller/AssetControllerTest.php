@@ -200,7 +200,7 @@ class AssetControllerTest extends BaseWebTestCase
         $form = $crawler->selectButton($name.'[save]')->form();
 
         // search for case and submit
-        $form["{$name}[case_search]"] = $case->getBeschreibung();
+        $form["{$name}[case_search]"] = $case->getDescription();
         $crawler = $client->submit($form);
 
         $form = $crawler->selectButton($name.'[save]')->form();
@@ -215,7 +215,7 @@ class AssetControllerTest extends BaseWebTestCase
         }
 
         // add case id
-        $form["{$name}[case_search]"] = $case->getBeschreibung();
+        $form["{$name}[case_search]"] = $case->getDescription();
         $form["{$name}[case]"] = $case->getId();
         $crawler = $client->submit($form);
         $this->assertResponseRedirects("/objekt/{$asset['barcode']}");
@@ -1813,6 +1813,9 @@ class AssetControllerTest extends BaseWebTestCase
         $client = static::createClient();
         $factory = CaseFactory::new();
 
+        /**
+         * @var \App\Entity\CaseFile[]
+         */
         $cases = $factory->many(5)->create();
 
         $uri = '/asset/cases';
@@ -1822,11 +1825,11 @@ class AssetControllerTest extends BaseWebTestCase
         foreach ($cases as $case) {
             $exp = [
                 'val' => $case->getId(),
-                'text' => $case->getCaseId().' | '.$case->getBeschreibung(),
+                'text' => $case->getCaseId().' | '.$case->getDescription(),
             ];
             $this->assertContains($exp, $all['data']);
 
-            $desc = $this->queryJsonApi($client, $uri, ['query' => $case->getBeschreibung()]);
+            $desc = $this->queryJsonApi($client, $uri, ['query' => $case->getDescription()]);
             $this->assertContains($exp, $desc['data']);
 
             $byId = $this->queryJsonApi($client, $uri, ['query' => $case->getCaseId()]);
@@ -1839,10 +1842,17 @@ class AssetControllerTest extends BaseWebTestCase
         $client = static::createClient();
         $factory = AssetFactory::new();
 
+        /**
+         * @var \App\Entity\Asset[]
+         */
         $storages = array_merge(
             $factory->container()->many(5)->create(),
             $factory->with(['storageOverride' => true])->record()->many(5)->create(),
         );
+
+        /**
+         * @var \App\Entity\Asset[]
+         */
         $nonStorages = array_merge(
             $factory->with(['storageOverride' => false])->container()->many(5)->create(),
             $factory->hdd()->many(5)->create(),
@@ -1886,7 +1896,14 @@ class AssetControllerTest extends BaseWebTestCase
         $client = static::createClient();
         $factory = AssetFactory::new();
 
+        /**
+         * @var \App\Entity\Asset[]
+         */
         $targets = array_merge($factory->hdd()->many(10)->create());
+
+        /**
+         * @var \App\Entity\Asset[]
+         */
         $nonTargets = array_merge(
             $factory->exhibit()->many(2)->create(),
             $factory->equipment()->many(2)->create(),
@@ -1933,7 +1950,14 @@ class AssetControllerTest extends BaseWebTestCase
         $client = static::createClient();
         $factory = AssetFactory::new();
 
+        /**
+         * @var \App\Entity\Asset[]
+         */
         $sources = array_merge($factory->exhibitHdd()->many(10)->create());
+
+        /**
+         * @var \App\Entity\Asset[]
+         */
         $nonSources = array_merge(
             $factory->exhibit()->many(2)->create(),
             $factory->equipment()->many(2)->create(),

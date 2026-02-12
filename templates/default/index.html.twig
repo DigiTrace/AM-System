@@ -45,24 +45,24 @@
                     <tr>
                         <td>{{ case.getCaseId }}</td>
                         <td>
-                        {% if case.getDOS != ""%}
+                        {% if case.getSecrecy != ""%}
                             <span 
-                                {% if case.getDOS == "DOS_PUBLIC"%}
+                                {% if case.getSecrecy == "DOS_PUBLIC"%}
                                     class="label label-success"
-                                {% elseif case.getDOS == "DOS_INTERNAL"%}
+                                {% elseif case.getSecrecy == "DOS_INTERNAL"%}
                                     class="label label-primary"
-                                {% elseif case.getDOS == "DOS_CONFIDENTIAL"%}
+                                {% elseif case.getSecrecy == "DOS_CONFIDENTIAL"%}
                                     class="label label-warning"
-                                {% elseif case.getDOS == "DOS_SECRET"%}
+                                {% elseif case.getSecrecy == "DOS_SECRET"%}
                                     class="label label-danger"
                             {% endif %}
                             >
-                                {{ case.getDOS | trans}}   
+                                {{ case.getSecrecy | trans}}   
                             </span>
                         {% endif %}
                         </td>
-                        <td><a href="{{ path('detail_case', {'id': case.getCaseId}) }}">{{ case.getBeschreibung | nl2br}}</a></td>
-                        <td>{{ case.getZeitstempel|date('d.m.y H:i') }}</td>
+                        <td><a href="{{ path('detail_case', {'id': case.getCaseId}) }}">{{ case.getDescription | nl2br}}</a></td>
+                        <td>{{ case.getOpenedOn|date('d.m.y H:i') }}</td>
                     </tr>
                 {% else %}
                 {% endfor %}

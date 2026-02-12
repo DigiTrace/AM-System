@@ -11,6 +11,11 @@ use Symfony\Component\Form\FormEvents;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
 /**
+ * Form for drives. Designed to be embedded by other forms.
+ * 
+ * @see App\Form\AddAssetType
+ * @see App\Form\EditAssetType
+ * 
  * @author Ben Brooksnieder
  */
 class DriveType extends AbstractType

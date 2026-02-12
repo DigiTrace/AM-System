@@ -29,8 +29,8 @@ class CaseRepository extends ServiceEntityRepository
     {
         // create query builder
         $builder = $this->createQueryBuilder('c')
-            ->where('c.istAktiv = 1')
-            ->orderBy('c.zeitstempel_beginn', 'DESC');
+            ->where('c.active = 1')
+            ->orderBy('c.openedOn', 'DESC');
 
         if (null !== $limit) {
             $builder->setMaxResults($limit);
@@ -53,9 +53,9 @@ class CaseRepository extends ServiceEntityRepository
     public function findBySimpleSearch(mixed $search, ?int $limit): array
     {
         $builder = $this->createQueryBuilder('c')
-            ->where('c.beschreibung like :search')
-            ->orWhere('c.case_id like :search')
-            ->orderBy('c.zeitstempel_beginn', 'DESC')
+            ->where('c.description like :search')
+            ->orWhere('c.caseId like :search')
+            ->orderBy('c.openedOn', 'DESC')
             ->setParameter('search', "%{$search}%")
         ;
 

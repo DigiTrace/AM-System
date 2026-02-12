@@ -12,9 +12,9 @@ use Doctrine\Persistence\ObjectManager;
  *
  * @author Ben Brooksnieder
  */
-class FallFixtures extends Fixture
+class CaseFixtures extends Fixture
 {
-    public const FALL_REFERENCE = 'dt-fall-';
+    public const CASE_REFERENCE = 'dt-fall-';
 
     public function load(ObjectManager $manager): void
     {
@@ -23,35 +23,35 @@ class FallFixtures extends Fixture
             [
                 'active' => true,
                 'case_id' => 'XIVv2',
-                'dos' => CaseSecrecy::Confidential->value,
+                'dos' => CaseSecrecy::Confidential,
                 'desc' => '(TEST)Computersabotage',
                 'timestamp' => date_create(),
             ],
             [
                 'active' => true,
                 'case_id' => 'TLG',
-                'dos' => CaseSecrecy::Confidential->value,
+                'dos' => CaseSecrecy::Confidential,
                 'desc' => '(TEST)Einbruch im Hochsicherheitstrakt beim HIER BEKANNTE FIRMA EINTRAGEN. Laptop mit HIER WICHTIGE DATENBESTAND EINFÜGEN Daten entwendet',
                 'timestamp' => date_create(),
             ],
             [
                 'active' => true,
                 'case_id' => 'Müller/c1',
-                'dos' => CaseSecrecy::Confidential->value,
+                'dos' => CaseSecrecy::Confidential,
                 'desc' => '(TEST)Auf seinen privaten Rechner wurde eine Bitcoinsoftware per Malware installiert',
                 'timestamp' => date_create(),
             ],
             [
                 'active' => true,
                 'case_id' => '78/98',
-                'dos' => CaseSecrecy::Confidential->value,
+                'dos' => CaseSecrecy::Confidential,
                 'desc' => '(TEST)Verdacht auf Besitz von KiPo',
                 'timestamp' => date_create(),
             ],
             [
                 'active' => true,
                 'case_id' => 'Schmidt AG',
-                'dos' => CaseSecrecy::Confidential->value,
+                'dos' => CaseSecrecy::Confidential,
                 'desc' => '(TEST)Pentest des Front Webservers',
                 'timestamp' => date_create(),
             ],
@@ -60,13 +60,13 @@ class FallFixtures extends Fixture
         foreach ($config as $id => $entry) {
             // add case
             $case = new CaseFile();
-            $case->setistAktiv($entry['active']);
+            $case->setActive($entry['active']);
             $case->setCaseId($entry['case_id']);
-            $case->setDOS($entry['dos']);
-            $case->setBeschreibung($entry['desc']);
-            $case->setZeitstempel($entry['timestamp']);
+            $case->setSecrecy($entry['dos']);
+            $case->setDescription($entry['desc']);
+            $case->setOpenedOn($entry['timestamp']);
             $manager->persist($case);
-            $this->addReference(self::FALL_REFERENCE.$id, $case);
+            $this->addReference(self::CASE_REFERENCE.$id, $case);
         }
 
         // save all to db
