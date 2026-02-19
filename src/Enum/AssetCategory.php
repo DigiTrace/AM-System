@@ -20,27 +20,6 @@ enum AssetCategory: int implements TranslatableInterface
     case ExhibitHdd = 5;
 
     /**
-     * Matches `category.X` string to asset category.
-     * Replaces former `Objekt::$kategorienToId`.
-     *
-     * @param string $category Category string
-     *
-     * @return AssetState Corresponding asset category
-     */
-    public static function fromString(string $category): self
-    {
-        return match ($category) {
-            'category.exhibit' => self::Exhibit,
-            'category.equipment' => self::Equipment,
-            'category.container' => self::Container,
-            'category.hdd' => self::Hdd,
-            'category.record' => self::Record,
-            'category.exhibit.hdd' => self::ExhibitHdd,
-            default => throw new \InvalidArgumentException("Unkown category: $category"),
-        };
-    }
-
-    /**
      * Returns whether category is generally allowed to be used as a storage.
      */
     public static function storageAllowed(self $category): bool
@@ -217,12 +196,12 @@ enum AssetCategory: int implements TranslatableInterface
     public function toTranslatableString(): string
     {
         return match ($this) {
-            self::Exhibit => 'category.exhibit',
-            self::Equipment => 'category.equipment',
-            self::Container => 'category.container',
-            self::Hdd => 'category.hdd',
-            self::Record => 'category.record',
-            self::ExhibitHdd => 'category.exhibit.hdd',
+            self::Exhibit => 'enum.asset_category.exhibit',
+            self::Equipment => 'enum.asset_category.equipment',
+            self::Container => 'enum.asset_category.container',
+            self::Hdd => 'enum.asset_category.hdd',
+            self::Record => 'enum.asset_category.record',
+            self::ExhibitHdd => 'enum.asset_category.exhibit_hdd',
         };
     }
 }

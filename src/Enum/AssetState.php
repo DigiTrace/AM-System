@@ -27,37 +27,7 @@ enum AssetState: int implements TranslatableInterface
     case Used = 12;
     case Edited = 13;
     case SavedImage = 14;
-
-    /**
-     * Matches `status.X` string to asset state.
-     * Replaces former `Objekt::$statusToId`.
-     *
-     * @param string $state Status string
-     *
-     * @return AssetState Corresponding asset state
-     */
-    public static function fromString(string $state): self
-    {
-        return match ($state) {
-            'status.added' => self::Added,
-            'status.cleaned' => self::Cleaned,
-            'status.taken.to.customer' => self::TakenToCustomer,
-            'status.destroyed' => self::Destroyed,
-            'status.handover.person' => self::HandoverPerson,
-            'status.reserved' => self::Reserved,
-            'status.lost' => self::Lost,
-            'status.stored.in.container' => self::StoredInContainer,
-            'status.pulled.out.of.container' => self::PulledOutOfContainer,
-            'status.added.to.case' => self::AssignedCase,
-            'status.removed.from.case' => self::RemovedFromCase,
-            'status.unbind.reservation' => self::UnbindReservation,
-            'status.used' => self::Used,
-            'status.edited' => self::Edited,
-            'status.saved.image' => self::SavedImage,
-            default => throw new \InvalidArgumentException("Unkown state: $state"),
-        };
-    }
-
+    
     /**
      * Returns whether state generally allows editing.
      */
@@ -157,21 +127,21 @@ enum AssetState: int implements TranslatableInterface
     public function toTranslatableString(): string
     {
         return match ($this) {
-            self::Added => 'status.added',
-            self::Cleaned => 'status.cleaned',
-            self::TakenToCustomer => 'status.taken.to.customer',
-            self::Destroyed => 'status.destroyed',
-            self::HandoverPerson => 'status.handover.person',
-            self::Reserved => 'status.reserved',
-            self::Lost => 'status.lost',
-            self::StoredInContainer => 'status.stored.in.container',
-            self::PulledOutOfContainer => 'status.pulled.out.of.container',
-            self::AssignedCase => 'status.added.to.case',
-            self::RemovedFromCase => 'status.removed.from.case',
-            self::UnbindReservation => 'status.unbind.reservation',
-            self::Used => 'status.used',
-            self::Edited => 'status.edited',
-            self::SavedImage => 'status.saved.image',
+            self::Added => 'enum.asset_state.added',
+            self::Cleaned => 'enum.asset_state.cleaned',
+            self::TakenToCustomer => 'enum.asset_state.taken_to_customer',
+            self::Destroyed => 'enum.asset_state.destroyed',
+            self::HandoverPerson => 'enum.asset_state.handover_person',
+            self::Reserved => 'enum.asset_state.reserved',
+            self::Lost => 'enum.asset_state.lost',
+            self::StoredInContainer => 'enum.asset_state.stored_in_container',
+            self::PulledOutOfContainer => 'enum.asset_state.pulled_out_of_container',
+            self::AssignedCase => 'enum.asset_state.assigned_case',
+            self::RemovedFromCase => 'enum.asset_state.removed_from_case',
+            self::UnbindReservation => 'enum.asset_state.unbind_reservation',
+            self::Used => 'enum.asset_state.used',
+            self::Edited => 'enum.asset_state.edited',
+            self::SavedImage => 'enum.asset_state.saved_image',
         };
     }
 }

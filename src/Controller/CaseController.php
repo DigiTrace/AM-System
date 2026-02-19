@@ -21,7 +21,7 @@ use Symfony\Contracts\Translation\TranslatorInterface;
 /**
  * @author Ben Brooksnieder
  */
-class CaseDetailController extends BaseController
+class CaseController extends BaseController
 {
 
     public function __construct(private EntityManagerInterface $entityManager)
@@ -70,6 +70,7 @@ class CaseDetailController extends BaseController
         
         // no search term provided, default query for listing all objects
         $search ??= $request->get('suche');
+        $search ??= $request->get('search');
         
         // apply extended case search to create query
         if ($search) {

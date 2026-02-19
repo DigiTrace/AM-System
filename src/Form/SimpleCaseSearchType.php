@@ -27,6 +27,7 @@ class SimpleCaseSearchType extends AbstractType
 
         // limit selector
         $builder->add('limit', Field\ChoiceType::class, [
+            'translation_domain' => false,
             'choices' => [
                 '25' => '25',
                 '50' => '50',
@@ -39,7 +40,8 @@ class SimpleCaseSearchType extends AbstractType
         ]);
 
         // invisible submit
-        $builder->add('suchen', Field\SubmitType::class, [
+        $builder->add('submit', Field\SubmitType::class, [
+            'label' => 'form.search',
             'attr' => ['style' => 'display: none']
         ]);
     }

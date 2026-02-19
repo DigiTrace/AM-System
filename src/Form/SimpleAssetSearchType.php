@@ -26,6 +26,7 @@ class SimpleAssetSearchType extends AbstractType
 
         // limit selector
         $builder->add('limit', Field\ChoiceType::class, [
+            'translation_domain' => false,
             'choices' => [
                 '25' => '25',
                 '50' => '50',
@@ -38,7 +39,7 @@ class SimpleAssetSearchType extends AbstractType
         ]);
 
         // invisible submit
-        $builder->add('suchen', Field\SubmitType::class, [
+        $builder->add('submit', Field\SubmitType::class, [
             'label' => 'eas.form.search',
             'attr' => ['style' => 'display: none']
         ]);

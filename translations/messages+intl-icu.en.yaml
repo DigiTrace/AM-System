@@ -1,4 +1,12 @@
-not_implemented_yet: 'Not implemented yet: {function}'
+amsystem: 'Evidence asset management system'
+contextmenu: 'Menu'
+applicationof: 'Application by'
+nav:
+  home: 'Dashboard'
+  cases: 'Cases'
+  assets: 'Assets'
+  scan: 'Scan assets'
+ 
 eas:
   desc:
     category: 'Category'
@@ -62,11 +70,128 @@ eas:
     yes: 'yes'
   
   
+# general form labels/messages
+form:
+  actions: &FORM_ACTIONS 'Actions'
+  apply: &FORM_APPLY 'Apply'
+  cancel: &FORM_CANCEL 'Cancel'
+  close: &FORM_CLOSE 'Close'
+  reset: &FORM_RESET 'Reset'
+  save: &FORM_SAVE 'Save'
+  search: &FORM_SEARCH 'Search'
+  entries_found: 'entries found'
+
+# user translations
+user:
+  user: &USER_USER 'User'
+  attr:
+    username: &USER_USERNAME 'Username'
+    fullname: &USER_FULLNAME 'Full name'
+    email: &USER_EMAIL 'Email'
+  not_found: 'User not found'
+  overview: 'User Overview' # former "summary"
+
+  page:
+    index: 'Hello {user}!'
+    password: 'Change password'
+  form:
+    username: *USER_USERNAME
+    fullname: *USER_FULLNAME
+    email: *USER_EMAIL
+    password: &USER_FORM_PASSWORD 'Password'
+    old_password: 'Current password'
+    new_password: 'New password'
+    new_password_repeat: 'Repeat new password'
+    notify_case_creation: 'Notify case creation'
+    actions: *FORM_ACTIONS
+    state: 'State'
+    state_enabled: 'Enabled'
+    state_disabled: 'Disabled'
+    state_subscribed: 'Subscribed'
+    state_unsubscribed: 'Unsubscribed'
+    enabled: 'User was enabled.'
+    disabled: 'User was disabled.'
+    subscribed: 'User subscribed to case creation notfiy.'
+    unsubscribed: 'User unsubscribed from case creation notfiy.'
+    apply: *FORM_APPLY
+    reset: *FORM_RESET
+    save: *FORM_SAVE
+    edit_profile: 'Edit profile information:'
+    edit_successul: 'Profile updated succesfully'
+    change_password: '' # left empty
+    password_change_successful: 'Password succesfully changed'
+    error:
+      incorrect_password: 'Incorrect password.'
+      passwords_not_matching: 'Provided new passwords do not match.'
+      duplicate: 'Profile could not be updated. New values collide with existing users.'
+  actions:
+    add: 'Add new user'
+    show: 'Show user overview'
+    profile: 'Show profile'
+    edit_profile: 'Edit profile'
+    change_language: 'Change language'
+    change_password: 'Change password'
+    deactivate: 'Deactivate user(He cant login anymore)'
+    activate: 'Reactivate user'
+    subscribe_case: 'Notify user on case creation'
+    unsubscribe_case: 'Do not notify user on case creation'
+
+security:
+  username: &SECRURITY_USERNAME *USER_USERNAME
+  fullname: &SECRURITY_FULLNAME *USER_FULLNAME
+  email: *USER_EMAIL
+  password: *USER_FORM_PASSWORD
+  add_user: 'Add user'
+  duplicate_user: 'Provided user information matches existing one.'
+  user_added: 'User succesfully added.'
+  login:
+    username: *SECRURITY_USERNAME
+    fullname: *SECRURITY_FULLNAME
+    password: *USER_FORM_PASSWORD
+    remember_me: 'Remember me'
+    submit: 'Login'
+  logout: 'Logout'
+
 entity:
   asset: 'Asset'
   drive: 'Drive'
+  case: 'Case'
+
+# enum values
+enum:
+  asset_category:
+    exhibit: 'Evidence asset'
+    equipment: 'Equipment'
+    container: 'Container'
+    hdd: 'HDD'
+    record: 'Record'
+    exhibit_hdd: 'HDD evidence asset'
+
+  asset_state:
+    added: 'Added to system'
+    cleaned: 'Zeroed'
+    destroyed: 'Destroyed'
+    taken_to_customer: 'Taken to customer'
+    handover_person: 'Handed over to a person'
+    reserved: 'Reserved'
+    lost: 'Lost'
+    stored_in_container: 'Added to container'
+    pulled_out_of_container: 'Pulled out of container'
+    assigned_case: 'Assigned to case'
+    removed_from_case: 'Removed from case'
+    unbind_reservation: 'Reservation revoked'
+    used: 'In use'
+    edited: 'Edited'
+    saved_image: 'Image of evidence asset'
+
+  case_secrecy:
+    public: 'Public'
+    internal: 'Internal'
+    confidential: 'Confidential'
+    secret: 'Secret'
 
 asset:
+  available: 'Available'
   attr:
     barcode: &ASSET_BARCODE 'Barcode'
     name: &ASSET_NAME 'Name'
@@ -112,9 +237,17 @@ asset:
       save_and_keep: 'Save asset and add similar'
       success: 'Asset successfully added'
 
+  search:
+    header: 'Asset overview'
+
   details:
     page:
       header: 'Details to'
+
+  
+  actions:
+    add: 'Add new asset'
+    faq: 'Extended asset search FAQ'
 
 drive:
   attr:
@@ -144,4 +277,37 @@ drive:
       size: 'Custom size, in GB'
       size_dropdown: 'In GB'
       connector: 'USB/ATA/SATA/...'
-    
+
+case:
+  attr:
+    case_id: &CASE_ID 'Case ID'
+    active: &CASE_ACTIVE 'Active'
+    secrecy: &CASE_SECRECY 'Secrecy'
+    description: &CASE_DESCRIPTION 'Description'
+    opened_on: &CASE_OPENED_ON 'Opened on'
+    closed_on: &CASE_CLOSED_ON 'Closed on'
+
+  form:
+    case_id: *CASE_ID
+    active: *CASE_ACTIVE
+    secrecy: *CASE_SECRECY
+    description: *CASE_DESCRIPTION
+    opened_on: *CASE_OPENED_ON
+    closed_on: *CASE_CLOSED_ON
+    save: *FORM_SAVE
+
+  search:
+    header: 'Case overview'
+
+  actions:
+    add: 'Add new case'
+    faq: 'Extended case search FAQ'
+
+dashboard:
+  header: 'Dashboard'
+  open_cases: 'Open cases'
+  reserved_assets: 'Reserved assets'
+
+
+
+not_implemented_yet: 'Not implemented yet: {function}'

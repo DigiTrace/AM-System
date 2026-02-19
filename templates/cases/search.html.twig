@@ -25,7 +25,7 @@
 
     <div class="row">
         <div class="col-sm-4">
-            <h2>{{ 'case.search.page.header' | trans }}</h2>
+            <h2>{{ 'case.search.header' | trans }}</h2>
         </div>
         <div class="col-sm-8" style="margin-top:7px">
             {{ form_start(form) }}
@@ -44,14 +44,14 @@
 
         <thead>
             <tr>
-                <th class="col-md-2 col-sm-2">{{ knp_pagination_sortable(pagination, 'case.search.page.case_id'|trans, 'caseFile.caseId') }}
+                <th class="col-md-2 col-sm-2">{{ knp_pagination_sortable(pagination, 'case.attr.case_id'|trans, 'caseFile.caseId') }}
                     {% if pagination.isSorted('caseFile.caseId') %}
                     {{ arrow | raw}}
                     {% endif %}
                 </th>
-                <th class="col-md-1 col-sm-1">{{ 'case.search.page.secrecy' | trans }}</th>
-                <th class="col-md-7 col-sm-7">{{ 'case.search.page.description' | trans }}</th>
-                <th class="col-md-2 col-sm-2">{{ knp_pagination_sortable(pagination, 'case.search.page.opened_on'|trans, 'caseFile.openedOn') }}
+                <th class="col-md-1 col-sm-1">{{ 'case.attr.secrecy' | trans }}</th>
+                <th class="col-md-7 col-sm-7">{{ 'case.attr.description' | trans }}</th>
+                <th class="col-md-2 col-sm-2">{{ knp_pagination_sortable(pagination, 'case.attr.opened_on'|trans, 'caseFile.openedOn') }}
                     {% if pagination.isSorted('caseFile.openedOn') %}
                     {{ arrow | raw}}
                     {% endif %}
@@ -84,7 +84,7 @@
 
 {# total items count #}
 <div class="count">
-    {{ pagination.getTotalItemCount }} {{ 'entrys.found' | trans }}
+    {{ pagination.getTotalItemCount }} {{ 'form.entries_found' | trans }}
 </div>
 
 {# display navigation #}
@@ -95,8 +95,8 @@
 {% endblock %}
 
 {% block context %}
-    <a href="{{ path("add_case") }}"><span class="glyphicon glyphicon-pencil"></span> {{ 'add_new_case' | trans }} </a><br>
-    <a href="{{ path("search_cases_faq") }}"><span class="glyphicon glyphicon-question-sign"></span> {{ 'action.case.faq.search' | trans }}</a> <br>
+    <a href="{{ path("add_case") }}"><span class="glyphicon glyphicon-pencil"></span> {{ 'case.actions.add' | trans }} </a><br>
+    <a href="{{ path("search_cases_faq") }}"><span class="glyphicon glyphicon-question-sign"></span> {{ 'case.actions.faq' | trans }}</a> <br>
 {% endblock %}
 
 

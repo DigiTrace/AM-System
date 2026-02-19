@@ -44,10 +44,10 @@ enum CaseSecrecy: string implements TranslatableInterface
     public function toTranslatableString(): string
     {
         return match ($this) {
-            self::Public => "secrecy.public",
-            self::Internal => "secrecy.internal",
-            self::Confidential => "secrecy.confidential",
-            self::Secret => "secrecy.secret",
+            self::Public => "enum.case_secrecy.public",
+            self::Internal => "enum.case_secrecy.internal",
+            self::Confidential => "enum.case_secrecy.confidential",
+            self::Secret => "enum.case_secrecy.secret",
         };
     }
 }

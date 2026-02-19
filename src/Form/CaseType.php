@@ -22,25 +22,22 @@ class CaseType extends AbstractType
     {
         $builder
             ->add('caseId', Field\TextType::class, [
-                'label' => 'case.form.caseId',
+                'label' => 'case.form.case_id',
                 'required' => true,
             ])
             ->add('active', Field\CheckboxType::class, [
-                'label' => 'case.form.is_active',
+                'label' => 'case.form.active',
                 'data' => true,
                 'required' => true,
             ])
             ->add('secrecy', Field\EnumType::class, [
-                'label' => 'case.form.dos',
+                'label' => 'case.form.secrecy',
                 'class' => CaseSecrecy::class,
                 'placeholder'=> false,
                 'expanded' => false,
                 'multiple' => false,
                 'data' => CaseSecrecy::Confidential,
                 'choices' =>  CaseSecrecy::cases(),
-                'choice_label' => function($dosarray, $key, $index) {
-                    return $index;
-                },
                 'required' => false,
             ])
             ->add('description', Field\TextareaType::class, [
@@ -53,7 +50,7 @@ class CaseType extends AbstractType
 
         if ($options['showOpenedOn']) {
             $builder->add('openedOn', Field\DateTimeType::class, [
-                'label' => 'case.form.openedOn',
+                'label' => 'case.form.opened_on',
                 'data' => new \DateTime(),
                 'required' => true,
                 'widget'       => 'single_text',
@@ -63,7 +60,7 @@ class CaseType extends AbstractType
 
         if ($options['closedOn_not_before']) {
             $builder->add('closedOn', Field\DateTimeType::class, [
-                'label' => 'case.form.closedOn',
+                'label' => 'case.form.closed_on',
                 'data' => new \DateTime(),
                 'required' => true,
                 'widget'       => 'single_text',

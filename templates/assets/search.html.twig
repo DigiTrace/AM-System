@@ -26,7 +26,7 @@
 
     <div class="row">
         <div class="col-lg-4"> 
-            <h2>{{ 'asset.search.page.header' | trans}}</h2>
+            <h2>{{ 'asset.search.header' | trans}}</h2>
         </div>
         <div class="col-lg-8" style="margin-top:7px">
             {{ form_start(form) }}
@@ -58,22 +58,22 @@
         
         <thead>
         <tr>
-            <th class="col-md-2 col-sm-2">{{ knp_pagination_sortable(pagination,'asset.search.page.barcode'|trans , 'asset.barcode') }}
+            <th class="col-md-2 col-sm-2">{{ knp_pagination_sortable(pagination,'asset.attr.barcode'|trans , 'asset.barcode') }}
                 {% if pagination.isSorted('asset.barcode') %}
                 {{ arrow | raw}}
                 {% endif %}
             </th>
-            <th class="col-md-2 col-sm-2" >{{ knp_pagination_sortable(pagination, 'asset.search.page.category'|trans, 'asset.category') }} 
+            <th class="col-md-2 col-sm-2" >{{ knp_pagination_sortable(pagination, 'asset.attr.category'|trans, 'asset.category') }} 
                 {% if pagination.isSorted('asset.category') %}
                 {{ arrow | raw}}
                 {% endif %}
             </th>
-            <th class="col-md-7 col-sm-7">{{ knp_pagination_sortable(pagination, 'asset.search.page.name'|trans, 'asset.name') }} 
+            <th class="col-md-7 col-sm-7">{{ knp_pagination_sortable(pagination, 'asset.attr.name'|trans, 'asset.name') }} 
                 {% if pagination.isSorted('asset.name') %}
                 {{ arrow | raw}}
                 {% endif %}
             </th>
-            <th class="col-md-1 col-sm-1">{{ 'availability' | trans }}</th>
+            <th class="col-md-1 col-sm-1">{{ 'asset.available' | trans }}</th>
         </tr>
         </thead>
         <tbody>
@@ -113,7 +113,7 @@
    
    {# total items count #}
 <div class="count">
-    {{ pagination.getTotalItemCount }} {{ 'entrys.found' | trans }}
+    {{ pagination.getTotalItemCount }} {{ 'form.entries_found' | trans }}
 </div>
 
 {# display navigation #}
@@ -126,8 +126,8 @@
 
 
 {% block context %}
-    <a href="{{ path("add_asset") }}"><span class="glyphicon glyphicon-pencil"></span> {{ 'action.add.object' | trans }}</a><br>
-    <a href="{{ path("eas_faq") }}"><span class="glyphicon glyphicon-question-sign"></span> {{ 'action.object.faq.search' | trans }}</a> <br>
+    <a href="{{ path("add_asset") }}"><span class="glyphicon glyphicon-pencil"></span> {{ 'asset.actions.add' | trans }}</a><br>
+    <a href="{{ path("eas_faq") }}"><span class="glyphicon glyphicon-question-sign"></span> {{ 'asset.actions.faq' | trans }}</a> <br>
     {# <a href='{{ path("select_new_status_for_multiple_objects")}}'> <span class="glyphicon glyphicon-pencil"></span> {{ 'action.chosen.object.change' | trans }}</a><br> #}
       
 {% endblock %}
