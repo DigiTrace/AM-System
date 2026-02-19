@@ -156,7 +156,7 @@ class CaseController extends BaseController
         $previous = $this->entityManager->getRepository(Asset::class)->findPreviouslyInvolvedInCase($case);
 
         return $this->render('cases/details.html.twig', [
-            'fall' => $case,
+            'case' => $case,
             'history_assets' => $previous,
         ]);
     }

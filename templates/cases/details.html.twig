@@ -22,37 +22,40 @@
 
 {% block content1 %}
     
-
-    <h2>{% trans with {'%context%': fall.getCaseId} %}case.details.page.header %context%{% endtrans %}</h2>
+    <h2>{{ 'case.details.header' | trans({'%case%': case.getCaseId}) }}</h2>
     {{ include('messages.html.twig') }}
     
     <div class="cotainer-fluid">
-        <h3>{{ 'case_current_state' | trans }}</h3>
+        <h3>{{ 'case.details.summary' | trans }}</h3>
         <table class="table">
             <tr>
-                <td>{{ 'case.details.page.case_id' | trans }}</td>
-                <td>{{ fall.getCaseId }}</td>
+                <td>{{ 'case.attr.case_id' | trans }}</td>
+                <td>{{ case.getCaseId }}</td>
             </tr>
 
             <tr>
-               <td>{{ 'case.details.page.description' | trans }}</td>
-               <td>{{  fall.getDescription | nl2br}}</td>
+                <td>{{ 'case.attr.description' | trans }}</td>
+                <td>{{  case.getDescription | nl2br}}</td>
             </tr>
             <tr>
-                <td>{{ 'case.details.page.active' | trans }}</td>
+                <td>{{ 'case.details.active' | trans }}</td>
                 <td>
-                    {% if fall.isActive %} {{ 'yes' | trans }}
+                    {% if case.isActive %} {{ 'yes' | trans }}
                     {% else %} {{ 'no' | trans }}
                     {% endif %}
                 </td>
              </tr>
              <tr>
-               <td>{{ 'case.details.page.secrecy' | trans }}</td>
-               <td>{{ fall.getSecrecy | trans }}</td>
+                <td>{{ 'case.attr.secrecy' | trans }}</td>
+                <td>
+                    <span class="label label-{{ case.getSecrecy.bootstrapColor }}">
+                    {{ case.getSecrecy | trans}}
+                    </span>
+                </td>
              </tr>
              <tr>
-                <td>{{ 'case.details.page.opened_on' | trans }}</td>
-                <td>{{ fall.getOpenedOn|date('d.m.y H:i') }}</td>
+                <td>{{ 'case.details.opened_on' | trans }}</td>
+                <td>{{ case.getOpenedOn | date('d.m.y H:i') }}</td>
             </tr>
         </table>
     </div>
@@ -60,25 +63,25 @@
  {% endblock %}
  {% block content2 %}
        
-    <h3>{{ 'container_listed_assets' | trans }}</h3>
+    <h3>{{ 'case.details.associated_assets' | trans }}</h3>
     <table class="table">
      <thead>
        <tr>
-         <th>{{ 'desc.oid' | trans }}</th>
-         <th>{{ 'desc.name' | trans }}</th>
-         <th>{{ 'desc.lstatus' | trans }}</th>
-         <th>{{ 'desc.last.action.done' | trans }}</th>
-         <th>{{ 'desc.container' | trans }}</th>
+         <th>{{ 'asset.attr.barcode' | trans }}</th>
+         <th>{{ 'asset.attr.name' | trans }}</th>
+         <th>{{ 'asset.attr.state' | trans }}</th>
+         <th>{{ 'asset.attr.last_update_performed_on' | trans }}</th>
+         <th>{{ 'asset.attr.location' | trans }}</th>
        </tr>
      </thead>
      <tbody>
 
-        {% for asset in fall.getAssets %}
+        {% for asset in case.getAssets %}
 
          <tr style="cursor:pointer" onclick="window.location.href='{{ path('details_asset', {'id': asset.barcode}) }}'">
             <td style='font-family: courier;font-size: large'>
                 <a href="{{ path('details_asset', {'id': asset.barcode}) }}">
-                {{ asset.barcode }}
+                    {{ asset.barcode }}
                 </a>
             </td>
             <td>
@@ -107,15 +110,15 @@
      
      
      
-    <h3>{{ 'case_listed_history_assets' | trans }}</h3>
+    <h3>{{ 'case.details.former_associated_assets' | trans }}</h3>
     <table class="table">
      <thead>
        <tr>
-         <th>{{ 'desc.oid' | trans }}</th>
-         <th>{{ 'desc.name' | trans }}</th>
-         <th>{{ 'desc.lstatus' | trans }}</th>
-         <th>{{ 'desc.last.action.done' | trans }}</th>
-         <th>{{ 'desc.container' | trans }}</th>
+            <th>{{ 'asset.attr.barcode' | trans }}</th>
+            <th>{{ 'asset.attr.name' | trans }}</th>
+            <th>{{ 'asset.attr.state' | trans }}</th>
+            <th>{{ 'asset.attr.last_update_performed_on' | trans }}</th>
+            <th>{{ 'asset.attr.location' | trans }}</th>
        </tr>
      </thead>
      <tbody>
@@ -145,9 +148,7 @@
        {% endfor %}
      </tbody>
   </table>
-     
-       
-              {% trans with {'%cdate%': "now"|date('d.m.y'),'%ctime%':"now"| date('H:i')  } %}report has been made at %cdate% %ctime%{% endtrans %}
+{{ 'report_from' | trans({'%time%' : 'now'|date('d.m.y H:i')}) }}
 {% endblock %}
 
 {% block stylesheets %}
@@ -155,7 +156,7 @@
 
 
 {% block context %}
-    <a onclick="window.print()"> <span class="glyphicon glyphicon-print"></span> {{ 'action.print' | trans }}</a><br>
-    <a href='{{ path("update_case",{id:fall.getCaseId})}}'> <span class="glyphicon glyphicon-pencil"></span> {{ 'action.update.case' | trans }}</a><br>
-    <a href='{{ path("download_case_word",{id:fall.getCaseId})}}'> <span class="glyphicon glyphicon-download"></span> {{ 'action.download.word.case' | trans }}</a><br>
+    <a onclick="window.print()"> <span class="glyphicon glyphicon-print"></span> {{ 'case.actions.print' | trans }}</a><br>
+    <a href='{{ path("update_case",{id:case.getCaseId})}}'> <span class="glyphicon glyphicon-pencil"></span> {{ 'case.actions.edit' | trans }}</a><br>
+    <a href='{{ path("download_case_word",{id:case.getCaseId})}}'> <span class="glyphicon glyphicon-download"></span> {{ 'case.actions.download_word' | trans }}</a><br>
 {% endblock %}

@@ -59,8 +59,8 @@
             ['barcode', 'b'],
             ['name', 'n'],
             ['note', 'note'],
-            ['description', 'desc'],
-            ['history_description', 'hdesc'],
+            ['usage', 'desc'],
+            ['history_usage', 'hdesc'],
             ['user', 'u'],
             ['history_user', 'hu'],
             ['reserved', 'r'],
@@ -362,12 +362,12 @@
 <form id="eas_form" action="#" class="well">
     <div class="eas-form-segment" data-index="0">
         {# category #}
-        <label class="eas-label" for="eas_category">{{'eas.desc.category'|trans}}:</label>
+        <label class="eas-label" for="eas_category">{{'es.asset.desc.category'|trans}}:</label>
         <div class="btn-group" data-toggle="buttons">
-            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'eas.operator.eq'|trans}}">
+            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'es.operator.eq'|trans}}">
                 <input type="radio" name="category.operator" value=""> =
             </label>
-            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'eas.operator.neq'|trans}}">
+            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'es.operator.neq'|trans}}">
                 <input type="radio" name="category.operator" value="!" > ≠
             </label>
         </div>
@@ -379,18 +379,18 @@
             </select>
         </div>
 
-        {# status #}
-        <label class="eas-label" for="eas_status">{{'eas.desc.status'|trans}}:</label>
+        {# state #}
+        <label class="eas-label" for="eas_state">{{'es.asset.desc.state'|trans}}:</label>
         <div class="btn-group" data-toggle="buttons">
-            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'eas.operator.eq'|trans}}">
-                <input type="radio" name="status.operator" value=""> =
+            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'es.operator.eq'|trans}}">
+                <input type="radio" name="state.operator" value=""> =
             </label>
-            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'eas.operator.neq'|trans}}">
-                <input type="radio" name="status.operator" value="!" > ≠
+            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'es.operator.neq'|trans}}">
+                <input type="radio" name="state.operator" value="!" > ≠
             </label>
         </div>
         <div class="eas-input-cell">
-            <select class="eas-input form-control eas_status" name="status" multiple="multiple" size="6" id="eas_status" style="height: 100%;">
+            <select class="eas-input form-control eas_state" name="state" multiple="multiple" size="6" id="eas_state" style="height: 100%;">
             {% for state in AssetState.cases %}
                     <option value="{{state.value}}">{{ state.toTranslatableString | trans }} </option>
                 {% endfor %}
@@ -398,12 +398,12 @@
         </div>
 
         {# barcode #}
-        <label class="eas-label" for="eas_barcode">{{ 'eas.desc.barcode'| trans }}:</label>
+        <label class="eas-label" for="eas_barcode">{{ 'es.asset.desc.barcode'| trans }}:</label>
         <div class="btn-group" data-toggle="buttons">
-            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'eas.operator.eq'|trans}}">
+            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'es.operator.eq'|trans}}">
                 <input type="radio" name="barcode.operator" value=""> =
             </label>
-            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'eas.operator.neq'|trans}}">
+            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'es.operator.neq'|trans}}">
                 <input type="radio" name="barcode.operator" value="!" > ≠
             </label>
         </div>
@@ -412,12 +412,12 @@
         </div>
 
         {# name #}
-        <label class="eas-label" for="eas_name">{{ 'eas.desc.name'| trans }}:</label>
+        <label class="eas-label" for="eas_name">{{ 'es.asset.desc.name'| trans }}:</label>
         <div class="btn-group" data-toggle="buttons">
-            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'eas.operator.eq'|trans}}">
+            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'es.operator.eq'|trans}}">
                 <input type="radio" name="name.operator" value=""> =
             </label>
-            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'eas.operator.neq'|trans}}">
+            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'es.operator.neq'|trans}}">
                 <input type="radio" name="name.operator" value="!" > ≠
             </label>
         </div>
@@ -425,41 +425,41 @@
             <input class="eas-input form-control" type="text" name="name" id="eas_name"> 
         </div>
         
-        {# description #}
-        <label class="eas-label" for="eas_description">{{ 'eas.desc.description'| trans }}:</label>
+        {# usage #}
+        <label class="eas-label" for="eas_usage">{{ 'es.asset.desc.usage'| trans }}:</label>
         <div class="btn-group" data-toggle="buttons">
-            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'eas.operator.eq'|trans}}">
-                <input type="radio" name="description.operator" value=""> =
+            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'es.operator.eq'|trans}}">
+                <input type="radio" name="usage.operator" value=""> =
             </label>
-            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'eas.operator.neq'|trans}}">
-                <input type="radio" name="description.operator" value="!" > ≠
+            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'es.operator.neq'|trans}}">
+                <input type="radio" name="usage.operator" value="!" > ≠
             </label>
         </div>
         <div class="eas-input-cell">
-            <input class="eas-input form-control" type="text" name="description" id="eas_description"> 
+            <input class="eas-input form-control" type="text" name="usage" id="eas_usage"> 
         </div>
         
-        {# history_description #}
-        <label class="eas-label" for="eas_history_description">{{ 'eas.desc.history_description'| trans }}:</label>
+        {# history_usage #}
+        <label class="eas-label" for="eas_history_usage">{{ 'es.asset.desc.history_usage'| trans }}:</label>
         <div class="btn-group" data-toggle="buttons">
-            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'eas.operator.eq'|trans}}">
-                <input type="radio" name="history_description.operator" value=""> =
+            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'es.operator.eq'|trans}}">
+                <input type="radio" name="history_usage.operator" value=""> =
             </label>
-            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'eas.operator.neq'|trans}}">
-                <input type="radio" name="history_description.operator" value="!" > ≠
+            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'es.operator.neq'|trans}}">
+                <input type="radio" name="history_usage.operator" value="!" > ≠
             </label>
         </div>
         <div class="eas-input-cell">
-            <input class="eas-input form-control" type="text" name="history_description" id="eas_history_description"> 
+            <input class="eas-input form-control" type="text" name="history_usage" id="eas_history_usage"> 
         </div>
                 
         {# user #}
-        <label class="eas-label" for="eas_user">{{ 'eas.desc.user'| trans }}:</label>
+        <label class="eas-label" for="eas_user">{{ 'es.asset.desc.user'| trans }}:</label>
         <div class="btn-group" data-toggle="buttons">
-            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'eas.operator.eq'|trans}}">
+            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'es.operator.eq'|trans}}">
                 <input type="radio" name="user.operator" value=""> =
             </label>
-            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'eas.operator.neq'|trans}}">
+            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'es.operator.neq'|trans}}">
                 <input type="radio" name="user.operator" value="!" > ≠
             </label>
         </div>
@@ -468,12 +468,12 @@
         </div>
         
         {# history_user #}
-        <label class="eas-label" for="eas_history_user">{{ 'eas.desc.history_user'| trans }}:</label>
+        <label class="eas-label" for="eas_history_user">{{ 'es.asset.desc.history_user'| trans }}:</label>
         <div class="btn-group" data-toggle="buttons">
-            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'eas.operator.eq'|trans}}">
+            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'es.operator.eq'|trans}}">
                 <input type="radio" name="history_user.operator" value=""> =
             </label>
-            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'eas.operator.neq'|trans}}">
+            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'es.operator.neq'|trans}}">
                 <input type="radio" name="history_user.operator" value="!" > ≠
             </label>
         </div>
@@ -482,18 +482,18 @@
         </div>
         
         {# reserved #}
-        <label class="eas-label" for="eas_reserved">{{ 'eas.desc.reserved'| trans }}:</label>
+        <label class="eas-label" for="eas_reserved">{{ 'es.asset.desc.reserved'| trans }}:</label>
         <div class="btn-group" data-toggle="buttons">
-            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'eas.operator.eq'|trans}}">
+            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'es.operator.eq'|trans}}">
                 <input type="radio" name="reserved.operator" value=""> =
             </label>
-            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'eas.operator.neq'|trans}}">
+            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'es.operator.neq'|trans}}">
                 <input type="radio" name="reserved.operator" value="!" > ≠
             </label>
-            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'eas.operator.any'|trans}}">
+            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'es.operator.any'|trans}}">
                 <input type="radio" name="reserved.operator" value="*" > ✓
             </label>
-            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'eas.operator.none'|trans}}">
+            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'es.operator.none'|trans}}">
                 <input type="radio" name="reserved.operator" value="-" > ✕
             </label>
         </div>
@@ -502,18 +502,18 @@
         </div>
         
         {# history_reserved #}
-        <label class="eas-label" for="eas_history_reserved">{{ 'eas.desc.history_reserved'| trans }}:</label>
+        <label class="eas-label" for="eas_history_reserved">{{ 'es.asset.desc.history_reserved'| trans }}:</label>
         <div class="btn-group" data-toggle="buttons">
-            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'eas.operator.eq'|trans}}">
+            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'es.operator.eq'|trans}}">
                 <input type="radio" name="history_reserved.operator" value=""> =
             </label>
-            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'eas.operator.neq'|trans}}">
+            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'es.operator.neq'|trans}}">
                 <input type="radio" name="history_reserved.operator" value="!" > ≠
             </label>
-            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'eas.operator.any'|trans}}">
+            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'es.operator.any'|trans}}">
                 <input type="radio" name="history_reserved.operator" value="*" > ✓
             </label>
-            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'eas.operator.none'|trans}}">
+            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'es.operator.none'|trans}}">
                 <input type="radio" name="history_reserved.operator" value="-" > ✕
             </label>
         </div>
@@ -522,18 +522,18 @@
         </div>
         
         {# location #}
-        <label class="eas-label" for="eas_location">{{ 'eas.desc.location'| trans }}:</label>
+        <label class="eas-label" for="eas_location">{{ 'es.asset.desc.location'| trans }}:</label>
         <div class="btn-group" data-toggle="buttons">
-            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'eas.operator.eq'|trans}}">
+            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'es.operator.eq'|trans}}">
                 <input type="radio" name="location.operator" value=""> =
             </label>
-            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'eas.operator.neq'|trans}}">
+            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'es.operator.neq'|trans}}">
                 <input type="radio" name="location.operator" value="!" > ≠
             </label>
-            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'eas.operator.any'|trans}}">
+            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'es.operator.any'|trans}}">
                 <input type="radio" name="location.operator" value="*" > ✓
             </label>
-            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'eas.operator.none'|trans}}">
+            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'es.operator.none'|trans}}">
                 <input type="radio" name="location.operator" value="-" > ✕
             </label>
         </div>
@@ -542,18 +542,18 @@
         </div>
         
         {# history_location #}
-        <label class="eas-label" for="eas_history_location">{{ 'eas.desc.history_location'| trans }}:</label>
+        <label class="eas-label" for="eas_history_location">{{ 'es.asset.desc.history_location'| trans }}:</label>
         <div class="btn-group" data-toggle="buttons">
-            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'eas.operator.eq'|trans}}">
+            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'es.operator.eq'|trans}}">
                 <input type="radio" name="history_location.operator" value=""> =
             </label>
-            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'eas.operator.neq'|trans}}">
+            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'es.operator.neq'|trans}}">
                 <input type="radio" name="history_location.operator" value="!" > ≠
             </label>
-            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'eas.operator.any'|trans}}">
+            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'es.operator.any'|trans}}">
                 <input type="radio" name="history_location.operator" value="*" > ✓
             </label>
-            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'eas.operator.none'|trans}}">
+            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'es.operator.none'|trans}}">
                 <input type="radio" name="history_location.operator" value="-" > ✕
             </label>
         </div>
@@ -562,18 +562,18 @@
         </div>
         
         {# case #}
-        <label class="eas-label" for="eas_case">{{ 'eas.desc.case'| trans }}:</label>
+        <label class="eas-label" for="eas_case">{{ 'es.asset.desc.case'| trans }}:</label>
         <div class="btn-group" data-toggle="buttons">
-            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'eas.operator.eq'|trans}}">
+            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'es.operator.eq'|trans}}">
                 <input type="radio" name="case.operator" value=""> =
             </label>
-            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'eas.operator.neq'|trans}}">
+            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'es.operator.neq'|trans}}">
                 <input type="radio" name="case.operator" value="!" > ≠
             </label>
-            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'eas.operator.any'|trans}}">
+            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'es.operator.any'|trans}}">
                 <input type="radio" name="case.operator" value="*" > ✓
             </label>
-            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'eas.operator.none'|trans}}">
+            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'es.operator.none'|trans}}">
                 <input type="radio" name="case.operator" value="-" > ✕
             </label>
         </div>
@@ -582,18 +582,18 @@
         </div>
         
         {# history_case #}
-        <label class="eas-label" for="eas_history_case">{{ 'eas.desc.history_case'| trans }}:</label>
+        <label class="eas-label" for="eas_history_case">{{ 'es.asset.desc.history_case'| trans }}:</label>
         <div class="btn-group" data-toggle="buttons">
-            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'eas.operator.eq'|trans}}">
+            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'es.operator.eq'|trans}}">
                 <input type="radio" name="history_case.operator" value=""> =
             </label>
-            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'eas.operator.neq'|trans}}">
+            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'es.operator.neq'|trans}}">
                 <input type="radio" name="history_case.operator" value="!" > ≠
             </label>
-            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'eas.operator.any'|trans}}">
+            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'es.operator.any'|trans}}">
                 <input type="radio" name="history_case.operator" value="*" > ✓
             </label>
-            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'eas.operator.none'|trans}}">
+            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'es.operator.none'|trans}}">
                 <input type="radio" name="history_case.operator" value="-" > ✕
             </label>
         </div>
@@ -602,23 +602,23 @@
         </div>
         
         {# caseactive #}
-        <label class="eas-label" style="grid-column: 1 / span 2;">{{ 'eas.desc.caseactive'| trans }}</label>
+        <label class="eas-label" style="grid-column: 1 / span 2;">{{ 'es.asset.desc.caseactive'| trans }}</label>
         <div class="btn-group" data-toggle="buttons">
-            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'eas.operator.yes'|trans}}">
+            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'es.operator.yes'|trans}}">
                 <input type="radio" name="caseactive.operator" value="*" > ✓
             </label>
-            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'eas.operator.no'|trans}}">
+            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'es.operator.no'|trans}}">
                 <input type="radio" name="caseactive.operator" value="-" > ✕
             </label>
         </div>
 
         {# note #}
-        <label class="eas-label" for="eas_note">{{ 'eas.desc.note'| trans }}:</label>
+        <label class="eas-label" for="eas_note">{{ 'es.asset.desc.note'| trans }}:</label>
         <div class="btn-group" data-toggle="buttons">
-            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'eas.operator.eq'|trans}}">
+            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'es.operator.eq'|trans}}">
                 <input type="radio" name="note.operator" value=""> =
             </label>
-            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'eas.operator.neq'|trans}}">
+            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'es.operator.neq'|trans}}">
                 <input type="radio" name="note.operator" value="!" > ≠
             </label>
         </div>
@@ -629,21 +629,21 @@
 
 
         {# date #}
-        <label class="eas-label" for="eas_date">{{ 'eas.desc.date'| trans }}:</label>
+        <label class="eas-label" for="eas_date">{{ 'es.asset.desc.date'| trans }}:</label>
         <div class="btn-group" data-toggle="buttons">
-            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'eas.operator.eq'|trans}}">
+            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'es.operator.eq'|trans}}">
                 <input type="radio" name="date.operator" value=""> =
             </label>
-            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'eas.operator.neq'|trans}}">
+            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'es.operator.neq'|trans}}">
                 <input type="radio" name="date.operator" value="!" > ≠
             </label>
-            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'eas.operator.date.before'|trans}}">
+            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'es.operator.date.before'|trans}}">
                 <input type="radio" name="date.operator" value="<" > &lt;
             </label>
-            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'eas.operator.date.after'|trans}}">
+            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'es.operator.date.after'|trans}}">
                 <input type="radio" name="date.operator" value=">" > &gt;
             </label>
-            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'eas.operator.date.range'|trans}}" style="padding-left: 9px;">
+            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'es.operator.date.range'|trans}}" style="padding-left: 9px;">
                 <input type="radio" name="date.operator" value=">=" id="eas_date_range_operator"> &lt;&gt;
             </label>
         </div>
@@ -653,7 +653,7 @@
    
 
         {# end date #}
-        <label for="eas-date-end" class="eas-label eas-date-end" style="grid-column: 4 / span 2; display: none">{{ 'eas.desc.date_end'| trans }}:</label>
+        <label for="eas-date-end" class="eas-label eas-date-end" style="grid-column: 4 / span 2; display: none">{{ 'es.asset.desc.date_end'| trans }}:</label>
         <div class="eas-input-cell eas-date-end" style="display: none;" >
             <input class="eas-input form-control" type="date" id="eas-date-end" name="end_date"> 
             <input type="text" name="end_date.operator" value="<=" hidden>
@@ -663,22 +663,22 @@
         {# ------------------------------- Drive properties ------------------------------- #}
 
         <div class="eas-divider">
-            {{ 'eas.form.drive_section' | trans }}
+            {{ 'es.asset.drive_section' | trans }}
         </div>
 
         {# type #}
-        <label class="eas-label" for="eas_type">{{ 'eas.desc.type'| trans }}:</label>
+        <label class="eas-label" for="eas_type">{{ 'es.asset.desc.type'| trans }}:</label>
         <div class="btn-group" data-toggle="buttons">
-            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'eas.operator.eq'|trans}}">
+            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'es.operator.eq'|trans}}">
                 <input type="radio" name="type.operator" value=""> =
             </label>
-            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'eas.operator.neq'|trans}}">
+            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'es.operator.neq'|trans}}">
                 <input type="radio" name="type.operator" value="!" > ≠
             </label>
-            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'eas.operator.any'|trans}}">
+            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'es.operator.any'|trans}}">
                 <input type="radio" name="type.operator" value="*" > ✓
             </label>
-            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'eas.operator.none'|trans}}">
+            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'es.operator.none'|trans}}">
                 <input type="radio" name="type.operator" value="-" > ✕
             </label>
         </div>
@@ -687,18 +687,18 @@
         </div>
         
         {# form_factor #}
-        <label class="eas-label" for="eas_form_factor">{{ 'eas.desc.form_factor'| trans }}:</label>
+        <label class="eas-label" for="eas_form_factor">{{ 'es.asset.desc.form_factor'| trans }}:</label>
         <div class="btn-group" data-toggle="buttons">
-            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'eas.operator.eq'|trans}}">
+            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'es.operator.eq'|trans}}">
                 <input type="radio" name="form_factor.operator" value=""> =
             </label>
-            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'eas.operator.neq'|trans}}">
+            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'es.operator.neq'|trans}}">
                 <input type="radio" name="form_factor.operator" value="!" > ≠
             </label>
-            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'eas.operator.any'|trans}}">
+            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'es.operator.any'|trans}}">
                 <input type="radio" name="form_factor.operator" value="*" > ✓
             </label>
-            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'eas.operator.none'|trans}}">
+            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'es.operator.none'|trans}}">
                 <input type="radio" name="form_factor.operator" value="-" > ✕
             </label>
         </div>
@@ -707,24 +707,24 @@
         </div>
         
         {# size #}
-        <label class="eas-label" for="eas_size">{{ 'eas.desc.size'| trans }}:</label>
+        <label class="eas-label" for="eas_size">{{ 'es.asset.desc.size'| trans }}:</label>
         <div class="btn-group" data-toggle="buttons">
-            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'eas.operator.eq'|trans}}">
+            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'es.operator.eq'|trans}}">
                 <input type="radio" name="size.operator" value=""> =
             </label>
-            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'eas.operator.neq'|trans}}">
+            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'es.operator.neq'|trans}}">
                 <input type="radio" name="size.operator" value="!" > ≠
             </label>
-            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'eas.operator.any'|trans}}">
+            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'es.operator.any'|trans}}">
                 <input type="radio" name="size.operator" value="*" > ✓
             </label>
-            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'eas.operator.none'|trans}}">
+            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'es.operator.none'|trans}}">
                 <input type="radio" name="size.operator" value="-" > ✕
             </label>
-            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'eas.operator.lt'|trans}}">
+            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'es.operator.lt'|trans}}">
                 <input type="radio" name="size.operator" value="<" > &lt;
             </label>
-            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'eas.operator.gt'|trans}}">
+            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'es.operator.gt'|trans}}">
                 <input type="radio" name="size.operator" value=">" > &gt;
             </label>
         </div>
@@ -733,18 +733,18 @@
         </div>
         
         {# manufacturer #}
-        <label class="eas-label" for="manufacturer">{{ 'eas.desc.manufacturer'| trans }}:</label>
+        <label class="eas-label" for="manufacturer">{{ 'es.asset.desc.manufacturer'| trans }}:</label>
         <div class="btn-group" data-toggle="buttons">
-            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'eas.operator.eq'|trans}}">
+            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'es.operator.eq'|trans}}">
                 <input type="radio" name="manufacturer.operator" value=""> =
             </label>
-            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'eas.operator.neq'|trans}}">
+            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'es.operator.neq'|trans}}">
                 <input type="radio" name="manufacturer.operator" value="!" > ≠
             </label>
-            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'eas.operator.any'|trans}}">
+            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'es.operator.any'|trans}}">
                 <input type="radio" name="manufacturer.operator" value="*" > ✓
             </label>
-            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'eas.operator.none'|trans}}">
+            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'es.operator.none'|trans}}">
                 <input type="radio" name="manufacturer.operator" value="-" > ✕
             </label>
         </div>
@@ -753,18 +753,18 @@
         </div>
         
         {# model #}
-        <label class="eas-label" for="eas_model">{{ 'eas.desc.model'| trans }}:</label>
+        <label class="eas-label" for="eas_model">{{ 'es.asset.desc.model'| trans }}:</label>
         <div class="btn-group" data-toggle="buttons">
-            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'eas.operator.eq'|trans}}">
+            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'es.operator.eq'|trans}}">
                 <input type="radio" name="model.operator" value=""> =
             </label>
-            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'eas.operator.neq'|trans}}">
+            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'es.operator.neq'|trans}}">
                 <input type="radio" name="model.operator" value="!" > ≠
             </label>
-            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'eas.operator.any'|trans}}">
+            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'es.operator.any'|trans}}">
                 <input type="radio" name="model.operator" value="*" > ✓
             </label>
-            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'eas.operator.none'|trans}}">
+            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'es.operator.none'|trans}}">
                 <input type="radio" name="model.operator" value="-" > ✕
             </label>
         </div>
@@ -773,18 +773,18 @@
         </div>
         
         {# product_number #}
-        <label class="eas-label" for="eas_product_number">{{ 'eas.desc.product_number'| trans }}:</label>
+        <label class="eas-label" for="eas_product_number">{{ 'es.asset.desc.product_number'| trans }}:</label>
         <div class="btn-group" data-toggle="buttons">
-            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'eas.operator.eq'|trans}}">
+            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'es.operator.eq'|trans}}">
                 <input type="radio" name="product_number.operator" value=""> =
             </label>
-            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'eas.operator.neq'|trans}}">
+            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'es.operator.neq'|trans}}">
                 <input type="radio" name="product_number.operator" value="!" > ≠
             </label>
-            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'eas.operator.any'|trans}}">
+            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'es.operator.any'|trans}}">
                 <input type="radio" name="product_number.operator" value="*" > ✓
             </label>
-            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'eas.operator.none'|trans}}">
+            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'es.operator.none'|trans}}">
                 <input type="radio" name="product_number.operator" value="-" > ✕
             </label>
         </div>
@@ -793,18 +793,18 @@
         </div>
 
         {# serial_number #}
-        <label class="eas-label" for="eas_serial_number">{{ 'eas.desc.serial_number'| trans }}:</label>
+        <label class="eas-label" for="eas_serial_number">{{ 'es.asset.desc.serial_number'| trans }}:</label>
         <div class="btn-group" data-toggle="buttons">
-            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'eas.operator.eq'|trans}}">
+            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'es.operator.eq'|trans}}">
                 <input type="radio" name="serial_number.operator" value=""> =
             </label>
-            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'eas.operator.neq'|trans}}">
+            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'es.operator.neq'|trans}}">
                 <input type="radio" name="serial_number.operator" value="!" > ≠
             </label>
-            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'eas.operator.any'|trans}}">
+            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'es.operator.any'|trans}}">
                 <input type="radio" name="serial_number.operator" value="*" > ✓
             </label>
-            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'eas.operator.none'|trans}}">
+            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'es.operator.none'|trans}}">
                 <input type="radio" name="serial_number.operator" value="-" > ✕
             </label>
         </div>
@@ -813,18 +813,18 @@
         </div>
 
         {# connector #}
-        <label class="eas-label" for="eas_connector">{{ 'eas.desc.connector'| trans }}:</label>
+        <label class="eas-label" for="eas_connector">{{ 'es.asset.desc.connector'| trans }}:</label>
         <div class="btn-group" data-toggle="buttons">
-            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'eas.operator.eq'|trans}}">
+            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'es.operator.eq'|trans}}">
                 <input type="radio" name="connector.operator" value=""> =
             </label>
-            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'eas.operator.neq'|trans}}">
+            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'es.operator.neq'|trans}}">
                 <input type="radio" name="connector.operator" value="!" > ≠
             </label>
-            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'eas.operator.any'|trans}}">
+            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'es.operator.any'|trans}}">
                 <input type="radio" name="connector.operator" value="*" > ✓
             </label>
-            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'eas.operator.none'|trans}}">
+            <label class="btn btn-default eas-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'es.operator.none'|trans}}">
                 <input type="radio" name="connector.operator" value="-" > ✕
             </label>
         </div>
@@ -835,8 +835,8 @@
         <input type="submit" hidden />
     </div>
     <div class="eas-footer">
-        <button type="button" class="btn-primary btn" id="eas_add_query">{{ 'eas.form.add_query'| trans }}</button>
-        <button type="submit" class="btn-default btn">{{ 'eas.form.search'| trans }}</button>
-        <button type="button" class="btn-default btn" onclick="$('#eas_form_container').slideToggle(250)" >{{ 'eas.form.hide'| trans }}</button>
+        <button type="button" class="btn-primary btn" id="eas_add_query">{{ 'es.form.add_query'| trans }}</button>
+        <button type="submit" class="btn-default btn">{{ 'es.form.search'| trans }}</button>
+        <button type="button" class="btn-default btn" onclick="$('#eas_form_container').slideToggle(250)" >{{ 'es.form.hide'| trans }}</button>
     </div>
 </form>

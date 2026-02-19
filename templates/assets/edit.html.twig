@@ -25,7 +25,7 @@
 {% block content1 %}
     {# <div class="wrapper">
         <div class="container" > #}
-            <h2>{{ 'asset.edit.page.header' | trans}}</h2>
+            <h2>{{ 'asset.edit.header' | trans({'%asset%': asset.getBarcode })}}</h2>
 
             {{ include('messages.html.twig') }}
         
@@ -46,7 +46,7 @@
             </div>
 
             {%  if asset.isDrive %}
-            <div class="divider">{{ 'entity.drive' | trans}}</div>
+            <div class="divider">{{ 'asset.edit.drive' | trans}}</div>
 
             {# drive form #}
             <div class="row">

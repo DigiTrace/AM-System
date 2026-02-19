@@ -1,73 +1,16 @@
 amsystem: 'Evidence asset management system'
 contextmenu: 'Menu'
 applicationof: 'Application by'
+alertbeforesubmit: 'Do you really want to perform this action? This can not be undone.'
+report_from: 'Report created on {time}'
+yes: 'Yes'
+no: 'No'
 nav:
   home: 'Dashboard'
   cases: 'Cases'
   assets: 'Assets'
-  scan: 'Scan assets'
- 
-eas:
-  desc:
-    category: 'Category'
-    status: 'Status'
-    barcode: 'Barcode'
-    name: 'Name'
-    description: 'Description'
-    history_description: 'Former description'
-    user: 'User'
-    history_user: 'Former user'
-    reserved: 'Reserved'
-    history_reserved: 'Formerly reserved'
-    location: 'Location'
-    history_location: 'Former location'
-    case: 'Case'
-    history_case: 'Former case'
-    caseactive: 'Is assigned case active?'
-    note: 'Note'
-    type: 'Drive type'
-    form_factor: 'Drive form factor'
-    size: 'Drive size'
-    manufacturer: 'Manufacturer'
-    model: 'Model'
-    product_number: 'Product number'
-    serial_number: 'Serial number'
-    connector: 'Connector'
-    date: 'Last updated'
-    date_end: 'Last updated before'
-  error:
-    caseactive:
-      invalid: 'Only bool values are allowed for caseactive'
-    category:
-      invalid: 'Invalid category number: {category}'
-    date:
-      invalid: 'Invalid date: {date}'
-    query:
-      empty: 'Empty query'
-    segment:
-      empty: 'No matching tags in "{segment}"'
-      invalid: 'No valid tags in "{segment}"'
-    tag:
-      unknown: 'Unknown tag: {tag}'
-  form:
-    add_query: 'Add new subquery'
-    drive_section: 'Drive properties'
-    search: 'Search'
-    show: 'Extended search'
-    hide: 'Hide form'
-  operator:
-    any: is set
-    date:
-      before: before
-      after: after
-      range: in range
-    eq: is
-    gt: greater than
-    lt: less than
-    neq: is not
-    no: 'no'
-    none: is not set
-    yes: 'yes'
+  scan: 'Scan asset'
+
   
   
 # general form labels/messages
@@ -80,6 +23,9 @@ form:
   save: &FORM_SAVE 'Save'
   search: &FORM_SEARCH 'Search'
   entries_found: 'entries found'
+  picture:
+    upload: 'Upload picture'
+    is_public: 'Is picture public (can be reused by others)?'
 
 # user translations
 user:
@@ -124,6 +70,7 @@ user:
       incorrect_password: 'Incorrect password.'
       passwords_not_matching: 'Provided new passwords do not match.'
       duplicate: 'Profile could not be updated. New values collide with existing users.'
+
   actions:
     add: 'Add new user'
     show: 'Show user overview'
@@ -203,10 +150,12 @@ asset:
     reserved_by: &ASSET_RESERVED_BY 'Reserved by'
     case: &ASSET_CASE 'Case'
     location: &ASSET_LOCATION 'Location'
+    images: &ASSET_IMAGES 'Images'
+    last_updated_on: &ASSET_LAST_UPDATED_ON 'Last updated on'
+    last_update_performed_on: &ASSET_LAST_UPDATE_PERFORMED_ON 'Last update performed on'
 
   add:
-    page:
-      header: 'Add new Asset'
+    header: 'Add new Asset'
 
     form:
       barcode: *ASSET_BARCODE
@@ -239,15 +188,118 @@ asset:
 
   search:
     header: 'Asset overview'
+    reserved_by: 'Reserved by {user}' 
+
+  scanner:
+    header: 'Asset search via barcode'
+    info: 'After typing the barcode, you will be redirected to the details page.'
+    form: 'Please scan the barcode of the asset with a barcode scanner'
 
   details:
-    page:
-      header: 'Details to'
+    header: 'Details to'
+    summary: 'Summary'
+    case: 'Assigned case'
+    contains_images: 'Saved images of'
+    imaged_on: 'Is imaged on'
+    modified_by: 'Last modified by'
+    addtional_information: 'Additional information'
+    drive_properties: 'Drive properties'
+    stored_assets: 'Stored assets'
+    no_stored_assets: 'No stored assets'
+    image_locations: 'Current image locations'
+    no_image_locations: 'No images created'
+    saved_images: 'Saved images of'
+    no_saved_images: 'No saved images'
+    history: 'Asset history'
+    no_history: 'No asset history yet'
 
-  
+  edit:
+    header: 'Edit asset {asset}'
+    drive: 'Drive properties'
+    form:
+      name: *ASSET_NAME
+      usage: *ASSET_USAGE
+      note: *ASSET_NOTE
+      save: 'Apply changes'
+    no_changes_made: 'No changes made'
+    success: 'Asset succesfully edited'
+    info: 'The change of the asset will be logged in the history. The last actions date of execution will be used due to technical reasons. If the asset is involved in a case or something similar, the current status will not be altered.'
+
+
+  action:
+    header: 'Modify asset'
+    transition: 'Change asset state'
+    success: 'Asset succesfully modified'
+
+    form: 
+      usage:
+        optional: 'New usage of asset (optional)'
+        required: 'New usage of asset (required)'
+      due_date: 'Change due'
+      save: 'Change asset'
+
+    neutralize:
+      not_hdd: 'Asset is not a HDD'
+      already_neutralized: 'Asset is already neutralized'
+      success: 'Asset succesfully neutralized'
+      info: 'During this action, the asset will be zeroed, pulled out of a container and removed from case. Only required actions will be used.'
+
+    destroy:
+      warning: 'When an asset has been declared as destroyed or lost, it cant be altered afterwards.'
+
+    handover:
+      info: 'Please state, which person or authority recieved the asset'
+
+    lost:
+      info: "This isn't suppose to happen, we are professionals!"
+      warning: 
+
+    remove_container:
+      info: 'Please state, why you want to pull the asset out of the container'
+
+    unassing_case:
+      info: 'Please state, why you want to remove the asset of the Case'
+
+    add_image:
+      save_image_prepare: 'Choose image source'
+      not_applicable: 'Add image action is not applicable'
+      success: 'Succesfully added an image to a drive'
+
+  upload_pic:
+    header: 'Assign picture to asset {asset}'
+    no_public_pictures: 'No public pictures available'
+    usage_public: 'Added public picture'
+    usage_private: 'Added private picture'
+    usage_selected: 'Selected public picture'
+    success: 'Picture succesfully uploaded'
+    info: 'Choose a picture or upload ones. Please consider while uploading a picture, that the maximum size of the picture has to be 10MB. Also the format has to be JPEG.'
+    error:
+      quality: 'Image quality is too high'
+      not_saved: 'Unknown error, picture could not be saved.'
+
+  error:
+    not_found: 'Asset not found'
+
   actions:
     add: 'Add new asset'
     faq: 'Extended asset search FAQ'
+    print: 'Print details'
+    zero: 'Zero asset'
+    neutralize: 'Neutralize asset'
+    add_image: 'Create drive image'
+    destroy: 'Destroy asset'
+    handover: 'Handover asset to person'
+    lost: 'Mark asset as lost'
+    used: 'Mark asset as in use'
+    reserve: 'Reserve asset'
+    unreserve: 'Revoke reservation'
+    store: 'Store asset in container'
+    move: 'Move asset to different container'
+    remove_container: 'Remove asset form container'
+    assign_case: 'Assign asset to case'
+    unassign_case: 'Unassign asset from case'
+    edit: 'Edit asset propeties'
+    upload_picture: 'Upload picture'
 
 drive:
   attr:
@@ -299,9 +351,20 @@ case:
   search:
     header: 'Case overview'
 
+  details:
+    header: 'Details of case {case}'
+    summary: 'Summary'
+    active: 'Case active'
+    opened_on: 'Case open since'
+    associated_assets: 'Associated assets'
+    former_associated_assets: 'Former associated assets'
+
   actions:
     add: 'Add new case'
     faq: 'Extended case search FAQ'
+    print: 'Print details'
+    edit: 'Edit case'
+    download_word: 'Download as word document'
 
 dashboard:
   header: 'Dashboard'
@@ -309,5 +372,69 @@ dashboard:
   reserved_assets: 'Reserved assets'
 
 
+es:
+  asset:
+    desc:
+      barcode: *ASSET_BARCODE
+      category: *ASSET_CATEGORY
+      state: *ASSET_STATE
+      name: *ASSET_NAME
+      usage: *ASSET_USAGE
+      history_usage: 'Former usage'
+      user: 'User'
+      history_user: 'Former user'
+      reserved: 'Reserved'
+      history_reserved: 'Formerly reserved'
+      location: 'Location'
+      history_location: 'Former location'
+      case: 'Case'
+      history_case: 'Former case'
+      caseactive: 'Is assigned case active?'
+      note: 'Note'
+      type: 'Drive type'
+      form_factor: 'Drive form factor'
+      size: 'Drive size'
+      manufacturer: 'Manufacturer'
+      model: 'Model'
+      product_number: 'Product number'
+      serial_number: 'Serial number'
+      connector: 'Connector'
+      date: 'Last updated'
+      date_end: 'Last updated before'
+    error:
+      caseactive:
+        invalid: 'Only bool values are allowed for caseactive'
+      category:
+        invalid: 'Invalid category number: {category}'
+      date:
+        invalid: 'Invalid date: {date}'
+      query:
+        empty: 'Empty query'
+      segment:
+        empty: 'No matching tags in "{segment}"'
+        invalid: 'No valid tags in "{segment}"'
+      tag:
+        unknown: 'Unknown tag: {tag}'
+    drive_section: 'Drive properties'
+
+  form:
+    add_query: 'Add new subquery'
+    search: 'Search'
+    show: 'Extended search'
+    hide: 'Hide form'
+
+  operator:
+    any: is set
+    date:
+      before: before
+      after: after
+      range: in range
+    eq: is
+    gt: greater than
+    lt: less than
+    neq: is not
+    no: 'no'
+    none: is not set
+    yes: 'yes'
 
 not_implemented_yet: 'Not implemented yet: {function}'

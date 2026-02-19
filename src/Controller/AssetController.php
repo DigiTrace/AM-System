@@ -89,7 +89,7 @@ class AssetController extends BaseController
             $search = $formData['search'];
 
             // allowed values for table sizes
-            $limit = match (intval($formData['limit'])) {
+            $limit = match (\intval($formData['limit'])) {
                 default => 25,
                 50 => 50,
                 100 => 100,
@@ -102,6 +102,7 @@ class AssetController extends BaseController
 
         // no search term provided, default query for listing all objects
         $search ??= $request->get('suche');
+        $search ??= $request->get('search');
 
         // apply extended asset search to create query
         if ($search) {
@@ -188,18 +189,18 @@ class AssetController extends BaseController
     #[Route(data: '/objekte-scanner', name: 'scan_assets')]
     public function assetScanner(Request $request)
     {
-        $searchidform = $this->createFormBuilder()
+        $form = $this->createFormBuilder()
             ->add('search', TextType::class, [
                 'required' => false,
-                'label' => 'scan_object_with_scanner',
+                'label' => 'asset.scanner.form',
                 'attr' => ['autofocus' => true],
             ])
             ->getForm();
 
-        $searchidform->handleRequest($request);
+        $form->handleRequest($request);
 
-        if ($searchidform->isSubmitted() && $searchidform->isValid()) {
-            $searchword = trim($searchidform->getData()['search']);
+        if ($form->isSubmitted() && $form->isValid()) {
+            $searchword = trim($form->getData()['search']);
             if (!empty($searchword)) {
                 $asset = $this->entityManager->getRepository(Asset::class)->find($searchword);
 
@@ -207,12 +208,12 @@ class AssetController extends BaseController
                     return $this->redirectToRoute('details_asset', ['id' => $asset->getBarcode()]);
                 }
 
-                $this->addFlash('danger', 'object_was_not_found');
+                $this->addFlash('danger', 'asset.error.not_found');
             }
         }
 
         return $this->render('assets/scanner.html.twig', [
-            'suche' => $searchidform->createView(),
+            'form' => $form->createView(),
         ]);
     }
 
@@ -293,7 +294,7 @@ class AssetController extends BaseController
 
         // check if object was found
         if (null == $asset) {
-            $this->addFlash('danger', 'object_was_not_found');
+            $this->addFlash('danger', 'asset.error.not_found');
 
             return $this->redirectToRoute('search_assets');
         }
@@ -316,7 +317,7 @@ class AssetController extends BaseController
 
         // check if asset was found
         if (null == $asset) {
-            $this->addFlash('danger', 'object_was_not_found');
+            $this->addFlash('danger', 'asset.error.not_found');
 
             return $this->redirectToRoute('search_assets');
         }
@@ -344,7 +345,7 @@ class AssetController extends BaseController
             
             // changes are detected, refresh entities, reapply changes and commit
             if (empty($drive_changes) && empty($asset_changes)) {
-                $this->addFlash('info', 'asset.action.edit.no_changes_made');
+                $this->addFlash('info', 'asset.edit.no_changes_made');
             }
             else {       
                 $propertyAccesor = PropertyAccess::createPropertyAccessor();
@@ -369,7 +370,7 @@ class AssetController extends BaseController
                 $this->entityManager->persist($history);
 
                 $this->entityManager->flush();
-                $this->addFlash('success', 'asset.action.edit.success');
+                $this->addFlash('success', 'asset.edit.success');
                 
                 return $this->redirectToRoute('details_asset', ['id' => $asset->getBarcode()]);        
             }
@@ -377,7 +378,7 @@ class AssetController extends BaseController
             foreach ($form->getErrors() as $error) {
                 $this->addFlash('danger', $error->getMessage());
             }
-            $this->addFlash('info', 'action.description.edit.object');
+            $this->addFlash('info', 'asset.edit.info');
         }
 
         return $this->render('assets/edit.html.twig', [
@@ -397,7 +398,7 @@ class AssetController extends BaseController
 
         // check if asset was found
         if (null == $asset) {
-            $this->addFlash('danger', 'object_was_not_found');
+            $this->addFlash('danger', 'asset.error.not_found');
 
             return $this->redirectToRoute('search_assets');
         }
@@ -467,7 +468,7 @@ class AssetController extends BaseController
             foreach ($form->getErrors() as $error) {
                 $this->addFlash('danger', $error->getMessage());
             }
-            $this->addFlash('info', 'action.description.neutralize.object');
+            $this->addFlash('info', 'asset.action.neutralize.info');
         }
 
         return $this->render('assets/action.html.twig', [
@@ -511,7 +512,7 @@ class AssetController extends BaseController
                 'usage_required' => true,
             ],
             'messages' => [
-                ['warning', 'asset.action.destroy.asset_unusable'],
+                ['warning', 'asset.action.destroy.warning'],
             ],
         ];
 
@@ -531,8 +532,8 @@ class AssetController extends BaseController
                 'confirm' => false,
                 'usage_required' => true,
             ],
-            'messages' => [ // TODO rename
-                ['warning', 'action.description.delivery.object'],
+            'messages' => [
+                ['info', 'asset.action.handover.info'],
             ],
         ];
 
@@ -571,9 +572,9 @@ class AssetController extends BaseController
                 'confirm' => true,
                 'usage_required' => false,
             ],
-            'messages' => [ // TODO rename
-                ['info', 'action.description.delivery.object'],
-                ['warning', 'asset.action.destroy.asset_unusable'],
+            'messages' => [ 
+                ['info', 'asset.action.lost.info'],
+                ['warning', 'asset.action.lost.warning'],
             ],
         ];
 
@@ -622,8 +623,8 @@ class AssetController extends BaseController
                 'usage_required' => true,
             ],
             'beforePersist' => fn (Asset $asset) => $asset->setLocation(null),
-            'messages' => [ // TODO rename
-                ['info', 'action.description.pull.out.object'],
+            'messages' => [ 
+                ['info', 'action.remove_container.info'],
             ],
         ];
 
@@ -672,8 +673,8 @@ class AssetController extends BaseController
                 'usage_required' => true,
             ],
             'beforePersist' => fn (Asset $asset) => $asset->setCase(null),
-            'messages' => [ // TODO rename
-                ['info', 'action.description.remove.from.case.object'],
+            'messages' => [
+                ['info', 'asset.action.unassing_case.info'],
             ],
         ];
 
@@ -729,13 +730,13 @@ class AssetController extends BaseController
         $asset = $repo->find($id);
 
         if (null == $asset) {
-            $this->addFlash('danger', 'object_was_not_found');
+            $this->addFlash('danger', 'asset.error.not_found');
 
             return $this->redirectToRoute('search_assets');
         }
 
         if (!$asset->isHddImageSource() && !$asset->isHddImageTarget()) {
-            $this->addFlash('danger', 'asset.action.set_image.not_applicable');
+            $this->addFlash('danger', 'asset.action.add_image.not_applicable');
 
             return $this->redirectToRoute('details_asset', ['id' => $id]);
         }
@@ -809,7 +810,7 @@ class AssetController extends BaseController
             $this->entityManager->persist($history);
 
             $this->entityManager->flush();
-            $this->addFlash('success', 'asset.action.success');
+            $this->addFlash('success', 'asset.action.add_image.success');
 
             return $this->redirectToRoute('details_asset', ['id' => $source->getBarcode()]);
         } else {
@@ -825,7 +826,7 @@ class AssetController extends BaseController
                 'form' => $options,
                 'api_url' => $api_url,
             ],
-            'cur_state' => $isSource ? $source->getState() : 'asset.action.save_image_prepare',
+            'cur_state' => $isSource ? $source->getState() : 'asset.action.add_image.save_image_prepare',
             'new_state' => State::SavedImage,
             'form' => $form->createView(),
         ]);
@@ -846,7 +847,7 @@ class AssetController extends BaseController
         }
 
         if (null == $asset) {
-            $this->addFlash('danger', 'object_was_not_found');
+            $this->addFlash('danger', 'asset.error.not_found');
 
             return $this->redirectToRoute('search_assets');
         }
@@ -864,7 +865,6 @@ class AssetController extends BaseController
                 $this->addFlash('danger', $error->getMessage());
             }
 
-            // TODO fix translation
             return $this->redirectToRoute('details_asset', ['id' => $asset->getBarcode()]);
         }
 
@@ -927,7 +927,7 @@ class AssetController extends BaseController
         $asset = $this->entityManager->getRepository(Asset::class)->find($id);
 
         if (null == $asset) {
-            $this->addFlash('danger', 'object_was_not_found');
+            $this->addFlash('danger', 'asset.error.not_found');
 
             return $this->redirectToRoute('search_assets');
         }
@@ -972,10 +972,9 @@ class AssetController extends BaseController
                 } while (filesize($tempfilename) > (3 * 1024 * 1024) && 10 != $quality); // Imagesize should be under 3MB
 
                 if (10 == $quality) {
-                    $this->addFlash('danger', 'error.image.cant.be.saved');
+                    $this->addFlash('danger', 'asset.upload_pic.error.quality');
 
                     return $this->render('default/upload_picture.html.twig', [
-                        'header' => 'asset.action.upload_picture.header',
                         'asset' => $asset,
                         'form' => $form->createView(),
                     ]);
@@ -987,10 +986,10 @@ class AssetController extends BaseController
                     $filename = md5(uniqid()).'.'.$picture->guessExtension();
                     $picture->move($this->getParameter('pic_directory'), $filename);
                     $asset->setPicturePath($filename);
-                    $asset->setUsage($this->translator->trans('asset.usage.uploaded_public_picture'));
+                    $asset->setUsage($this->translator->trans('asset.upload_pic.usage_public'));
                 } else {
                     $asset->setPicture($picture);
-                    $asset->setUsage($this->translator->trans('asset.usage.uploaded_private_picture'));
+                    $asset->setUsage($this->translator->trans('asset.upload_pic.usage_private'));
                 }
 
                 // clear remaining picture in temp folder
@@ -999,12 +998,11 @@ class AssetController extends BaseController
                 }
             } elseif (!empty($data['select_public'])) {
                 $asset->setPicturePath($data['select_public']->getRelativePathname());
-                $asset->setUsage($this->translator->trans('asset.usage.selected_public_picture'));
+                $asset->setUsage($this->translator->trans('asset.upload_pic.usage_selcted'));
             } else {
-                $this->addFlash('danger', 'error.image.cant.be.saved');
+                $this->addFlash('danger', 'asset.upload_pic.error.not_saved');
 
                 return $this->render('default/upload_picture.html.twig', [
-                    'header' => 'asset.action.upload_picture.header',
                     'asset' => $asset,
                     'form' => $form->createView(),
                 ]);
@@ -1014,7 +1012,7 @@ class AssetController extends BaseController
             $this->entityManager->persist($asset);
             $this->entityManager->flush();
 
-            $this->addFlash('success', 'asset.action.upload_picture.success');
+            $this->addFlash('success', 'asset.upload_pic.success');
 
             return $this->redirectToRoute('details_asset', ['id' => $asset->getBarcode()]);
         } else {
@@ -1024,10 +1022,9 @@ class AssetController extends BaseController
             }
         }
 
-        $this->addFlash('info', 'action.upload.pic');
+        $this->addFlash('info', 'asset.upload_pic.info');
 
         return $this->render('default/upload_picture.html.twig', [
-            'header' => 'asset.action.upload_picture.header',
             'asset' => $asset,
             'form' => $form->createView(),
         ]);

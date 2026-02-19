@@ -40,13 +40,13 @@ class SimpleAssetSearchType extends AbstractType
 
         // invisible submit
         $builder->add('submit', Field\SubmitType::class, [
-            'label' => 'eas.form.search',
+            'label' => 'es.form.search',
             'attr' => ['style' => 'display: none']
         ]);
 
         // optional extended search form toggle button
         $builder->add('eas', Field\ButtonType::class, [
-            'label' => 'eas.form.show',
+            'label' => 'es.form.show',
             'attr' => [
                 'type' => 'button',
                 'onclick' => "$('#eas_form_container').slideToggle(250)",

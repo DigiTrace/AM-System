@@ -20,27 +20,26 @@
 #}
 
 {% extends 'base.html.twig' %}
-{% form_theme suche 'bootstrap_3_layout.html.twig' %} 
+{% form_theme form 'bootstrap_3_layout.html.twig' %} 
 {% block content2 %}
-    {# <div class="wrapper">
-         <div class="container" > #}
-             <h2>{{ 'object_search_via_barcode' | trans}}</h2>
-                    
-            {{ form_start(suche) }}
-            {{ form_widget(suche) }}
-            {{ form_end(suche) }}
+    
+    <h2>{{ 'asset.scanner.header' | trans}}</h2>
         
-             <div class="alert alert-info">
-                 <strong>Info!</strong> {% trans %}object_search_via_barcode_info{% endtrans %} 
-             </div>
+        {{ form_start(form) }}
+        {{ form_widget(form) }}
+        {{ form_end(form) }}
+
+    <div class="alert alert-info">
+        <strong>Info!</strong> {{ 'asset.scanner.info' }}
+    </div>
               
                 
  <script>
-     document.getElementById("form_suchwort").value = "";
+     document.getElementById("form_search").value = "";
      function barcodesubmit(){
          max = 9;
          //anz = document.find.barcodefeld.value.length;
-         anz = document.getElementById("form_suchwort").value.length;
+         anz = document.getElementById("form_search").value.length;
          if(anz >= max)
              document.form.submit();
      }

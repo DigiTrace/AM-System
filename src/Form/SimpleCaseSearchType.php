@@ -41,7 +41,7 @@ class SimpleCaseSearchType extends AbstractType
 
         // invisible submit
         $builder->add('submit', Field\SubmitType::class, [
-            'label' => 'form.search',
+            'label' => 'es.form.search',
             'attr' => ['style' => 'display: none']
         ]);
     }

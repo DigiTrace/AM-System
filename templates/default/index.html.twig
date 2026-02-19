@@ -84,7 +84,7 @@
                             <a href='{{ path('details_asset', {'id': asset.getBarcode}) }}'>{{ asset.getName }}<a/>
                         </td>
                         <td>
-                            <a href='{{ path("unreserve_asset", {'id': asset.getBarcode })}}' data-toggle="tooltip" data-placement="top" title="{{ 'asset.action.unbind_reserved'|trans }}">
+                            <a href='{{ path("unreserve_asset", {'id': asset.getBarcode })}}' data-toggle="tooltip" data-placement="top" title="{{ 'asset.actions.unreserve' | trans }}">
                                 <span class="glyphicon glyphicon-remove"></span>
                             </a>
                         </td>
@@ -98,7 +98,7 @@
 
 {% block context %}
     <a href='{{ path('NutzerPasswordAenderung') }}'>{{ 'user.actions.change_password'|trans }}</a><br>
-    <a href='{{ path('Nutzerprofil') }}'>{{ 'user.actions.show_profile'|trans }}</a><br>
+    <a href='{{ path('Nutzerprofil') }}'>{{ 'user.actions.profile'|trans }}</a><br>
     <a href='{{ path('NutzerAenderung') }}'>{{ 'user.actions.edit_profile'|trans }}</a><br>
     {% if is_granted('ROLE_ADMIN') %}
              <a href='{{ path('Nutzerhinzufuegen') }}'>{{ 'user.actions.add'|trans }} </a><br>

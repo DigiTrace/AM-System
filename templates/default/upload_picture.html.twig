@@ -53,7 +53,7 @@
 {% block content1 %}
     {# <div class="wrapper">
         <div class="container" > #}
-           <h2>{{ header | trans }}</h2>
+           <h2>{{ 'asset.upload_pic.header' | trans({'%asset%' : asset}) }}</h2>
            
             {{ include('messages.html.twig') }}
            
@@ -81,7 +81,7 @@
                 </div>
                 {%  else %}
                     <div class="alert alert-info" role="alert">
-                        {{ 'form.picture.no_public_pictures' | trans }}
+                        {{ 'asset.upload_pic.no_public_pictures' | trans }}
                     </div>
                 {% endfor %}
 

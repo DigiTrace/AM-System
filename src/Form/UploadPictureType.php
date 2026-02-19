@@ -41,7 +41,7 @@ class UploadPictureType extends AbstractType
                 ],
             ])
             ->add('is_public', Field\CheckboxType::class, [
-                'label' => 'form.upload.is_public',
+                'label' => 'form.picture.is_public',
                 'required' => false,
             ])
             ->add('select_public', Field\ChoiceType::class, [
@@ -56,7 +56,7 @@ class UploadPictureType extends AbstractType
                 },
             ])
             ->add('save', Field\SubmitType::class, [
-                'label' => 'form.picture.save',
+                'label' => 'form.apply',
             ])
         ;
     }

@@ -24,7 +24,7 @@
 {% block content1 %}
  
     {# Caption #}
-    <h2>{{ 'asset.details.page.header' | trans }} {{ asset.getCategory | trans }}: {{ id }} </h2>
+    <h2>{{ 'asset.details.header' | trans }} {{ asset.getCategory | trans }}: {{ id }} </h2>
     {# Alert messages / flashes #}
     {{ include('messages.html.twig') }}
     
@@ -47,13 +47,13 @@
             <div class="col-sm-7 col-xs-12" id="currentstatus" >
                 <div class="panel panel-default">
                     <div class="panel-heading">
-                        {{ 'currentstatus' | trans }}:
+                        {{ 'asset.details.summary' | trans }}:
                     </div>
                     <div class="panel-body">
                         <div class="row">
                             <div class="col-xs-12">
                                 <dl>
-                                   <dt>{{ 'desc.name' | trans }}</dt>
+                                   <dt>{{ 'asset.attr.name' | trans }}</dt>
                                     <dd id="name">{{ asset.getName }}</dd>
                                 </dl>
 
@@ -62,13 +62,13 @@
                         <div class="row">
                             <div class="col-xs-4">
                                 <dl>
-                                   <dt>{{ 'desc.category' | trans }}</dt>
+                                   <dt>{{ 'asset.attr.category' | trans }}</dt>
                                    <dd id="category">{{ asset.getCategory | trans  }}</dd>
                                 </dl>
                             </div>
                             <div class="col-xs-7">
                                 <dl>
-                                   <dt>{{ 'desc.container' | trans }}</dt>
+                                   <dt>{{ 'asset.attr.location' | trans }}</dt>
                                    <dd id="location">
                                     {% if asset.getLocation == null %}
                                         /
@@ -82,7 +82,7 @@
                         <div class="row">
                             <div class="col-xs-4">
                                 <dl>
-                                   <dt>{{ 'desc.reserved' | trans }}</dt>
+                                   <dt>{{ 'asset.attr.reserved_by' | trans }}</dt>
                                    <dd id="reserved">
                                     {% if asset.getReservedBy == null %}
                                         /
@@ -94,31 +94,20 @@
                             </div>
                             <div class="col-xs-6">
                                 <dl>
-                                   <dt>{{ 'desc.case' | trans }}</dt>
+                                   <dt>{{ 'asset.details.case' | trans }}</dt>
                                    <dd id="case"> 
                                     {% if asset.getCase == null %}
                                         /
                                     {% else %}
-
-                                       <a href="{{ path('detail_case', {'id': asset.getCase.getCaseId }) }}">
-                                            {{ asset.getCase.getCaseId }} | {{ asset.getCase.getDescription | slice(0,60) }}... 
+                                        {% set case = asset.getCase %}
+                                       <a href="{{ path('detail_case', {'id': case.getCaseId }) }}">
+                                            {{ case.getCaseId }} | {{ case.getDescription | slice(0,60) }}... 
                                        </a>
                                        
-                                       {% if asset.getCase.getSecrecy != ""%}
-                                           <br> <span 
-                                            {% if asset.getCase.getSecrecy == "DOS_PUBLIC"%}
-                                                class="label label-success"
-                                            {% elseif asset.getCase.getSecrecy == "DOS_INTERNAL"%}
-                                                class="label label-primary"
-                                            {% elseif asset.getCase.getSecrecy == "DOS_CONFIDENTIAL"%}
-                                                class="label label-warning"
-                                            {% elseif asset.getCase.getSecrecy == "DOS_SECRET"%}
-                                                class="label label-danger"
-                                           {% endif %}
-                                           >
-                                            {{ asset.getCase.getSecrecy | trans}}   
-                                           </span>
-                                       {% endif %}
+                                        <br> 
+                                        <span class="label label-{{ case.getSecrecy.bootstrapColor }}">
+                                        {{ case.getSecrecy | trans}}
+                                        </span>
                                     {% endif %}
                                    </dd>
                                 </dl>
@@ -128,7 +117,7 @@
                             {% if asset.isHddImageTarget %}
                             <div class="col-xs-4">
                                 <dl>
-                                   <dt>{{ 'desc.imaged' | trans }}</dt>
+                                   <dt>{{ 'asset.details.contains_images' | trans }}</dt>
                                    <dd id="images">
                                        {% if asset.getImages.isEmpty %}
                                            /
@@ -144,7 +133,7 @@
                             {% if asset.isHddImageSource %}
                             <div class="col-xs-4">
                                 <dl>
-                                   <dt>{{ 'desc.imaged.by' | trans }}</dt>
+                                   <dt>{{ 'asset.details.imaged_on' | trans }}</dt>
                                    <dd id="image_locations">
                                        {% if asset.getHDDs.isEmpty %}
                                            /
@@ -159,7 +148,7 @@
                             {% endif %}
                             <div class="col-xs-6">
                                 <dl>
-                                   <dt>{{ 'desc.luser' | trans }}</dt>
+                                   <dt>{{ 'asset.details.modified_by' | trans }}</dt>
                                    <dd id="last_action_user"> 
                                         {{ asset.getModifiedBy.getFullname }}
                                    </dd>
@@ -172,7 +161,7 @@
                         <div class="row">
                              <div class="col-xs-12">
                                 <dl>
-                                   <dt>{{ 'desc.last.action.done.registered' | trans }}</dt>
+                                   <dt>{{ 'asset.attr.last_update_performed_on' | trans }}</dt>
                                    <dd id="last_action_timestamp">
                                         {{ asset.getLastUpdatePerformedOn|date('d.m.y H:i')}} / {{ asset.getLastUpdatedOn|date('d.m.y H:i')}}
                                    </dd>
@@ -182,7 +171,7 @@
                         <div class="row">
                             <div class="col-sm-12">
                                  <dl>
-                                   <dt>{{ 'desc.status' | trans }}</dt>
+                                   <dt>{{ 'asset.attr.state' | trans }}</dt>
                                    <dd id="state">{{ asset.getState | trans }}</dd>
                                 </dl>
 
@@ -191,7 +180,7 @@
                         <div class="row">
                             <div class="col-sm-6">
                                 <dl>
-                                    <dt>{{ 'desc.usage' | trans }}</dt>
+                                    <dt>{{ 'asset.attr.usage' | trans }}</dt>
                                     <dd id="description"> 
                                         {% if asset.getUsage == null %}
                                           /
@@ -203,7 +192,7 @@
                             </div>
                             <div class="col-sm-6">
                                 <dl>
-                                    <dt>{{ 'desc.additional.usage' | trans }}</dt>
+                                    <dt>{{ 'asset.attr.note' | trans }}</dt>
                                     <dd id="note"> 
                                         {% if asset.getNote == null %}
                                           /
@@ -223,7 +212,7 @@
         {# Additional information #}              
         <div class="panel panel-default">
             <div class="panel-heading">
-                {{ 'additional.information' | trans }}:
+                {{ 'asset.details.addtional_information' | trans }}:
                 <a href="#additionalinformation" data-toggle="collapse" class="btn btn-xs pull-right hidden-print">
                     <span class="glyphicon glyphicon-menu-hamburger "></span>
                 </a>
@@ -232,62 +221,63 @@
             <div id="additionalinformation" class="panel-collapse collapse " >
 
                <div class="panel-body">
-                {% set drive = asset.getDrive %}
-                {% if drive != null %}
+                {# Drive properties #}
+                {% if asset.getDrive %}
+                    {% set drive = asset.getDrive %}
                     <div class="panel panel-default" id="hdd_info">
                         <div class="panel-heading">
-                            {{ 'hddinfos' | trans }}:
+                            {{ 'asset.details.drive_properties' | trans }}:
                         </div>
                         <div class="panel-body" id="hddinfo">
                             <div class="row" >
                                 <div class="col-sm-3 col-xs-6">
                                     <dl>
-                                       <dt>{{ 'desc.type' | trans }}</dt>
-                                       <dd id="drive_type">{{ drive.getType}}</dd>
+                                       <dt>{{ 'drive.attr.type' | trans }}</dt>
+                                       <dd id="drive_type">{{ drive.getType ?? ' - '}}</dd>
                                     </dl>
                                 </div>
                                 <div class="col-sm-3 col-xs-6">
                                     <dl>
-                                       <dt>{{ 'desc.formfactor' | trans }}</dt>
-                                       <dd id="form_factor">{{ drive.getFormFactor }}</dd>
+                                       <dt>{{ 'drive.attr.form_factor' | trans }}</dt>
+                                       <dd id="form_factor">{{ drive.getFormFactor ?? ' - '}}</dd>
                                     </dl>
                                 </div>
                                 <div class="col-sm-3 col-xs-6">
                                     <dl>
-                                       <dt>{{ 'desc.size' | trans }}</dt>
-                                       <dd id="size">{{ drive.getSize }}{% if drive.getSize %}{{ 'desc.size.postfix' | trans }}{% endif %}</dd> 
+                                       <dt>{{ 'drive.attr.size' | trans }}</dt>
+                                       <dd id="size">{{ drive.getSize ?? ' - ' }}{% if drive.getSize %}GB{% endif %}</dd> 
                                     </dl>
                                 </div>
                                 <div class="col-sm-3 col-xs-6">
                                     <dl>
-                                       <dt>{{ 'desc.producer' | trans }}</dt>
-                                       <dd id="producer">{{ drive.getManufacturer}}</dd>
+                                       <dt>{{ 'drive.attr.manufacturer' | trans }}</dt>
+                                       <dd id="producer">{{ drive.getManufacturer ?? ' - '}}</dd>
                                     </dl>
                                 </div>
                             </div>
                             <div class="row">
                                 <div class="col-sm-3 col-xs-6">
                                     <dl>
-                                       <dt>{{ 'desc.modell' | trans }}</dt>
-                                       <dd id="modell">{{ drive.getModel}}</dd>
+                                       <dt>{{ 'drive.attr.model' | trans }}</dt>
+                                       <dd id="modell">{{ drive.getModel ?? ' - '}}</dd>
                                     </dl>
                                 </div>
                                 <div class="col-sm-3 col-xs-6">
                                     <dl>
-                                       <dt>{{ 'desc.sn' | trans }}</dt>
-                                       <dd id="sn">{{ drive.getSerialNumber}}</dd>
+                                       <dt>{{ 'drive.attr.serial_number' | trans }}</dt>
+                                       <dd id="sn">{{ drive.getSerialNumber ?? ' - '}}</dd>
                                     </dl>
                                 </div>
                                 <div class="col-sm-3 col-xs-6">
                                     <dl>
-                                       <dt>{{ 'desc.pn' | trans }}</dt>
-                                       <dd id="pn">{{ drive.getProductNumber}}</dd>
+                                       <dt>{{ 'drive.attr.product_number' | trans }}</dt>
+                                       <dd id="pn">{{ drive.getProductNumber ?? ' - '}}</dd>
                                     </dl>
                                 </div>
                                 <div class="col-sm-3 col-xs-6">
                                     <dl>
-                                       <dt>{{ 'desc.connection' | trans }}</dt>
-                                       <dd id="connection">{{ drive.getConnector}}</dd>
+                                       <dt>{{ 'drive.attr.connector' | trans }}</dt>
+                                       <dd id="connection">{{ drive.getConnector ?? ' - '}}</dd>
                                     </dl>
                                 </div>
                             </div>         
@@ -299,29 +289,29 @@
                 {% if (asset.isStorage)%}
                     <div class="panel panel-default" id="container_info">
                         <div class="panel-heading">
-                            {{ 'currentinventory' | trans }}:
+                            {{ 'asset.details.stored_assets' | trans }}:
                         </div>
                     
                     {% if asset.getStorage.isEmpty %}
                         <div class="panel-body">
-                                {{ 'message.no.objects.in.container' | trans }}
+                                {{ 'asset.details.no_stored_assets' | trans }}
                         </div>
                     {% else %}
                         <table class="table">
                             <thead>
                                 <tr>
-                                    <th>{{ 'case_id' | trans }}</th>
-                                    <th>{{ 'desc.oid' | trans }}</th>
-                                    <th>{{ 'desc.name' | trans }}</th>
+                                    <th>{{ 'case.case_id' | trans }}</th>
+                                    <th>{{ 'asset.attr.barcode' | trans }}</th>
+                                    <th>{{ 'asset.attr.name' | trans }}</th>
                                 </tr>
                             </thead>
                             <tbody>
-                            {% for stored_object in asset.getStorage %}
+                            {% for stored_asset in asset.getStorage %}
                                 <tr >
                                     <td>
-                                    {% if stored_object.getCase != null %}
-                                        <a href="{{ path('detail_case', {'id': stored_object.getCase.getCaseId}) }}">
-                                        {{ stored_object.getCase.getCaseId }}
+                                    {% if stored_asset.getCase %}
+                                        <a href="{{ path('detail_case', {'id': stored_asset.getCase.getCaseId}) }}">
+                                        {{ stored_asset.getCase.getCaseId }}
                                         </a>
                                     {% else %}
                                         -
@@ -329,13 +319,13 @@
                                     </td> 
                                     
                                     <td style='font-family: courier;font-size: large'>
-                                        <a href="{{ path('details_asset', {'id': stored_object.getBarcode}) }}">
-                                        {{ stored_object.getBarcode }}
+                                        <a href="{{ path('details_asset', {'id': stored_asset.getBarcode}) }}">
+                                        {{ stored_asset.getBarcode }}
                                         </a>
                                     </td>
                                     <td>
-                                        <a href="{{ path('details_asset', {'id': stored_object.getBarcode}) }}">
-                                        {{ stored_object.getName }}
+                                        <a href="{{ path('details_asset', {'id': stored_asset.getBarcode}) }}">
+                                        {{ stored_asset.getName }}
                                         </a>
                                     </td>
                                 </tr>
@@ -349,19 +339,19 @@
                 {% if asset.isHddImageSource %}
                     <div class="panel panel-default" id="image_locations_info">
                         <div class="panel-heading">
-                            {{ 'currentimagelocations' | trans }}:
+                            {{ 'asset.details.image_locations' | trans }}:
                         </div>
 
                     {% if asset.getHDDs.isEmpty %}
                         <div class="panel-body">
-                                {{ 'message.exhibit.asset.has.no.other.images' | trans }}
+                                {{ 'asset.details.no_image_locations' | trans }}
                         </div>
                     {% else %}
                         <table class="table">
                             <thead>
                                 <tr>
-                                    <th>{{ 'desc.oid' | trans }}</th>
-                                    <th>{{ 'desc.name' | trans }}</th>
+                                    <th>{{ 'asset.attr.barcode' | trans }}</th>
+                                    <th>{{ 'asset.attr.name' | trans }}</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -388,19 +378,19 @@
                 {% if asset.isHddImageTarget %}
                     <div class="panel panel-default" id="images_info">
                         <div class="panel-heading">
-                            {{ 'currentsavedexhibithdd' | trans }}:
+                            {{ 'asset.details.saved_images' | trans }}:
                         </div>
                     
                     {% if asset.getImages.isEmpty %}
                         <div class="panel-body">
-                            {{ 'message.hdd.asset.has.no.saved.exhibit.hdd.objects' | trans }}
+                            {{ 'asset.details.no_saved_images' | trans }}
                         </div>
                     {% else %}
                         <table class="table">
                             <thead>
                                 <tr>
-                                    <th>{{ 'desc.oid' | trans }}</th>
-                                    <th>{{ 'desc.name' | trans }}</th>
+                                    <th>{{ 'asset.attr.barcode' | trans }}</th>
+                                    <th>{{ 'asset.attr.name' | trans }}</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -433,64 +423,64 @@
 
 {# Asset history #}
 {% block content2 %}
-    <h2>{{ 'history' | trans }}</h2>       
+    <h2>{{ 'asset.details.history' | trans }}</h2>       
         <div class="container-fluid" id="history">            
         {% if asset.getHistories.isEmpty %}
-            <p>{{ 'message.no.history.available' | trans }}</p>   
+            <p>{{ 'asset.details.no_history' | trans }}</p>   
         {% else %}    
             <div class="row"> 
                 <div class="col-sm-12">
                 <table class="table">
                     <thead>
                         <tr>
-                            <th>{{ 'desc.action.done' | trans }}</th>
-                            <th>{{ 'desc.action.registered' | trans }}</th>
-                            <th>{{ 'desc.status' | trans }}</th>
-                            <th>{{ 'desc.usage' | trans }}</th>
-                            <th>{{ 'desc.case' | trans }}</th>
-                            <th>{{ 'desc.container' | trans }}</th>
-                            <th>{{ 'desc.reserved' | trans }}</th>
+                            <th>{{ 'asset.attr.last_updated_on' | trans }}</th>
+                            <th>{{ 'asset.attr.last_update_performed_on' | trans }}</th>
+                            <th>{{ 'asset.attr.state' | trans }}</th>
+                            <th>{{ 'asset.attr.usage' | trans }}</th>
+                            <th>{{ 'asset.attr.case' | trans }}</th>
+                            <th>{{ 'asset.attr.location' | trans }}</th>
+                            <th>{{ 'asset.attr.reserved_by' | trans }}</th>
                             {% if asset.isHddImageTarget %}
-                            <th>{{ 'desc.imaged' | trans }}</th>
+                            <th>{{ 'asset.attr.images' | trans }}</th>
                             {% endif %}
-                            <th>{{ 'desc.user' | trans }}</th>
+                            <th>{{ 'asset.attr.modified_by' | trans }}</th>
                         </tr>
                     </thead>
                     <tbody>
-                    {% for entry in asset.getHistories %}
+                    {% for history in asset.getHistories %}
                         
-                        <tr {{ entry.isSystemAction ? 'class="active"' : ''}}>
-                            <td>{{ entry.getLastUpdatePerformedOn|date('d.m.y H:i')}}</td>
-                            <td>{{ entry.getLastUpdatedOn|date('d.m.y H:i')}}</td>
-                            <td>{{ entry.getState | trans  }}</td>
-                            <td>{{ entry.getUsage | nl2br | barcodelinker | raw}}</td>
+                        <tr {{ history.isSystemAction ? 'class="active"' : ''}}>
+                            <td>{{ history.getLastUpdatePerformedOn | date('d.m.y H:i')}}</td>
+                            <td>{{ history.getLastUpdatedOn | date('d.m.y H:i')}}</td>
+                            <td>{{ history.getState | trans  }}</td>
+                            <td>{{ history.getUsage | nl2br | barcodelinker | raw}}</td>
 
                             {# Ausgabe des zugeteilten Falles #}
-                            {% if entry.getCase != null %}
-                            <td><a href='{{ path("detail_case",{id:entry.getCase.getCaseId})}}'>{{ entry.getCase.getCaseId }} </a></td>
+                            {% if history.getCase != null %}
+                            <td><a href='{{ path("detail_case",{id:history.getCase.getCaseId})}}'>{{ history.getCase.getCaseId }} </a></td>
                             {% else %}
                             <td> / </td>
                             {% endif %}
 
                             {# Ausgabe des Standorts #}
-                            {% if entry.getLocation != null %}
-                            <td> <a href='{{ path("details_asset",{id:entry.getLocation.getBarcode})}}'>{{ entry.getLocation }} | {{ entry.getLocation.getName}} </a></td>
+                            {% if history.getLocation != null %}
+                            <td> <a href='{{ path("details_asset",{id:history.getLocation.getBarcode})}}'>{{ history.getLocation }} | {{ history.getLocation.getName}} </a></td>
                             {% else %}
                             <td> / </td>
                             {% endif %}
 
                             {# Reserviert von Spalte #}
-                            {% if entry.getReservedBy != null %}
-                            <td> {{ entry.getReservedBy }} </td>
+                            {% if history.getReservedBy != null %}
+                            <td> {{ history.getReservedBy }} </td>
                             {% else %}
                             <td> / </td>
                             {% endif %}
                                 
                             {# Reserviert von Spalte #}
                             {% if asset.isHddImageTarget %}
-                                {% if not entry.getImages.isEmpty %}
+                                {% if not history.getImages.isEmpty %}
                                 <td>
-                                {% for image in entry.getImages %}
+                                {% for image in history.getImages %}
                                     <a href='{{ path("details_asset",{id:image.getBarcode})}}'>{{image.getBarcode}}</a><br>
                                 {% endfor %}
                                 </td>
@@ -499,7 +489,7 @@
                                 {% endif %}
                             {% endif %}
 
-                            <td>{{ entry.getModifiedBy.getFullname }}</td>
+                            <td>{{ history.getModifiedBy.getFullname }}</td>
                         </tr>
                     {% endfor %}
                     </tbody>
@@ -509,12 +499,8 @@
             
                 
             {% endif %}
-            </div>
-            {% set currentdate = "now"|date('d.m.y') %}
-            {% set currenttime = "now"| date('H:i') %}
-            
-            
-            {% trans with {'%cdate%': "now"|date('d.m.y'),'%ctime%':"now"| date('H:i')  } %}report has been made at %cdate% %ctime%{% endtrans %}
+            </div>            
+            {{ 'report_from' | trans({'%time%' : 'now'|date('d.m.y H:i')}) }}
 {% endblock %}
 
 {% block stylesheets %}
@@ -522,63 +508,65 @@
 
 
 {% block context %}    
-    <a onclick="window.print()"> <span class="glyphicon glyphicon-print"></span> {{ 'action.print' | trans }}</a><br>
+    <a onclick="window.print()"> 
+        <span class="glyphicon glyphicon-print"></span> 
+        {{ 'asset.actions.print' | trans }}
+    </a>
+    <br>
      {# Wenn das Objekt NICHT vernichtet oder verloren worden sind #}
     {% if asset.getState != AssetState.Destroyed and asset.getState != AssetState.Lost %}
         
         {% if asset.getState != AssetState.Destroyed  and asset.getCategory == AssetCategory.Hdd %}
-        <a href='{{ path("clean_asset",{id:id})}}'> <span class="glyphicon glyphicon-erase"></span> {{ 'action.cleaned' | trans }}</a><br>
+        <a href='{{ path("clean_asset",{id:id})}}'> <span class="glyphicon glyphicon-erase"></span> {{ 'asset.actions.zero' | trans }}</a><br>
         {% endif %}
         
         {% if asset.getCategory == AssetCategory.Hdd %}
-            <a href='{{ path("neutralize_asset",{id:id})}}'> <span class="glyphicon glyphicon-erase"></span> {{ 'action.neutralise' | trans }}</a><br>
+            <a href='{{ path("neutralize_asset",{id:id})}}'> <span class="glyphicon glyphicon-erase"></span> {{ 'asset.actions.neutralize' | trans }}</a><br>
             
         {% endif %}
-        
-        
+                
         {% if asset.getCategory == AssetCategory.Hdd or
               asset.getCategory == AssetCategory.ExhibitHdd  %}
-            <a href='{{ path("save_image_on_drive_asset",{id:id})}}'> <span class="glyphicon glyphicon-import"></span> {{ 'action.add.image' | trans }}</a><br>
+            <a href='{{ path("save_image_on_drive_asset",{id:id})}}'> <span class="glyphicon glyphicon-import"></span> {{ 'asset.actions.add_image' | trans }}</a><br>
         {% endif %}
                 
         
-        <a href='{{ path("destroy_asset",{id:id})}}'> <span class="glyphicon glyphicon-fire"></span> {{ 'action.destroyed' | trans }}</a><br>
+        <a href='{{ path("destroy_asset",{id:id})}}'> <span class="glyphicon glyphicon-fire"></span> {{ 'asset.actions.destroy' | trans }}</a><br>
 
-        <a href='{{ path("handover_asset",{id:id})}}'> <span class="glyphicon glyphicon-send"></span> {{ 'action.handover.person' | trans }}</a><br>
+        <a href='{{ path("handover_asset",{id:id})}}'> <span class="glyphicon glyphicon-send"></span> {{ 'asset.actions.handover' | trans }}</a><br>
 
-        <a href='{{ path("lost_asset",{id:id})}}'> <span class="glyphicon glyphicon-thumbs-down"></span> {{ 'action.lost' | trans }}</a><br>
+        <a href='{{ path("lost_asset",{id:id})}}'> <span class="glyphicon glyphicon-thumbs-down"></span> {{ 'asset.actions.lost' | trans }}</a><br>
 
-        <a href='{{ path("use_asset",{id:id})}}'> <span class="glyphicon glyphicon-console"></span> {{ 'action.used' | trans }}</a><br>
+        <a href='{{ path("use_asset",{id:id})}}'> <span class="glyphicon glyphicon-console"></span> {{ 'asset.actions.used' | trans }}</a><br>
 
 
         {# Bei der Reservierung wird nicht auf den State ueberprueft #}
         {% if asset.getReservedBy == null %}
-            <a href='{{ path("reserve_asset",{id:id})}}'> <span class="glyphicon glyphicon-lock"></span> {{ 'action.reserved' | trans }}</a><br>
+            <a href='{{ path("reserve_asset",{id:id})}}'> <span class="glyphicon glyphicon-lock"></span> {{ 'asset.actions.reserve' | trans }}</a><br>
         {% else %}
-            <a href='{{ path("unreserve_asset",{id:id})}}'> <span class="glyphicon glyphicon-edit"></span> {{ 'action.unbind.reserved' | trans }}</a><br>
+            <a href='{{ path("unreserve_asset",{id:id})}}'> <span class="glyphicon glyphicon-edit"></span> {{ 'asset.actions.unreserve' | trans }}</a><br>
         {% endif %}
         
-        
-        
+    
         {% if asset.getLocation == null %}
-            <a href='{{ path("store_asset",{id:id})}}'> <span class="glyphicon glyphicon-briefcase"></span> {{ 'action.stored.in.container' | trans }}</a><br>
+            <a href='{{ path("store_asset",{id:id})}}'> <span class="glyphicon glyphicon-briefcase"></span> {{ 'asset.actions.store' | trans }}</a><br>
         {% else %}
-            <a href='{{ path("store_asset",{id:id})}}'> <span class="glyphicon glyphicon-briefcase"></span> {{ 'action.stored.in.container.alternativ' | trans }}</a><br>
-            <a href='{{ path("pull_out_asset",{id:id})}}'> <span class="glyphicon glyphicon-briefcase"></span> {{ 'action.pulled.out.of.container' | trans }}</a><br>
+            <a href='{{ path("store_asset",{id:id})}}'> <span class="glyphicon glyphicon-briefcase"></span> {{ 'asset.actions.move' | trans }}</a><br>
+            <a href='{{ path("pull_out_asset",{id:id})}}'> <span class="glyphicon glyphicon-briefcase"></span> {{ 'asset.actions.remove_container' | trans }}</a><br>
         {% endif %}
           
         
         {% if asset.getCase != null %}
            {% if asset.getCategory != AssetCategory.Record %} 
-                <a href='{{ path("remove_case_asset",{id:id})}}'> <span class="glyphicon glyphicon-export"></span> {{ 'action.removed.from.case' | trans }}</a><br>
+                <a href='{{ path("remove_case_asset",{id:id})}}'> <span class="glyphicon glyphicon-export"></span> {{ 'asset.actions.unassign_case' | trans }}</a><br>
            {% endif %}
         {% else %}
-          <a href='{{ path("assign_case_asset",{id:id})}}'> <span class="glyphicon glyphicon-import"></span> {{ 'action.added.to.case' | trans }}</a><br>
+          <a href='{{ path("assign_case_asset",{id:id})}}'> <span class="glyphicon glyphicon-import"></span> {{ 'asset.actions.assign_case' | trans }}</a><br>
         {% endif %}
 
-        <a href='{{ path("edit_asset",{id:id})}}'> <span class="glyphicon glyphicon-edit"></span> {{ 'action.edit' | trans }}</a><br>
+        <a href='{{ path("edit_asset",{id:id})}}'> <span class="glyphicon glyphicon-edit"></span> {{ 'asset.actions.edit' | trans }}</a><br>
         {% if asset.getPicture == null and asset.getPicturePath == null %}
-        <a href='{{ path("upload_picture_asset",{id:id})}}'> <span class="glyphicon glyphicon-upload"></span> {{ 'action.upload.image' | trans }}</a><br>
+        <a href='{{ path("upload_picture_asset",{id:id})}}'> <span class="glyphicon glyphicon-upload"></span> {{ 'asset.actions.upload_picture' | trans }}</a><br>
         {% endif %}
         
                 
