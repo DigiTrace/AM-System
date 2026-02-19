@@ -22,77 +22,53 @@
 
 {% block content1 %}
     
-    {% for label, messages in app.flashes %}
-         {% for message in messages %}
-             <div class="alert alert-{{ label }}">
-                 {{ message | trans | nl2br}}
-             </div>
-         {% endfor %}
-     {% endfor %}
+
+    <h2>{% trans with {'%context%': fall.getCaseId} %}case.details.page.header %context%{% endtrans %}</h2>
+    {{ include('messages.html.twig') }}
     
-    <h2>{% trans with {'%context%': fall.getCaseId} %}case_details %context%{% endtrans %}</h2>
+    <div class="cotainer-fluid">
+        <h3>{{ 'case_current_state' | trans }}</h3>
+        <table class="table">
+            <tr>
+                <td>{{ 'case.details.page.case_id' | trans }}</td>
+                <td>{{ fall.getCaseId }}</td>
+            </tr>
 
-        <h3>{% trans %}case_current_state{% endtrans %}</h3>
-         <table class="table">
-             <tr>
-                 <td>{% trans %}case_id{% endtrans %}</td>
-                 <td>{{ fall.getCaseId }}</td>
-             </tr>
-
-             <tr>
-               <td>{% trans %}case_desc{% endtrans %}</td>
+            <tr>
+               <td>{{ 'case.details.page.description' | trans }}</td>
                <td>{{  fall.getDescription | nl2br}}</td>
-             </tr>
-             <tr>
-               <td>{% trans %}case_isactiv{% endtrans %}</td>
-               <td>
-                   {% if fall.isActive == true%}
-                    Ja
-                   {% else %}
-                    nein
+            </tr>
+            <tr>
+                <td>{{ 'case.details.page.active' | trans }}</td>
+                <td>
+                    {% if fall.isActive %} {{ 'yes' | trans }}
+                    {% else %} {{ 'no' | trans }}
                     {% endif %}
-               </td>
-             </tr>
-             <tr>
-               <td>{% trans %}case_dos{% endtrans %}</td>
-               <td>
-                   {% if fall.getSecrecy == ""%}
-                        {% trans %}dos_not_set{% endtrans %}
-                   {% else %}
-                       <span 
-                        {% if fall.getSecrecy == "DOS_PUBLIC"%}
-                            class="label label-success"
-                        {% elseif fall.getSecrecy == "DOS_INTERNAL"%}
-                            class="label label-primary"
-                        {% elseif fall.getSecrecy == "DOS_CONFIDENTIAL"%}
-                            class="label label-warning"
-                        {% elseif fall.getSecrecy == "DOS_SECRET"%}
-                            class="label label-danger"
-                       {% endif %}
-                       >
-                        {{ fall.getSecrecy | trans}}   
-                       </span>
-                   {% endif %}
                 </td>
              </tr>
              <tr>
-                 <td>{% trans %}case_timestamp{% endtrans %}</td>
-                 <td>{{ fall.getOpenedOn|date('d.m.y H:i') }}</td>
+               <td>{{ 'case.details.page.secrecy' | trans }}</td>
+               <td>{{ fall.getSecrecy | trans }}</td>
              </tr>
-         </table>
+             <tr>
+                <td>{{ 'case.details.page.opened_on' | trans }}</td>
+                <td>{{ fall.getOpenedOn|date('d.m.y H:i') }}</td>
+            </tr>
+        </table>
+    </div>
             
  {% endblock %}
  {% block content2 %}
        
-    <h3>{% trans %}container_listed_assets{% endtrans %}</h3>
+    <h3>{{ 'container_listed_assets' | trans }}</h3>
     <table class="table">
      <thead>
        <tr>
-         <th>{% trans %}desc.oid{% endtrans %}</th>
-         <th>{% trans %}desc.name{% endtrans %}</th>
-         <th>{% trans %}desc.lstatus{% endtrans %}</th>
-         <th>{% trans %}desc.last.action.done{% endtrans %}</th>
-         <th>{% trans %}desc.container{% endtrans %}</th>
+         <th>{{ 'desc.oid' | trans }}</th>
+         <th>{{ 'desc.name' | trans }}</th>
+         <th>{{ 'desc.lstatus' | trans }}</th>
+         <th>{{ 'desc.last.action.done' | trans }}</th>
+         <th>{{ 'desc.container' | trans }}</th>
        </tr>
      </thead>
      <tbody>
@@ -131,15 +107,15 @@
      
      
      
-    <h3>{% trans %}case_listed_history_assets{% endtrans %}</h3>
+    <h3>{{ 'case_listed_history_assets' | trans }}</h3>
     <table class="table">
      <thead>
        <tr>
-         <th>{% trans %}desc.oid{% endtrans %}</th>
-         <th>{% trans %}desc.name{% endtrans %}</th>
-         <th>{% trans %}desc.lstatus{% endtrans %}</th>
-         <th>{% trans %}desc.last.action.done{% endtrans %}</th>
-         <th>{% trans %}desc.container{% endtrans %}</th>
+         <th>{{ 'desc.oid' | trans }}</th>
+         <th>{{ 'desc.name' | trans }}</th>
+         <th>{{ 'desc.lstatus' | trans }}</th>
+         <th>{{ 'desc.last.action.done' | trans }}</th>
+         <th>{{ 'desc.container' | trans }}</th>
        </tr>
      </thead>
      <tbody>
@@ -179,7 +155,7 @@
 
 
 {% block context %}
-    <a onclick="window.print()"> <span class="glyphicon glyphicon-print"></span> {% trans %}action.print{% endtrans %}</a><br>
-    <a href='{{ path("update_case",{id:fall.getCaseId})}}'> <span class="glyphicon glyphicon-pencil"></span> {% trans %}action.update.case{% endtrans %}</a><br>
-    <a href='{{ path("download_case_word",{id:fall.getCaseId})}}'> <span class="glyphicon glyphicon-download"></span> {% trans %}action.download.word.case{% endtrans %}</a><br>
+    <a onclick="window.print()"> <span class="glyphicon glyphicon-print"></span> {{ 'action.print' | trans }}</a><br>
+    <a href='{{ path("update_case",{id:fall.getCaseId})}}'> <span class="glyphicon glyphicon-pencil"></span> {{ 'action.update.case' | trans }}</a><br>
+    <a href='{{ path("download_case_word",{id:fall.getCaseId})}}'> <span class="glyphicon glyphicon-download"></span> {{ 'action.download.word.case' | trans }}</a><br>
 {% endblock %}

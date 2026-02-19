@@ -68,8 +68,8 @@ class AssetController extends BaseController
     public function searchAssets(
         Request $request,
         SessionInterface $session,
-        ExtendedAssetSearch $extendedAssetSearch,
         PaginatorInterface $paginator,
+        ExtendedAssetSearch $extendedAssetSearch,
     ) {
         $search = null;
         $query = null;
@@ -96,6 +96,7 @@ class AssetController extends BaseController
                 1000 => 1000,
             };
 
+            // update session search limit
             $session->set('limit', $limit);
         }
 
@@ -217,8 +218,6 @@ class AssetController extends BaseController
 
     /**
      * Show form to add new asset or handle new asset form request.
-     *
-     * @todo Test
      */
     #[Route(data: '/objekt/anlegen', name: 'add_asset')]
     public function add(Request $request)
@@ -282,8 +281,6 @@ class AssetController extends BaseController
 
     /**
      * Show details page of an asset.
-     *
-     * @todo Test
      *
      * @param Request $request Symfony request
      * @param string  $id      DT-ID of object

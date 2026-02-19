@@ -2,8 +2,6 @@
 
 namespace App\Tests\Service;
 
-use App\Entity\Asset;
-use App\Enum\AssetCategory as Category;
 use App\Enum\AssetState as State;
 use App\Service\ExtendedAssetSearch;
 use App\Tests\Factory\DriveFactory;

@@ -5,11 +5,15 @@ namespace App\Controller;
 use App\Entity\Asset;
 use App\Entity\CaseFile;
 use App\Form\CaseType;
+use App\Form\SimpleCaseSearchType;
 use App\Service\EmailNotification;
+use App\Service\ExtendedCaseSearch;
 use Doctrine\ORM\EntityManagerInterface;
+use Knp\Component\Pager\PaginatorInterface;
 use PhpOffice\PhpWord\TemplateProcessor;
 use Symfony\Component\HttpFoundation\File\File;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Session\SessionInterface;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Core\Security;
 use Symfony\Contracts\Translation\TranslatorInterface;
@@ -19,8 +23,83 @@ use Symfony\Contracts\Translation\TranslatorInterface;
  */
 class CaseDetailController extends BaseController
 {
+
     public function __construct(private EntityManagerInterface $entityManager)
     {
+    }
+
+    /**
+     * Case overview with search function.
+     */
+    #[Route("/faelle", name:"search_case")]
+    public function search_case(
+        Request $request, 
+        SessionInterface $session,
+        PaginatorInterface $paginator, 
+        ExtendedCaseSearch $extendedCaseSearch,
+    )
+    {
+        $search = null;
+        $query = null;
+
+        $form = $this->createForm(SimpleCaseSearchType::class, null, [
+            'method' => 'GET',
+            'csrf_protection' => false,
+            'attr' => ['class' => 'navbar-form navbar-right', 'id' => 'search_form'],
+            'search_action' => $this->generateURL('search_case'),
+            'limit' => $session->get('limit'),
+        ]);
+        $form->handleRequest($request);
+
+        // if form is submitted, apply form parameters
+        if ($form->isSubmitted() && $form->isValid()) {
+            $formData = $form->getData();
+            $search = $formData['search'];
+
+            // allowed values for table sizes
+            $limit = match (intval($formData['limit'])) {
+                default => 25,
+                50 => 50,
+                100 => 100,
+                1000 => 1000,
+            };
+
+            // update session search limit
+            $session->set('limit', $limit);
+        }
+        
+        // no search term provided, default query for listing all objects
+        $search ??= $request->get('suche');
+        
+        // apply extended case search to create query
+        if ($search) {
+            $query = $extendedCaseSearch->generateSearchQuery($search);
+            foreach ($extendedCaseSearch->getErrors() as $err) {
+                $this->addFlash($err['type'], $err['message']);
+            }
+        }
+
+        // no search query or parse error, apply default case listing
+        if ($query === null) {
+            $repo = $this->entityManager->getRepository(CaseFile::class);
+            $query = $repo->createQueryBuilder('caseFile')->getQuery();
+        }
+        
+        // populate paginator
+        $pagination = $paginator->paginate(
+            $query, // query
+            $request->query->getInt('page', 1), // page number
+            $session->get('limit') ?? 25, // limit per page,
+            [
+                'defaultSortFieldName' => 'caseFile.openedOn',
+                'defaultSortDirection' => 'desc',
+            ]
+        );        
+        
+        return $this->render('cases/search.html.twig', [
+            'form' => $form->createView(),
+            'pagination' => $pagination
+        ]);
     }
 
     /**
@@ -75,7 +154,7 @@ class CaseDetailController extends BaseController
 
         $previous = $this->entityManager->getRepository(Asset::class)->findPreviouslyInvolvedInCase($case);
 
-        return $this->render('cases/detail_case.html.twig', [
+        return $this->render('cases/details.html.twig', [
             'fall' => $case,
             'history_assets' => $previous,
         ]);
@@ -129,7 +208,7 @@ class CaseDetailController extends BaseController
     /**
      * Download case details as word document.
      */
-    #[Route('/fall/{id}/downloadWord2/', name: 'download_case_word2', requirements: ['id' => '.+'])]
+    #[Route('/fall/{id}/downloadWord/', name: 'download_case_word', requirements: ['id' => '.+'])]
     public function downloadWord(Request $request, Security $security, TranslatorInterface $translator, string $id)
     {
         $case = $this->entityManager->getRepository(CaseFile::class)->findOneBy(['caseId' => $id]);
@@ -176,7 +255,7 @@ class CaseDetailController extends BaseController
 
         // generate file name from case id
         $invalidChars = ['/', '\\', ' '];
-        $filename = str_replace($invalidChars, '_', $case->getCaseId()).'docx';
+        $filename = str_replace($invalidChars, '_', $case->getCaseId()).'.docx';
         $temp_file = tempnam(sys_get_temp_dir(), $filename);
 
         foreach ($templateData as $key => $value) {
@@ -201,7 +280,7 @@ class CaseDetailController extends BaseController
         }
 
         $previousCount = count($previousEntrys);
-        $templateProcessor->cloneRow('Mdesc.oid.text', $previousCount);
+        $templateProcessor->cloneRow('Hdesc.oid.text', $previousCount);
 
         for ($i = 1; $i <= $previousCount; ++$i) {
             $asset = $previousEntrys[$i - 1];
@@ -221,5 +300,14 @@ class CaseDetailController extends BaseController
         $file = new File($temp_file);
 
         return $this->file($file,$filename);
+    }
+
+    /**
+     * Display case search FAQ
+     */
+    #[Route("/faelle/faq", name:"search_cases_faq")]
+    public function searchFaq()
+    {        
+        return $this->render('default/search_cases_faq.twig');
     }
 }

@@ -189,6 +189,21 @@ enum AssetCategory: int implements TranslatableInterface
         };
     }
 
+    /**
+     * Maps cases to bootstrap color label.
+     */
+    public function bootstrapColor(): string
+    {
+        return match ($this) {
+            self::Exhibit => 'primary',
+            self::Equipment => 'info',
+            self::Container => 'success',
+            self::Hdd => 'warning',
+            self::Record => 'primary',
+            self::ExhibitHdd => 'primary',
+        };
+    }
+
     public function trans(TranslatorInterface $translator, ?string $locale = null): string
     {
         return $translator->trans($this->toTranslatableString(), locale: $locale);

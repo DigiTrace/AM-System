@@ -23,87 +23,90 @@
 {% extends 'base.html.twig' %}
 {% form_theme form 'bootstrap_3_layout.html.twig' %} 
 {% block content1 %}
-    {# <div class="wrapper">
-         <div class="container" > #}
-            <div class="row">
-                <div class="col-lg-4"> 
-                    <h2>{{ 'asset.search.page.header' | trans}}</h2>
-                </div>
-                <div class="col-lg-8" style="margin-top:7px">
-                    {{ form_start(form) }}
-                    {{ form_row(form.search) }}
-                    {{ form_row(form.limit) }}
-                    {{ form_row(form.eas) }}
-                    {{ form_end(form) }}
-                </div>
-            </div>
 
-            {{ include('messages.html.twig') }}
+    <div class="row">
+        <div class="col-lg-4"> 
+            <h2>{{ 'asset.search.page.header' | trans}}</h2>
+        </div>
+        <div class="col-lg-8" style="margin-top:7px">
+            {{ form_start(form) }}
+            {{ form_row(form.search) }}
+            {{ form_row(form.limit) }}
+            {{ form_row(form.eas) }}
+            {{ form_end(form) }}
+        </div>
+    </div>
 
-            {# Include extended search form#}
-            <div id="eas_form_container" style="display: none;">
-                {{ include('assets/extended_asset_search_form.html.twig', {
-                    search_form: 'search_form', 
-                    regex_single_match: regex_single_match, 
-                    regex_multiple_match: regex_multiple_match
-                }) }}
-            </div>
+    {# Include extended search form#}
+    <div id="eas_form_container" style="display: none;">
+        {{ include('assets/extended_asset_search_form.html.twig', {
+            search_form: 'search_form', 
+            regex_single_match: regex_single_match, 
+            regex_multiple_match: regex_multiple_match
+        }) }}
+    </div>
+
+    {{ include('messages.html.twig') }}
+
 
    
     <table class="table">
         
-    {% if pagination.getDirection == "desc" %} {% set arrow = '<span class="glyphicon glyphicon-arrow-down"></span>' %} 
+        {% if pagination.getDirection == "desc" %} {% set arrow = '<span class="glyphicon glyphicon-arrow-down"></span>' %} 
         {% elseif pagination.getDirection == "asc" %}  {% set arrow = '<span class="glyphicon glyphicon-arrow-up"></span>' %}  
-    {% endif %}
+        {% endif %}
         
-    <thead>
-      <tr>
-        <th class="col-md-2 col-sm-2">{{ knp_pagination_sortable(pagination,'desc.oid'|trans , 'asset.barcode_id') }}
-            {% if pagination.isSorted('asset.barcode_id') %}
-            {{ arrow | raw}}
-            {% endif %}
-        </th>
-        <!--<th class="col-md-2 col-sm-2">{{ 'desc.category' | trans }}</th>-->
-        <th class="col-md-2 col-sm-2" >{{ knp_pagination_sortable(pagination, 'desc.category'|trans, 'asset.kategorie_id') }} 
-            {% if pagination.isSorted('asset.kategorie_id') %}
-            {{ arrow | raw}}
-            {% endif %}
-        </th>
-        <th class="col-md-7 col-sm-7">{{ knp_pagination_sortable(pagination, 'desc.name'|trans, 'asset.name') }} 
-            {% if pagination.isSorted('asset.name') %}
-            {{ arrow | raw}}
-            {% endif %}
-        </th>
-        <th class="col-md-1 col-sm-1">{{ 'availability' | trans }}</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for asset in pagination %}
-        
-        {% if asset.isEditable == false %}
-        <tr class="active">
-            <td  style='font-family: courier;font-size: large'><s>{{ asset.getBarcode }}</s></td>
-        {% else %}
+        <thead>
         <tr>
-            <td  style='font-family: courier;font-size: large'>{{ asset.getBarcode }}</td>
-        {% endif %}
+            <th class="col-md-2 col-sm-2">{{ knp_pagination_sortable(pagination,'asset.search.page.barcode'|trans , 'asset.barcode') }}
+                {% if pagination.isSorted('asset.barcode') %}
+                {{ arrow | raw}}
+                {% endif %}
+            </th>
+            <th class="col-md-2 col-sm-2" >{{ knp_pagination_sortable(pagination, 'asset.search.page.category'|trans, 'asset.category') }} 
+                {% if pagination.isSorted('asset.category') %}
+                {{ arrow | raw}}
+                {% endif %}
+            </th>
+            <th class="col-md-7 col-sm-7">{{ knp_pagination_sortable(pagination, 'asset.search.page.name'|trans, 'asset.name') }} 
+                {% if pagination.isSorted('asset.name') %}
+                {{ arrow | raw}}
+                {% endif %}
+            </th>
+            <th class="col-md-1 col-sm-1">{{ 'availability' | trans }}</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for asset in pagination %}
+            <tr {{ asset.isEditable ? '' : 'class="active"' }}>
+                <td style='font-family: courier;font-size: large'>
+                {% if asset.isEditable %}
+                    {{ asset.getBarcode }}
+                {% else %}
+                    <s>{{ asset.getBarcode }}</s>
+                {% endif %}
+                </td>
+                
+                <td>
+                    <span class="label label-{{ asset.getCategory.bootstrapColor }}">
+                    {{ asset.getCategory | trans}}
+                    </span>
+                </td>
             
-            <td  >{{ asset.getCategory | trans }}</td>
-        
-            <td><a href="{{ path('details_asset', {'id': asset.getBarcode}) }}">{{ asset.getName }} <a/></td>
-              
-        
-        {% if asset.reservedBy != null %}
-            <td> <span class="glyphicon glyphicon-alert"></span> {% trans with {'%user%':asset.reservedBy.getFullname} %}reserved from %user%{% endtrans %}</td>
-        {% elseif asset.isEditable == false %}
-            <td> <span class="glyphicon glyphicon-remove"></span> </td>
-        {% else %}
-            <td> <span class="glyphicon glyphicon-ok"></span> </td>
-        {% endif %}
-      </tr>
-      {% endfor %}
-   </tbody>
-</table>
+                <td><a href="{{ path('details_asset', {'id': asset.getBarcode}) }}">{{ asset.getName }} <a/></td>
+                
+            
+            {% if asset.reservedBy != null %}
+                <td> <span class="glyphicon glyphicon-alert"></span> {% trans with {'%user%':asset.reservedBy.getFullname} %}reserved from %user%{% endtrans %}</td>
+            {% elseif asset.isEditable == false %}
+                <td> <span class="glyphicon glyphicon-remove"></span> </td>
+            {% else %}
+                <td> <span class="glyphicon glyphicon-ok"></span> </td>
+            {% endif %}
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
    
    
    

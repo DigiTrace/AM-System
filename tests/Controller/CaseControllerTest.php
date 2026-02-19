@@ -87,17 +87,18 @@ class CaseControllerTest extends BaseWebTestCase
         $crawler = $this->loginUser($client)->request('GET', '/fall/anlegen');
 
         // make form request
-        $form = $crawler->selectButton('add_new_case')->form();
+        $form = $crawler->selectButton('case[save]')->form();
         $client->submit($form, [
-            'form[caseId]' => $params['id'],
-            'form[description]' => $params['desc'],
+            'case[caseId]' => $params['id'],
+            'case[description]' => $params['desc'],
         ]);
-        $this->assertResponseRedirects("/faelle");
+        $this->assertResponseRedirects();
         $client->followRedirect();
         
 
         // look into hmtl whether case was rendered and processed correctly
-        $this->assertSelectorTextContains("tr:contains('{$params['id']}')", $params['desc']);
+        $this->assertSelectorTextContains("tr:contains('case.details.page.case_id')", $params['id']);
+        $this->assertSelectorTextContains("tr:contains('case.details.page.description')", $params['desc']);
 
         $this->seeInDatabase(CaseRepository::class, [
             'caseId' => $params['id'],
@@ -119,10 +120,10 @@ class CaseControllerTest extends BaseWebTestCase
         $crawler = $this->loginUser($client)->request('GET', '/fall/anlegen');
 
         // make form request
-        $form = $crawler->selectButton('add_new_case')->form();
+        $form = $crawler->selectButton('case[save]')->form();
         $client->submit($form, [
-            'form[caseId]' => $params['id'],
-            'form[description]' => $params['desc'],
+            'case[caseId]' => $params['id'],
+            'case[description]' => $params['desc'],
         ]);
         $this->assertResponseIsSuccessful();
         $this->assertSelectorExists('span.glyphicon-exclamation-sign');
@@ -149,14 +150,14 @@ class CaseControllerTest extends BaseWebTestCase
 
         // make second entry
         $crawler = $client->request('GET', '/fall/anlegen');
-        $form = $crawler->selectButton('add_new_case')->form();
+        $form = $crawler->selectButton('case[save]')->form();
         $client->submit($form, [
-            'form[caseId]' => $params['id'],
-            'form[description]' => $params['desc'],
+            'case[caseId]' => $params['id'],
+            'case[description]' => $params['desc'],
         ]);
 
         $this->assertResponseIsSuccessful();
-        $this->assertSelectorTextContains('div.alert-danger', 'used');
+        $this->assertSelectorTextContains('span.help-block', 'case.form.error.duplicate');
 
         $this->seeInDatabase(CaseRepository::class, [
             'caseId' => $params['id'],

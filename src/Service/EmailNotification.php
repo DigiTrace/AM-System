@@ -7,7 +7,7 @@ use App\Entity\Nutzer;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Bridge\Twig\Mime\TemplatedEmail;
-use Symfony\Component\Mailer\Transport\TransportInterface;
+use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
 /**
@@ -18,7 +18,7 @@ use Symfony\Contracts\Translation\TranslatorInterface;
 class EmailNotification
 {
     public function __construct(
-        private TransportInterface $transport,
+        private MailerInterface $mailer,
         private EntityManagerInterface $entityManager,
         private TranslatorInterface $translator,
         private LoggerInterface $logger
@@ -50,7 +50,7 @@ class EmailNotification
                 'user_locale' => $user->getLanguage(),
             ]);
 
-            $this->transport->send($message);
+            $this->mailer->send($message);
         }
     }
 
@@ -80,7 +80,7 @@ class EmailNotification
                 'user_locale' => $user->getLanguage(),
             ]);
 
-            $this->transport->send($message);
+            $this->mailer->send($message);
         }
     }
 }

@@ -26,13 +26,7 @@
     {# Caption #}
     <h2>{{ 'asset.details.page.header' | trans }} {{ asset.getCategory | trans }}: {{ id }} </h2>
     {# Alert messages / flashes #}
-    {% for label, messages in app.flashes %}
-        {% for message in messages %}
-            <div class="alert alert-{{ label }}">
-                {{ message |trans }}
-            </div>
-        {% endfor %}
-    {% endfor %}
+    {{ include('messages.html.twig') }}
     
     {# Asset details #}
     <div class="container-fluid" >

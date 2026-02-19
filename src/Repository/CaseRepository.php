@@ -10,6 +10,13 @@ use Doctrine\Persistence\ManagerRegistry;
  * Repository class for cases (Fall).
  *
  * @author Ben Brooksnieder
+ *
+ * @extends ServiceEntityRepository<CaseFile>
+ *
+ * @method CaseFile|null find($id, $lockMode = null, $lockVersion = null)
+ * @method CaseFile|null findOneBy(array $criteria, array $orderBy = null)
+ * @method CaseFile[]    findAll()
+ * @method CaseFile[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
 class CaseRepository extends ServiceEntityRepository
 {
@@ -53,9 +60,7 @@ class CaseRepository extends ServiceEntityRepository
     public function findBySimpleSearch(mixed $search, ?int $limit): array
     {
         $builder = $this->createQueryBuilder('c')
-            ->where('c.description like :search')
-            ->orWhere('c.caseId like :search')
-            ->orderBy('c.openedOn', 'DESC')
+            ->where($this->simpleSearchQuery('c'))
             ->setParameter('search', "%{$search}%")
         ;
 
@@ -66,5 +71,13 @@ class CaseRepository extends ServiceEntityRepository
         $query = $builder->getQuery();
 
         return $query->getResult();
+    }
+
+    public function simpleSearchQuery(string $alias): string 
+    {
+        $builder = $this->getEntityManager()->getExpressionBuilder();
+        $query = $builder->like("$alias.description", ":search");
+        $query = $builder->orX($query, $builder->like("$alias.caseId", ":search"));
+        return "($query)";
     }
 }
