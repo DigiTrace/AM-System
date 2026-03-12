@@ -26,6 +26,11 @@ form:
   picture:
     upload: 'Upload picture'
     is_public: 'Is picture public (can be reused by others)?'
+    select_public: 'Select public picture'
+
+export:
+  docx:
+    header: 'Docx export from AM-System'
 
 # user translations
 user:
@@ -236,7 +241,14 @@ asset:
         optional: 'New usage of asset (optional)'
         required: 'New usage of asset (required)'
       due_date: 'Change due'
+      asset_search: 'Search assets'
+      case_search: 'Search cases'
+      location_search: 'Search storages'
       save: 'Change asset'
+      help:
+        asset_search: 'Select asset'
+        case_search: 'Select case to assign'
+        location_search: 'Select available storage location'
 
     neutralize:
       not_hdd: 'Asset is not a HDD'
@@ -252,7 +264,7 @@ asset:
 
     lost:
       info: "This isn't suppose to happen, we are professionals!"
-      warning: 
+      warning: 'When an asset has been declared as destroyed or lost, it cant be altered afterwards.'
 
     remove_container:
       info: 'Please state, why you want to pull the asset out of the container'
@@ -348,8 +360,16 @@ case:
     closed_on: *CASE_CLOSED_ON
     save: *FORM_SAVE
 
+  add:
+    header: 'Add new case'
+    success: 'Succesfully added new case'
+
   search:
     header: 'Case overview'
+
+  edit:
+    header: 'Edit case {case}'
+    success: 'Succesfully edited case'
 
   details:
     header: 'Details of case {case}'
@@ -358,6 +378,15 @@ case:
     opened_on: 'Case open since'
     associated_assets: 'Associated assets'
     former_associated_assets: 'Former associated assets'
+
+  download_word:
+    details: 'Details about case {case}'
+    listed_assets: 'Currently listed assets'
+    involved_assets: 'Assets, which were involved with this case'
+    report_by: 'Report generate on {date} by {user}'
+
+  error:
+    not_found: 'Case not found'
 
   actions:
     add: 'Add new case'

@@ -45,11 +45,13 @@ class UploadPictureType extends AbstractType
                 'required' => false,
             ])
             ->add('select_public', Field\ChoiceType::class, [
+                'label' => 'form.picture.select_public',
                 'required' => false,
                 'placeholder'=> false,
                 'expanded' => true,
                 'multiple' => false,
                 'attr' => ['style' => 'display: none;'],
+                'choice_translation_domain' => false,
                 'choices' => $options['public_pictures'],
                 'choice_label' => function($choice, $key, $index) {
                     return $choice->getFilename();

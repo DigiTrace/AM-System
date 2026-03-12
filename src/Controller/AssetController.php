@@ -624,7 +624,7 @@ class AssetController extends BaseController
             ],
             'beforePersist' => fn (Asset $asset) => $asset->setLocation(null),
             'messages' => [ 
-                ['info', 'action.remove_container.info'],
+                ['info', 'asset.action.remove_container.info'],
             ],
         ];
 

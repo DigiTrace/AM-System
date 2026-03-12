@@ -24,13 +24,14 @@
 {% block content2 %}
     
     <h2>{{ 'asset.scanner.header' | trans}}</h2>
-        
-        {{ form_start(form) }}
-        {{ form_widget(form) }}
-        {{ form_end(form) }}
-
+    
+    {{ include('messages.html.twig') }}    
+    
+    {{ form_start(form) }}
+    {{ form_widget(form) }}
+    {{ form_end(form) }}
     <div class="alert alert-info">
-        <strong>Info!</strong> {{ 'asset.scanner.info' }}
+        <strong>Info!</strong> {{ 'asset.scanner.info' | trans }}
     </div>
               
                 

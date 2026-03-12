@@ -148,7 +148,7 @@ class CaseController extends BaseController
 
         // check if case was found
         if (null == $case) {
-            $this->addFlash('danger', 'case_not_found');
+            $this->addFlash('danger', 'case.error.not_found');
 
             return $this->redirectToRoute('search_case');
         }
@@ -171,7 +171,7 @@ class CaseController extends BaseController
 
         // check if case was found
         if (null == $case) {
-            $this->addFlash('danger', 'case_not_found');
+            $this->addFlash('danger', 'case.error.not_found');
 
             return $this->redirectToRoute('search_case');
         }
@@ -216,7 +216,7 @@ class CaseController extends BaseController
 
         // check if case was found
         if (null == $case) {
-            $this->addFlash('danger', 'case_not_found');
+            $this->addFlash('danger', 'case.error.not_found');
 
             return $this->redirectToRoute('search_case');
         }
@@ -229,26 +229,26 @@ class CaseController extends BaseController
         $previousEntrys = $repo->findPreviouslyInvolvedInCase($case);
 
         $templateData = [
-            'case_details' => $translator->trans('case_details %context%', ['%context%' => $case->getcaseid()]),
+            'case_details' => $translator->trans('case.download_word.details %case%', ['%case%' => $case->getcaseid()]),
             'export.docx.header' => $translator->trans('export.docx.header'),
-            'caseId' => $translator->trans('caseId'),
+            'caseId' => $translator->trans('case.attr.case_id'),
             'caseId_text' => $case->getCaseId(),
-            'case_description' => $translator->trans('case_description'),
+            'case_description' => $translator->trans('case.attr.description'),
             'case_description_text' => $case->getDescription(),
-            'case_dos' => $translator->trans('case_dos'),
+            'case_dos' => $translator->trans('case.attr.secrecy'),
             'case_dos_text' => $translator->trans($case->getSecrecy()->value),
-            'case_isactiv' => $translator->trans('case_isactiv'),
-            'case_isactiv_text' => ($case->isActive() ? 'Ja' : 'Nein'),
-            'case_timestamp' => $translator->trans('case_timestamp'),
+            'case_isactiv' => $translator->trans('case.attr.active'),
+            'case_isactiv_text' => $translator->trans(($case->isActive() ? 'yes' : 'no')),
+            'case_timestamp' => $translator->trans('case.attr.opened_on'),
             'case_timestamp_text' => $case->getOpenedOn()->format("'d.m.y H:i'"),
-            'desc.oid' => $translator->trans('desc.oid'),
-            'desc.name' => $translator->trans('desc.name'),
-            'desc.lstatus' => $translator->trans('desc.lstatus'),
-            'desc.last.action.done' => $translator->trans('desc.last.action.done'),
-            'desc.container' => $translator->trans('desc.container'),
-            'container_listed_objects' => $translator->trans('container_listed_objects'),
-            'case_listed_history_objects' => $translator->trans('case_listed_history_objects'),
-            'userstamp' => $translator->trans('report.generated.by.user.%user%.on.%time%', ['%user%' => $user->getFullname(), '%time%' => date('d.m.y H:i')]),
+            'desc.oid' => $translator->trans('asset.attr.barcode'),
+            'desc.name' => $translator->trans('asset.attr.name'),
+            'desc.lstatus' => $translator->trans('asset.attr.state'),
+            'desc.last.action.done' => $translator->trans('asset.attr.last_updated_on'),
+            'desc.container' => $translator->trans('asset.attr.location'),
+            'container_listed_objects' => $translator->trans('case.download_word.listed_assets'),
+            'case_listed_history_objects' => $translator->trans('case.download_word.involved_assets'),
+            'userstamp' => $translator->trans('case.download_word.report_by', ['%user%' => $user->getFullname(), '%date%' => date('d.m.y H:i')]),
         ];
 
         \PhpOffice\PhpWord\Settings::setOutputEscapingEnabled(true);
