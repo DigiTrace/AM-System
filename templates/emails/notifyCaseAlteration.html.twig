@@ -17,5 +17,5 @@
    // along with this program.  If not, see <http://www.gnu.org/licenses/>.
    
 #}
-{{"email_case_was_altered_body %name% %caseid% %calleduser%" | trans({'%caseid%': caseid,'%calleduser%': calleduser, '%name%':name }, "messages", user_locale)|nl2br}}
+{{"email.case_alteration.body" | trans({'%case%': case,'%user%': user, '%recipient%': recipient, '%link%': link }, "messages", user_locale)|nl2br}}
 

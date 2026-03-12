@@ -17,5 +17,5 @@
    // along with this program.  If not, see <http://www.gnu.org/licenses/>.
    
 #}
-{{"email_case_was_created_body %name% %caseid% %calleduser%" | trans({'%caseid%': caseid,'%calleduser%': calleduser, '%name%':name }, "messages", user_locale)|nl2br}}
+{{"email.case_creation.body" | trans({'%case%': case,'%user%': user, '%recipient%': recipient, '%link%': link }, "messages", user_locale)|nl2br}}
 

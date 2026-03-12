@@ -8,6 +8,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Bridge\Twig\Mime\TemplatedEmail;
 use Symfony\Component\Mailer\MailerInterface;
+use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
 /**
@@ -21,6 +22,7 @@ class EmailNotification
         private MailerInterface $mailer,
         private EntityManagerInterface $entityManager,
         private TranslatorInterface $translator,
+        private UrlGeneratorInterface $urlGenerator,
         private LoggerInterface $logger
     ){}
 
@@ -34,8 +36,12 @@ class EmailNotification
             'count' => \count($subscribers)
         ]);
 
+        $link = $this->urlGenerator->generate('detail_case', [
+            'id' => $case->getCaseId(),
+        ]);
+
         foreach ($subscribers as $subscriber) {
-            $subject = $this->translator->trans('email_case_was_created_subject', locale: $subscriber->getLanguage());
+            $subject = $this->translator->trans('email.case_creation.subject', ['case' => $case->getCaseId()], locale: $subscriber->getLanguage());
 
             $message = (new TemplatedEmail())
             ->subject($subject)
@@ -44,9 +50,10 @@ class EmailNotification
 
             $message->htmlTemplate('emails/notifyCaseCreation.html.twig');
             $message->context([
-                'name' => $subscriber->getFullname(),
-                'calleduser' => $user->getFullname(),
-                'caseid' => $case->getCaseId(),
+                'recipient' => $subscriber->getFullname(),
+                'user' => $user->getFullname(),
+                'case' => $case->getCaseId(),
+                'link' => $link,
                 'user_locale' => $user->getLanguage(),
             ]);
 
@@ -64,8 +71,12 @@ class EmailNotification
             'count' => \count($subscribers)
         ]);
 
+        $link = $this->urlGenerator->generate('detail_case', [
+            'id' => $case->getCaseId(),
+        ]);
+
         foreach ($subscribers as $subscriber) {
-            $subject = $this->translator->trans('email_case_was_altered_subject', locale: $subscriber->getLanguage());
+            $subject = $this->translator->trans('email.case_alteration.subject', ['case' => $case->getCaseId()], locale: $subscriber->getLanguage());
 
             $message = (new TemplatedEmail())
             ->subject($subject)
@@ -73,10 +84,11 @@ class EmailNotification
             ->to($subscriber->getEmail());
 
             $message->htmlTemplate('emails/notifyCaseAlteration.html.twig');
-            $message->context([
-                'name' => $subscriber->getFullname(),
-                'calleduser' => $user->getFullname(),
-                'caseid' => $case->getCaseId(),
+           $message->context([
+                'recipient' => $subscriber->getFullname(),
+                'user' => $user->getFullname(),
+                'case' => $case->getCaseId(),
+                'link' => $link,
                 'user_locale' => $user->getLanguage(),
             ]);
 

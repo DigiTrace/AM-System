@@ -10,8 +10,6 @@ nav:
   cases: 'Cases'
   assets: 'Assets'
   scan: 'Scan asset'
-
-  
   
 # general form labels/messages
 form:
@@ -465,5 +463,26 @@ es:
     no: 'no'
     none: is not set
     yes: 'yes'
+
+email:
+  case_creation:
+    subject: 'Case "{case}" was added to the AM-System '
+    body: |
+      Dear {recipient},
+      A case with the ID "{case}" was added to the AM-System by user {user}.
+      See {link}.
+
+      Kind regards
+      AM-System
+
+  case_alteration:
+    subject: 'Case "{case}" was altered in the AM-System '
+    body: |
+      Dear {recipient},
+      The case with the ID "{case}" was altered in the AM-System by user {user}.
+      See {link}.
+
+      Kind regards
+      AM-System
 
 not_implemented_yet: 'Not implemented yet: {function}'
