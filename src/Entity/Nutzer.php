@@ -69,7 +69,7 @@ class Nutzer implements UserInterface, PasswordAuthenticatedUserInterface
     // wird auch nicht in die Datenbank gespeichert
     private $plainPassword;
 
-    #[ORM\OneToMany(mappedBy: 'lastChangeBy', targetEntity: AssetHistory::class)]
+    #[ORM\OneToMany(mappedBy: 'modifiedBy', targetEntity: AssetHistory::class)]
     private Collection $assetHistories;
 
     #[ORM\OneToMany(mappedBy: 'reservedBy', targetEntity: AssetHistory::class)]

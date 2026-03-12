@@ -52,7 +52,7 @@ class Asset
     #[ORM\JoinColumn(nullable: true, name: 'reserviert_von')]
     private ?Nutzer $reservedBy = null;
 
-    #[ORM\ManyToOne]
+    #[ORM\ManyToOne(inversedBy: 'assets')]
     #[ORM\JoinColumn(name: 'fall_id', nullable: true)]
     #[AppConstraints\AssetCase()]
     private ?CaseFile $case = null;

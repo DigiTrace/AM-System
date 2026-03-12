@@ -13,7 +13,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 // #[ORM\Table(name: "ams_ObjektBlob")]
 class AssetBlob
 {
-    #[ORM\OneToOne(mappedBy: 'blob', cascade: ['persist', 'remove'])]
+    #[ORM\OneToOne(inversedBy: 'assetBlob', cascade: ['persist', 'remove'])]
     #[ORM\Id]
     #[ORM\JoinColumn(name: 'barcode_id', referencedColumnName: 'barcode_id', nullable: false)]
     private Asset $asset;
