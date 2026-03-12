@@ -6,16 +6,17 @@ use App\Repository\NutzerRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Doctrine\ORM\Mapping\AttributeOverride;
+use Doctrine\ORM\Mapping\AttributeOverrides;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 
 #[ORM\Entity(repositoryClass: NutzerRepository::class)]
 #[ORM\Table(name: "ams_Nutzer")]
 #[AttributeOverrides([
-    new AttributeOverride(name:"username", column: new ORM\Column(options:[collation => "utf8_bin"]))
+    new AttributeOverride(name:"username", column: new ORM\Column(options:['collation' => "utf8_bin"]))
 
 ])]
-
 class Nutzer implements UserInterface, PasswordAuthenticatedUserInterface
 {
     #[ORM\Id]
