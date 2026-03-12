@@ -510,7 +510,7 @@ class AssetControllerTest extends BaseWebTestCase
         // no changes
         $client->submit($form);
         $this->assertResponseIsSuccessful();
-        $this->assertSelectorTextContains('.alert', 'asset.action.edit.no_changes_made');
+        $this->assertSelectorTextContains('.alert', 'asset.edit.no_changes_made');
 
         // check history
         $this->dontSeeInDatabase(AssetHistoryRepository::class, $history);

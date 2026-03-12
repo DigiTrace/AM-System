@@ -97,8 +97,8 @@ class CaseControllerTest extends BaseWebTestCase
         
 
         // look into hmtl whether case was rendered and processed correctly
-        $this->assertSelectorTextContains("tr:contains('case.details.page.case_id')", $params['id']);
-        $this->assertSelectorTextContains("tr:contains('case.details.page.description')", $params['desc']);
+        $this->assertSelectorTextContains("tr:contains('case.attr.case_id')", $params['id']);
+        $this->assertSelectorTextContains("tr:contains('case.attr.description')", $params['desc']);
 
         $this->seeInDatabase(CaseRepository::class, [
             'caseId' => $params['id'],
