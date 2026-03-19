@@ -11,7 +11,7 @@ use Doctrine\ORM\Mapping as ORM;
  * @author Ben Brooksnieder
  */
 #[ORM\Entity(repositoryClass: DriveRepository::class)]
-// #[ORM\Table(name: "ams_Datentraeger")]
+#[ORM\Table(name: "ams_Datentraeger")]
 class Drive
 {
     #[ORM\OneToOne(inversedBy: 'drive', cascade: ['persist', 'remove'])]
@@ -37,7 +37,7 @@ class Drive
     #[ORM\Column(type: Types::TEXT, nullable: true, name: 'sn')]
     private ?string $serialNumber = null;
 
-    #[ORM\Column(type: Types::TEXT, nullable: true, name: 'pd')]
+    #[ORM\Column(type: Types::TEXT, nullable: true, name: 'pn')]
     private ?string $productNumber = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true, name: 'anschluss')]

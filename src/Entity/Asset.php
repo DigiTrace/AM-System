@@ -18,7 +18,7 @@ use Doctrine\ORM\Mapping as ORM;
  * @author Ben Brooksnieder
  */
 #[ORM\Entity(repositoryClass: AssetRepository::class)]
-// #[ORM\Table(name: 'ams_Objekt')]
+#[ORM\Table(name: 'ams_Objekt')]
 class Asset
 {
     #[ORM\Column(length: 9, name: 'barcode_id', updatable: false)]
@@ -78,7 +78,7 @@ class Asset
     private Collection $images;
 
     #[ORM\ManyToMany(targetEntity: self::class, inversedBy: 'images')]
-    // #[ORM\JoinTable(name: 'ams_ZuordnungImageToHDD')]
+    #[ORM\JoinTable(name: 'ams_ZuordnungImageToHDD')]
     #[ORM\JoinColumn(name: 'image', referencedColumnName: 'barcode_id')]
     #[ORM\InverseJoinColumn(name: 'hdd', referencedColumnName: 'barcode_id')]
     private Collection $hdds;

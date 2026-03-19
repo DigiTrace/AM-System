@@ -10,22 +10,26 @@ use Doctrine\Migrations\AbstractMigration;
 /**
  * Auto-generated Migration: Please modify to your needs!
  */
-final class Version20251204105710 extends AbstractMigration
+final class Version20260319103635 extends AbstractMigration
 {
     public function getDescription(): string
     {
-        return 'Added `storage_override` column to ams_Objekt';
+        return 'Add `storage_override` to asset.';
     }
 
     public function up(Schema $schema): void
     {
         // this up() migration is auto-generated, please modify it to your needs
-        $this->addSql('ALTER TABLE ams_Objekt ADD storage_override TINYINT(1) DEFAULT NULL');
+        $this->addSql(<<<'SQL'
+            ALTER TABLE ams_Objekt ADD storage_override TINYINT(1) DEFAULT NULL
+        SQL);
     }
 
     public function down(Schema $schema): void
     {
         // this down() migration is auto-generated, please modify it to your needs
-        $this->addSql('ALTER TABLE ams_Objekt DROP storage_override');
+        $this->addSql(<<<'SQL'
+            ALTER TABLE ams_Objekt DROP storage_override
+        SQL);
     }
 }

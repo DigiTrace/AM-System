@@ -13,10 +13,9 @@ use Symfony\Component\Security\Core\User\UserInterface;
 
 #[ORM\Entity(repositoryClass: NutzerRepository::class)]
 #[ORM\Table(name: "ams_Nutzer")]
-#[AttributeOverrides([
-    new AttributeOverride(name:"username", column: new ORM\Column(options:['collation' => "utf8_bin"]))
-
-])]
+// #[AttributeOverrides([
+//     new AttributeOverride(name:"username", column: new ORM\Column(options:['collation' => "utf8_bin", 'unique' => true]),)
+// ])]
 class Nutzer implements UserInterface, PasswordAuthenticatedUserInterface
 {
     #[ORM\Id]
@@ -28,7 +27,7 @@ class Nutzer implements UserInterface, PasswordAuthenticatedUserInterface
     private ?string $username = null;
 
 
-    #[ORM\Column(length: 180, unique: true)]
+    #[ORM\Column(length: 180, unique: true, options:['collation' => "utf8_bin"])]
     private ?string $fullname = null;
 
 

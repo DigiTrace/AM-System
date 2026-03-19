@@ -14,7 +14,7 @@ use Doctrine\ORM\Mapping as ORM;
  * @author Ben Brooksnieder
  */
 #[ORM\Entity(repositoryClass: AssetHistoryRepository::class)]
-// #[ORM\Table(name: 'ams_Historie_Objekt')]
+#[ORM\Table(name: 'ams_Historie_Objekt')]
 class AssetHistory
 {
     #[ORM\Id]
@@ -58,7 +58,7 @@ class AssetHistory
     private ?\DateTimeInterface $lastUpdatePerformedOn = null;
 
     #[ORM\ManyToMany(targetEntity: Asset::class, inversedBy: 'imageHistory')]
-    // #[ORM\JoinTable(name: 'ams_image_objekt')]
+    #[ORM\JoinTable(name: 'ams_image_objekt')]
     #[ORM\JoinColumn(name: 'historie_id', referencedColumnName: 'historie_id')]
     #[ORM\InverseJoinColumn(name: 'barcode_id', referencedColumnName: 'barcode_id')]
     private Collection $images;
