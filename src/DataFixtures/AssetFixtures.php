@@ -8,6 +8,8 @@ use App\Entity\Drive;
 use App\Entity\Nutzer;
 use App\Enum\AssetCategory;
 use App\Enum\AssetState;
+use DateTime;
+use DateTimeInterface;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Common\DataFixtures\DependentFixtureInterface;
 use Doctrine\Persistence\ObjectManager;
@@ -15,12 +17,12 @@ use Doctrine\Persistence\ObjectManager;
 /**
  * Loads objekts and datentraeger for dev purposes.
  *
- * @author Ben Brooksnieder
+ * @author Ben Brookserial_numberieder
  */
 class AssetFixtures extends Fixture implements DependentFixtureInterface
 {
-    public const ASSET_REFERENCE = 'dt-objekt-';
-    public const DRIVE_REFERENCE = 'dt-datentraeger-';
+    public const ASSET_REFERENCE = 'dt-asset-';
+    public const DRIVE_REFERENCE = 'dt-drive-';
     public function getDependencies(): array
     {
         return [
@@ -59,15 +61,15 @@ class AssetFixtures extends Fixture implements DependentFixtureInterface
                 'category' => AssetCategory::Hdd,
                 'state' => AssetState::Added,
                 'hdd' => [
-                    'bauart' => '',
-                    'formfaktor' => '',
-                    'groesse' => 0,
-                    'groessealt' => 0,
-                    'modell' => '',
-                    'hersteller' => '',
-                    'sn' => '',
-                    'pn' => '',
-                    'anschluss' => '',
+                    'type' => '',
+                    'formFactor' => '',
+                    'size' => 0,
+                    'sizealt' => 0,
+                    'model' => '',
+                    'manufacturer' => '',
+                    'serial_number' => '',
+                    'product_number' => '',
+                    'connector' => '',
                 ],
             ],
             [
@@ -86,15 +88,15 @@ class AssetFixtures extends Fixture implements DependentFixtureInterface
                 'category' => AssetCategory::Hdd,
                 'state' => AssetState::Added,
                 'hdd' => [
-                    'bauart' => 'intern',
-                    'formfaktor' => '3,5',
-                    'groesse' => 500,
-                    'groessealt' => 500,
-                    'modell' => 'Modell 1',
-                    'hersteller' => 'Toshiba',
-                    'sn' => '89437809756B',
-                    'pn' => 'GHII9',
-                    'anschluss' => 'SATA',
+                    'type' => 'intern',
+                    'formFactor' => '3,5',
+                    'size' => 500,
+                    'sizealt' => 500,
+                    'model' => 'model 1',
+                    'manufacturer' => 'Toshiba',
+                    'serial_number' => '89437809756B',
+                    'product_number' => 'GHII9',
+                    'connector' => 'SATA',
                 ],
             ],
             [
@@ -105,15 +107,15 @@ class AssetFixtures extends Fixture implements DependentFixtureInterface
                 'category' => AssetCategory::Hdd,
                 'state' => AssetState::Added,
                 'hdd' => [
-                    'bauart' => 'extern',
-                    'formfaktor' => '2,5',
-                    'groesse' => 2000,
-                    'groessealt' => 2000,
-                    'modell' => 'T00JH9II',
-                    'hersteller' => 'Toshiba',
-                    'sn' => '89437809756C',
-                    'pn' => 'GHII9',
-                    'anschluss' => 'USB',
+                    'type' => 'extern',
+                    'formFactor' => '2,5',
+                    'size' => 2000,
+                    'sizealt' => 2000,
+                    'model' => 'T00JH9II',
+                    'manufacturer' => 'Toshiba',
+                    'serial_number' => '89437809756C',
+                    'product_number' => 'GHII9',
+                    'connector' => 'USB',
                 ],
             ],
             [
@@ -172,15 +174,15 @@ class AssetFixtures extends Fixture implements DependentFixtureInterface
                 'category' => AssetCategory::Hdd,
                 'state' => AssetState::Added,
                 'hdd' => [
-                    'bauart' => 'intern',
-                    'formfaktor' => '3,5',
-                    'groesse' => 2000,
-                    'groessealt' => 2000,
-                    'modell' => 'WD4AU0078',
-                    'hersteller' => 'WD',
-                    'sn' => '6777886546',
-                    'pn' => 'KlllU',
-                    'anschluss' => 'SATA',
+                    'type' => 'intern',
+                    'formFactor' => '3,5',
+                    'size' => 2000,
+                    'sizealt' => 2000,
+                    'model' => 'WD4AU0078',
+                    'manufacturer' => 'WD',
+                    'serial_number' => '6777886546',
+                    'product_number' => 'KlllU',
+                    'connector' => 'SATA',
                 ],
             ],
             [
@@ -191,15 +193,15 @@ class AssetFixtures extends Fixture implements DependentFixtureInterface
                 'category' => AssetCategory::Hdd,
                 'state' => AssetState::Added,
                 'hdd' => [
-                    'bauart' => 'intern',
-                    'formfaktor' => '3,5',
-                    'groesse' => 1000,
-                    'groessealt' => 1000,
-                    'modell' => 'K900',
-                    'hersteller' => 'Hitachi',
-                    'sn' => '7765398176',
-                    'pn' => 'ABCDFG',
-                    'anschluss' => 'SATA',
+                    'type' => 'intern',
+                    'formFactor' => '3,5',
+                    'size' => 1000,
+                    'sizealt' => 1000,
+                    'model' => 'K900',
+                    'manufacturer' => 'Hitachi',
+                    'serial_number' => '7765398176',
+                    'product_number' => 'ABCDFG',
+                    'connector' => 'SATA',
                 ],
             ],
             [
@@ -210,15 +212,15 @@ class AssetFixtures extends Fixture implements DependentFixtureInterface
                 'category' => AssetCategory::Hdd,
                 'state' => AssetState::Added,
                 'hdd' => [
-                    'bauart' => 'intern',
-                    'formfaktor' => '3,5',
-                    'groesse' => 2000,
-                    'groessealt' => 2000,
-                    'modell' => 'K900',
-                    'hersteller' => 'Hitachi',
-                    'sn' => '3234512322',
-                    'pn' => 'GFEDCA',
-                    'anschluss' => 'SATA',
+                    'type' => 'intern',
+                    'formFactor' => '3,5',
+                    'size' => 2000,
+                    'sizealt' => 2000,
+                    'model' => 'K900',
+                    'manufacturer' => 'Hitachi',
+                    'serial_number' => '3234512322',
+                    'product_number' => 'GFEDCA',
+                    'connector' => 'SATA',
                 ],
             ],
             [
@@ -229,15 +231,15 @@ class AssetFixtures extends Fixture implements DependentFixtureInterface
                 'category' => AssetCategory::ExhibitHdd,
                 'state' => AssetState::Added,
                 'hdd' => [
-                    'bauart' => 'intern',
-                    'formfaktor' => '2,5',
-                    'groesse' => 256,
-                    'groessealt' => 256,
-                    'modell' => '430',
-                    'hersteller' => 'Intel',
-                    'sn' => '3344556677',
-                    'pn' => 'JUHGFDGHK',
-                    'anschluss' => 'SATA',
+                    'type' => 'intern',
+                    'formFactor' => '2,5',
+                    'size' => 256,
+                    'sizealt' => 256,
+                    'model' => '430',
+                    'manufacturer' => 'Intel',
+                    'serial_number' => '3344556677',
+                    'product_number' => 'JUHGFDGHK',
+                    'connector' => 'SATA',
                 ],
             ],
             [
@@ -248,15 +250,15 @@ class AssetFixtures extends Fixture implements DependentFixtureInterface
                 'category' => AssetCategory::ExhibitHdd,
                 'state' => AssetState::Added,
                 'hdd' => [
-                    'bauart' => 'intern',
-                    'formfaktor' => '3,5',
-                    'groesse' => 20,
-                    'groessealt' => 20,
-                    'modell' => 'oldware',
-                    'hersteller' => 'Hitachi',
-                    'sn' => '123321123',
-                    'pn' => 'UJHTNMLOI',
-                    'anschluss' => 'ATA',
+                    'type' => 'intern',
+                    'formFactor' => '3,5',
+                    'size' => 20,
+                    'sizealt' => 20,
+                    'model' => 'oldware',
+                    'manufacturer' => 'Hitachi',
+                    'serial_number' => '123321123',
+                    'product_number' => 'UJHTNMLOI',
+                    'connector' => 'ATA',
                 ],
             ],
             [
@@ -278,7 +280,9 @@ class AssetFixtures extends Fixture implements DependentFixtureInterface
             $obj->setName($entry['name']);
             $obj->setUsage($entry['usage']);
             $obj->setCategory($entry['category']);
-            $obj->setState($entry['status_id']);
+            $obj->setState($entry['state']);
+            $obj->setLastUpdatedOn(new DateTime());
+            $obj->setLastUpdatePerformedOn(new DateTime());
             $manager->persist($obj);
             $this->addReference(self::ASSET_REFERENCE.$id, $obj);
         }
@@ -288,11 +292,12 @@ class AssetFixtures extends Fixture implements DependentFixtureInterface
 
         // second add datentraeger
         foreach ($config as $id => $entry) {
+            $asset = $this->getReference(self::ASSET_REFERENCE.$id, Asset::class);
             // add datentraeger
             if (!key_exists('hdd', $entry)) {
                 continue;
             }
-            $entry['hdd']['barcode'] = $entry['barcode'];
+            $entry['hdd']['barcode'] = $asset;
             $hdd = new Drive($entry['hdd']);
             $manager->persist($hdd);
             $this->addReference(self::DRIVE_REFERENCE.$id, $hdd);

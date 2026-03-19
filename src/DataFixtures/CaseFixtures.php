@@ -14,7 +14,7 @@ use Doctrine\Persistence\ObjectManager;
  */
 class CaseFixtures extends Fixture
 {
-    public const CASE_REFERENCE = 'dt-fall-';
+    public const CASE_REFERENCE = 'dt-case-';
 
     public function load(ObjectManager $manager): void
     {
@@ -22,38 +22,38 @@ class CaseFixtures extends Fixture
         $config = [
             [
                 'active' => true,
-                'case_id' => 'XIVv2',
-                'dos' => CaseSecrecy::Confidential,
-                'desc' => '(TEST)Computersabotage',
-                'timestamp' => date_create(),
+                'caseid' => 'XIVv2',
+                'secrecy' => CaseSecrecy::Confidential,
+                'description' => '(TEST)Computersabotage',
+                'openedOn' => date_create(),
             ],
             [
                 'active' => true,
-                'case_id' => 'TLG',
-                'dos' => CaseSecrecy::Confidential,
-                'desc' => '(TEST)Einbruch im Hochsicherheitstrakt beim HIER BEKANNTE FIRMA EINTRAGEN. Laptop mit HIER WICHTIGE DATENBESTAND EINFÜGEN Daten entwendet',
-                'timestamp' => date_create(),
+                'caseid' => 'TLG',
+                'secrecy' => CaseSecrecy::Confidential,
+                'description' => '(TEST)Einbruch im Hochsicherheitstrakt beim HIER BEKANNTE FIRMA EINTRAGEN. Laptop mit HIER WICHTIGE DATENBESTAND EINFÜGEN Daten entwendet',
+                'openedOn' => date_create(),
             ],
             [
                 'active' => true,
-                'case_id' => 'Müller/c1',
-                'dos' => CaseSecrecy::Confidential,
-                'desc' => '(TEST)Auf seinen privaten Rechner wurde eine Bitcoinsoftware per Malware installiert',
-                'timestamp' => date_create(),
+                'caseid' => 'Müller/c1',
+                'secrecy' => CaseSecrecy::Confidential,
+                'description' => '(TEST)Auf seinen privaten Rechner wurde eine Bitcoinsoftware per Malware installiert',
+                'openedOn' => date_create(),
             ],
             [
                 'active' => true,
-                'case_id' => '78/98',
-                'dos' => CaseSecrecy::Confidential,
-                'desc' => '(TEST)Verdacht auf Besitz von KiPo',
-                'timestamp' => date_create(),
+                'caseid' => '78/98',
+                'secrecy' => CaseSecrecy::Confidential,
+                'description' => '(TEST)Verdacht auf Besitz von KiPo',
+                'openedOn' => date_create(),
             ],
             [
                 'active' => true,
-                'case_id' => 'Schmidt AG',
-                'dos' => CaseSecrecy::Confidential,
-                'desc' => '(TEST)Pentest des Front Webservers',
-                'timestamp' => date_create(),
+                'caseid' => 'Schmidt AG',
+                'secrecy' => CaseSecrecy::Confidential,
+                'description' => '(TEST)Pentest des Front Webservers',
+                'openedOn' => date_create(),
             ],
         ];
 
@@ -61,10 +61,10 @@ class CaseFixtures extends Fixture
             // add case
             $case = new CaseFile();
             $case->setActive($entry['active']);
-            $case->setCaseId($entry['case_id']);
-            $case->setSecrecy($entry['dos']);
-            $case->setDescription($entry['desc']);
-            $case->setOpenedOn($entry['timestamp']);
+            $case->setCaseId($entry['caseid']);
+            $case->setSecrecy($entry['secrecy']);
+            $case->setDescription($entry['description']);
+            $case->setOpenedOn($entry['openedOn']);
             $manager->persist($case);
             $this->addReference(self::CASE_REFERENCE.$id, $case);
         }

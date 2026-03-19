@@ -36,7 +36,7 @@ class CaseType extends AbstractType
                 'placeholder'=> false,
                 'expanded' => false,
                 'multiple' => false,
-                'data' => CaseSecrecy::Confidential,
+                'data' => $options['showOpenedOn'] ? CaseSecrecy::Confidential : null,
                 'choices' =>  CaseSecrecy::cases(),
                 'choice_translation_domain' => false,
                 'required' => false,
@@ -87,6 +87,7 @@ class CaseType extends AbstractType
             ],
         ]);
 
+        $resolver->setAllowedTypes('showOpenedOn', 'bool');
         $resolver->setAllowedTypes('showOpenedOn', 'bool');
         $resolver->setAllowedTypes('closedOn_not_before', ['null', \DateTimeInterface::class]);
     }
