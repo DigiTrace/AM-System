@@ -33,10 +33,9 @@ class CaseType extends AbstractType
             ->add('secrecy', Field\EnumType::class, [
                 'label' => 'case.form.secrecy',
                 'class' => CaseSecrecy::class,
-                'placeholder'=> false,
+                'placeholder' => false,
                 'expanded' => false,
                 'multiple' => false,
-                'data' => $options['showOpenedOn'] ? CaseSecrecy::Confidential : null,
                 'choices' =>  CaseSecrecy::cases(),
                 'choice_translation_domain' => false,
                 'required' => false,
@@ -57,6 +56,8 @@ class CaseType extends AbstractType
                 'widget'       => 'single_text',
                 'with_seconds' => true,
             ]);
+            // set default value of case
+            $builder->get('secrecy')->setData(CaseSecrecy::Confidential);
         }
 
         if ($options['closedOn_not_before']) {
