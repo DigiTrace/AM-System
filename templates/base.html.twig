@@ -24,14 +24,33 @@
     <head>
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta charset="UTF-8" />
-        <title>{% trans %}amsystem{% endtrans %}</title>
+        <title>{{ 'amsystem' | trans }}</title>
         {% block stylesheets %}{% endblock %}
         <link rel="stylesheet" href="{{asset('css/bootstrap.min.css')}}" >
         <script src="{{asset('js/jquery-3.7.1.min.js')}}" ></script>
         <script src="{{asset('js/bootstrap.min.js')}}" ></script>
         <link rel="icon" type="image/x-icon" href="{{ asset('img/favicon.ico') }}" />
         
-        
+        <style>
+          code {
+              text-wrap-mode: nowrap;
+          }
+          .badge-danger: {
+              background-color: #d9534f;
+          }
+          .badge-info {
+              background-color: #5bc0de;
+          }
+          .badge-primary {
+              background-color: #337ab7;
+          }
+          .badge-success {
+              background-color: #5cb85c;
+          }
+          .badge-warning {
+              background-color: #f0ad4e;
+          }
+      </style>
     </head>
     <body > 
         
@@ -51,22 +70,22 @@
               <div class="collapse navbar-collapse" id="myNavbar">
                 
                 <ul class="nav navbar-nav">
-                    <li><a class="navbar-brand" href='{{ path('homepage') }}'>{% trans %}start.page{% endtrans %} <span class="glyphicon glyphicon glyphicon-list-alt"></span></a></li>
-                    <li><a class="navbar-brand" href='{{ path('search_case') }}'>{% trans %}cases{% endtrans %} <span class="glyphicon glyphicon-search"></span></a></li>
-                    <li><a class="navbar-brand" href='{{ path('search_objects') }}'>{% trans %}objects{% endtrans %} <span class="glyphicon glyphicon-search"></span></a></li>
-                    <li><a class="navbar-brand" href='{{ path('search_objects_scanner') }}'>{% trans %}objects{% endtrans %} <span class="glyphicon glyphicon-qrcode"></span></a></li>
+                    <li><a class="navbar-brand" href='{{ path('homepage') }}'>{{ 'start.page' | trans }} <span class="glyphicon glyphicon glyphicon-list-alt"></span></a></li>
+                    <li><a class="navbar-brand" href='{{ path('search_case') }}'>{{ 'cases' | trans }} <span class="glyphicon glyphicon-search"></span></a></li>
+                    <li><a class="navbar-brand" href='{{ path('search_objects') }}'>{{ 'objects' | trans }} <span class="glyphicon glyphicon-search"></span></a></li>
+                    <li><a class="navbar-brand" href='{{ path('search_objects_scanner') }}'>{{ 'objects' | trans }} <span class="glyphicon glyphicon-qrcode"></span></a></li>
                 </ul>
                 
                 <ul class="nav navbar-nav navbar-right">
                   {% if app.user is not null%}
-                  <li><a href='{{ path('Nutzerlogout') }}'><span class="glyphicon glyphicon-log-out"></span> {% trans %}action.logout{% endtrans %}</a></li>
+                  <li><a href='{{ path('logout') }}'><span class="glyphicon glyphicon-log-out"></span> {{ 'action.logout' | trans }}</a></li>
                   {% endif %}
                 </ul>
                 <ul class="nav navbar-nav navbar-right">
                      {% if app.user is null %}
                         <li class="navbar-brand">Anonym</li>
                     {% else %}
-                    <li class="navbar-brand" onclick="window.location.href='{{ path('Nutzerprofil') }}'">{{ app.user.username }}</li>
+                    <li class="navbar-brand" onclick="window.location.href='{{ path('user_profile') }}'">{{ app.user.username }}</li>
                     {% endif %}
                 </ul>
                 
@@ -92,7 +111,7 @@
             {% if _block is not empty %}
             <div class="col-sm-2 sidenav text-left hidden-print " >
                
-                <h3>{% trans %}contextmenu{% endtrans %}:</h3>
+                <h3>{{ 'contextmenu' | trans }}:</h3>
                 <div class="well well-sm" style="min-height:200px;">
 
                  {% block context %}{% endblock %}
@@ -105,7 +124,7 @@
 
         <footer class="container-fluid text-center well well-sm hidden-print" style="margin-top:100px">
           <p>             
-              {% trans %}applicationof{% endtrans %} <img src="{{asset('img/DigiTrace_Logo.png')}}" width="100px" alt="Digitrace GmbH" >, Made by Robert Krasowski
+              {{ 'applicationof' | trans }} <img src="{{asset('img/DigiTrace_Logo.png')}}" width="100px" alt="Digitrace GmbH" >, Made by Robert Krasowski
           </p>
           
            {% if app.user is not null%}
@@ -118,7 +137,7 @@
        <script>
                 
                 function alertbeforesubmit(){
-                    return confirm("{% trans %}alertbeforesubmit{% endtrans %}");
+                    return confirm("{{ 'alertbeforesubmit' | trans }}");
                 }
                 
         </script>

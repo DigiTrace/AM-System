@@ -1,0 +1,69 @@
+{% extends 'base.html.twig' %}
+{% form_theme form 'bootstrap_3_layout.html.twig' %} 
+
+{% block content1 %}
+
+        <div id="alert-anchor">
+        {% for label, messages in app.flashes %}
+            {% for message in messages %}
+                <div class="alert alert-{{ label }}">
+                    {{ message |trans }}
+                </div>
+                {% endfor %}
+            {% endfor %}
+        </div>
+
+        {{ form_start(form) }}
+        <div class="row" style:"max-width: 400px;">
+            <div class='col-sm-12 col-md-6'>
+                {{ form_label(form.username) }}
+                {{ form_widget(form.username) }}
+                {{ form_errors(form.username) }}
+                <span class="help-block"></span>
+            </div>    
+
+            <div class='col-sm-12 col-md-6'>
+                {{ form_label(form.fullname) }}
+                {{ form_widget(form.fullname) }}
+                {{ form_errors(form.fullname) }}
+                <span class="help-block"></span>
+            </div>
+        
+            <div class='col-sm-12 col-md-6'>
+                {{ form_label(form.email) }}
+                {{ form_errors(form.email) }}
+                {{ form_widget(form.email) }}
+                <span class="help-block"></span>
+            </div>
+            
+            <div class='col-sm-12 col-md-6'>
+                {{ form_label(form.plainpassword) }}
+                {{ form_errors(form.plainpassword) }}
+                {{ form_widget(form.plainpassword) }}
+                <span class="help-block"></span>
+            </div>
+
+            <div class='col-sm-12 col-md-6'>
+                {{ form_label(form.notifyCaseCreation) }}
+                {{ form_errors(form.notifyCaseCreation) }}
+                {{ form_widget(form.notifyCaseCreation) }}
+                <span class="help-block"></span>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class='col-sm-4'>
+                {{ form_widget(form.save) }}
+            </div>
+        </div>        
+    {{ form_widget(form) }}
+    {{ form_end(form) }}
+
+
+{% endblock %}
+
+
+
+{% block context %}
+{{ include('admin/context.html.twig') }}
+{% endblock %}

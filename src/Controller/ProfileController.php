@@ -2,180 +2,234 @@
 
 namespace App\Controller;
 
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Annotation\Route;
-
-use Symfony\Component\Form\Extension\Core\Type\TextType;
-use Symfony\Component\Form\Extension\Core\Type\PasswordType;
-use Symfony\Component\Form\Extension\Core\Type\SubmitType;
-use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
-use Doctrine\ORM\EntityManagerInterface;
-
 use App\Entity\Nutzer;
+use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\Form\Extension\Core\Type as FormField;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
+use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Security\Core\Validator\Constraints as SecurityConstraints;
+use Symfony\Component\Validator\Constraints as Assert;
+use Symfony\Component\Validator\Context\ExecutionContextInterface;
 
-
-
+/**
+ * Controller for profile management, e.g. change password etc.
+ *
+ * @author Robert Krasowski
+ * @author Ben Brooksnieder
+ */
 class ProfileController extends AbstractController
 {
-    #[Route('/profil', name: 'Nutzerprofil')]
-    public function index(): Response
+    /**
+     * Show profile information and allow editing of attributes.
+     */
+    #[Route('/profil', name: 'user_profile')]
+    public function index(Request $request, EntityManagerInterface $entityManager): Response
     {
         $user = $this->getUser();
+        $form = $this->getUserChangeForm($user);
+        $form->handleRequest($request);
 
+        if ($form->isSubmitted() && $form->isValid()) {
+            $data = $form->getData();
 
+            // user ids must match
+            if ($user->getID() !== intval($data->getId())) {
+                throw $this->createAccessDeniedException();
+            }
 
-        return $this->render('profile/index.html.twig', [
-            'controller_name' => 'ProfileController',
-            'user' => $user
+            $updated_user = $this->processUserChangeForm($data, $entityManager);
+            if (false !== $updated_user) {
+                $this->addFlash('success', 'user.form.edit_successul');
+
+                return $this->redirectToRoute('user_profile');
+            }
+
+            // change was not successful
+            $this->addFlash('danger', 'user.form.error.duplicate');
+        }
+
+        $user = $this->getUser();
+
+        return $this->render('user/index.html.twig', [
+            'user' => $user,
+            'form' => $form->createView(),
         ]);
     }
 
-
-
-    #[Route('/profil/passwort', name: 'NutzerPasswordAenderung')]
-    public function ChangePassword(Request $request, UserPasswordHasherInterface $passwordHasher, EntityManagerInterface $entityManager): Response
+    /**
+     * Generate form to update user.
+     *
+     * @return \Symfony\Component\Form\FormInterface
+     */
+    private function getUserChangeForm($user)
     {
-        
+        $form = $this->createFormBuilder($user, ['attr' => [
+            // 'onsubmit' => 'return alertbeforesubmit()',
+            'autocomplete' => 'off',
+            'method' => 'POST',
+            'style' => 'max-width: 1440px',
+        ]])
+        ->add('id', FormField\HiddenType::class, [
+            'required' => true,
+        ])
+        ->add('username', FormField\TextType::class, [
+            'label' => 'user.form.username',
+            'required' => true,
+            'attr' => ['autocomplete' => 'change-username'],
+        ])
+        ->add('fullname', FormField\TextType::class, [
+            'label' => 'user.form.fullname',
+            'required' => true,
+            'attr' => ['autocomplete' => 'change-fullname'],
+        ])
+        ->add('email', FormField\EmailType::class, [
+            'label' => 'user.form.email',
+            'required' => true,
+            'attr' => ['autocomplete' => 'change-email'],
+        ])
+        ->add('notifyCaseCreation', FormField\ChoiceType::class, [
+            'label' => 'user.form.notify_case_creation',
+            'choices' => [
+                'user.form.state_subscribed' => true,
+                'user.form.state_unsubscribed' => false,
+            ],
+        ])
+        ->add('save', FormField\SubmitType::class, [
+            'label' => 'user.form.apply',
+            'attr' => ['class' => 'btn btn-primary '],
+        ])
+        ->add('reset', FormField\ResetType::class, [
+            'label' => 'user.form.reset',
+        ])
+        ->getForm();
 
-        $changepwform = $this->createFormBuilder(array('attr' => array('onsubmit' => "return alertbeforesubmit()")))
-            ->add("oldPW", PasswordType::class, array('label' => 'security.changepw.oldPW','required' => true))
-            ->add("newPW", PasswordType::class, array('label' => 'security.changepw.newPW','required' => true))
-            ->add('save',SubmitType::class)
-            ->getForm();
-
-
-        $changepwform->handleRequest($request);
-        if ($changepwform->isSubmitted() && $changepwform->isValid()) {
-        
-            $user = $this->getUser();
-
-            if(!$passwordHasher->isPasswordValid($user, $changepwform->getData()['oldPW'])){
-                $this->addFlash('danger',"security.changepw.oldPW.incorrect");
-            }
-            else{
-                $hashednewPassword = $passwordHasher->hashPassword(
-                    $user,
-                    $changepwform->getData()['newPW']
-                );
-
-                $user->setPassword($hashednewPassword);
-                $entityManager->persist($user);
-                $entityManager->flush();
-                $this->addFlash('success',"security.changepw.newPW.set");
-                return $this->redirectToRoute('Nutzerprofil');
-            }
-
-        }
-        
-
-        return $this->render('profile/ChangePasswort.html.twig', array(
-            'changePWform' => $changepwform->createView()
-        ));
+        return $form;
     }
 
+    /**
+     * Validates updated users values and if valid, update user.
+     *
+     * @param Nutzer $updated_user updated user from form
+     *
+     * @return bool|Nutzer `false` if validation failed, otherwise updated user
+     */
+    private function processUserChangeForm(Nutzer $updated_user, EntityManagerInterface $entityManager)
+    {
+        // test whether new values are allowed and not already in use
+        $query_string = <<<SQL
+        SELECT count(u) FROM App:Nutzer u 
+        WHERE u.id != :id AND (
+            u.fullname LIKE :fullname OR
+            u.username LIKE :username OR
+            u.email LIKE :email
+        )
+        SQL;
 
+        $query = $entityManager->createQuery($query_string)
+            ->setParameter(':id', $updated_user->getId())
+            ->setParameter(':fullname', $updated_user->getFullname())
+            ->setParameter(':username', $updated_user->getUsername())
+            ->setParameter(':email', $updated_user->getEMail())
+        ;
+
+        $duplicates = $query->getArrayResult()[0][1];
+
+        if ($duplicates > 0) {
+            return false;
+        }
+
+        // update user
+        $entityManager->persist($updated_user);
+        $entityManager->flush();
+
+        return $updated_user;
+    }
+
+    #[Route('/profil/passwort', name: 'user_change_password')]
+    public function changeUserPassword(Request $request, UserPasswordHasherInterface $passwordHasher, EntityManagerInterface $entityManager): Response
+    {
+        $form = $this->createFormBuilder(null, [
+            'attr' => ['style' => 'max-width: 800px;'],
+        ])
+        ->add('old_password', FormField\PasswordType::class, [
+            'attr' => ['autocomplete' => 'password'],
+            'label' => 'user.form.old_password',
+            'required' => true,
+            'constraints' => [
+                new Assert\NotBlank(),
+                new SecurityConstraints\UserPassword([
+                    'message' => 'user.violation.incorrect_password',
+                ]),
+            ],
+        ])
+        // TODO add constraints for password e.g. capital letter
+        // TODO exclude in own constraint collection, that can be used for adding users also
+        ->add('new_password', FormField\PasswordType::class, [
+            'attr' => ['autocomplete' => 'new-password'],
+            'label' => 'user.form.new_password',
+            'required' => true,
+            'constraints' => [
+                new Assert\NotBlank(),
+            ],
+        ])
+        ->add('new_password_repeat', FormField\PasswordType::class, [
+            'attr' => ['autocomplete' => 'new-password-repeat'],
+            'label' => 'user.form.new_password_repeat',
+            'required' => true,
+            'constraints' => [
+                new Assert\NotBlank(),
+                // Check if new passwords match
+                // TODO exclude as own constraint
+                new Assert\Callback(function ($new_password_repeat, ExecutionContextInterface $context, $payload) {
+                    $form = $context->getRoot();
+                    $new_password = $form->get('new_password')->getData();
+
+                    if ($new_password_repeat !== $new_password) {
+                        $context->buildViolation('user.violation.passwords_not_matching')
+                        ->addViolation();
+                    }
+                }),
+            ],
+        ])
+        ->add('save', FormField\SubmitType::class, [
+            'label' => 'user.form.save',
+            'attr' => ['class' => 'btn btn-primary '],
+        ])
+        ->getForm();
+
+        $form->handleRequest($request);
+        if ($form->isSubmitted() && $form->isValid()) {
+            $user = $this->getUser();
+            $data = $form->getData();
+
+            $hashednewPassword = $passwordHasher->hashPassword(
+                $user,
+                $data['new_password']
+            );
+
+            $user->setPassword($hashednewPassword);
+            $entityManager->persist($user);
+            $entityManager->flush();
+
+            $this->addFlash('success', 'user.form.password_change_successful');
+
+            return $this->redirectToRoute('user_profile');
+        }
+
+        return $this->render('user/change_password.html.twig', [
+            'form' => $form->createView(),
+        ]);
+    }
+
+    /**
+     * @deprecated use `index` instead
+     */
     #[Route('/profil/aendern', name: 'NutzerAenderung')]
     public function ChangeProfile(Request $request, EntityManagerInterface $entityManager): Response
     {
-        $user = $this->getUser();
-
-        $changeform = $this->createFormBuilder(array('attr' => array('onsubmit' => "return alertbeforesubmit()")))
-            ->add("username", TextType::class, 
-                array('label' => 'security.login.username',
-                      'required' => true, 
-                      'attr' => array('value' => $user->getUsername())))
-            ->add("fullname", TextType::class, 
-                array('label' => 'security.login.fullname',
-                      'required' => true,
-                      'attr' => array('value' => $user->getFullname())))
-            ->add("email", TextType::class, 
-                array('label' => 'useremail',
-                      'required' => true,
-                      'attr' => array('value' => $user->getEmail())))
-            ->add('save',SubmitType::class)
-            ->getForm();
-
-
-        $changeform->handleRequest($request);
-        if ($changeform->isSubmitted() && $changeform->isValid()) {
-        
-            $arechangesperformed=0;
-            $invalidInput=0;
-            // If the fullname has changed, it has to validated, if the name is already in use 
-            if($changeform->getData()['fullname'] != $user->getFullname())
-            {
-                $arechangesperformed=1;
-                $query =  $entityManager->createQuery("select u from App:Nutzer u "
-                                    . "where u.fullname like :fullname ");
-                $query->setParameter(":fullname",$changeform->getData()['fullname']);
-                $users = $query->getResult();
-                if (count($users) > 0){
-                    $invalidInput=1;
-                } 
-            }
-
-            // If the username has changed, it has to validated, if the name is already in use 
-            if($changeform->getData()['username'] != $user->getUsername())
-            {
-                $arechangesperformed=1;
-                $query =  $entityManager->createQuery("select u from App:Nutzer u "
-                                    . "where u.username like :username ");
-                $query->setParameter(":username",$changeform->getData()['username']);
-                $users = $query->getResult();
-                if (count($users) > 0){
-                    $invalidInput=1;
-                } 
-            }
-
-
-            // If the email has changed, it has to validated, if the email is already in use 
-            if($changeform->getData()['email'] != $user->getEMail())
-            {
-                $arechangesperformed=1;
-                $query =  $entityManager->createQuery("select u from App:Nutzer u "
-                                    . "where u.email like :email ");
-                $query->setParameter(":email",$changeform->getData()['email']);
-                $users = $query->getResult();
-                if (count($users) > 0){
-                    $invalidInput=1;
-                } 
-            }
-
-             
-            if ( $invalidInput == 1){
-                $this->addFlash('danger',"profile.failed.changed.user.data.taken");
-
-            } 
-            else{
-                // If changes are avaiable
-                if($arechangesperformed == 1)
-                {
-                    $user->setUsername($changeform->getData()['username']);
-                    $user->setFullname($changeform->getData()['fullname']);
-                    $user->setEmail($changeform->getData()['email']);
-                    $entityManager->persist($user);
-                    $entityManager->flush();
-                    $this->addFlash('success',"profile.successful.changed");
-                }
-                return $this->redirectToRoute('Nutzerprofil');
-            }
-        }
-        
-
-        return $this->render('profile/ChangeProfile.html.twig', array(
-            'changeform' => $changeform->createView()
-        ));
+        return $this->redirectToRoute('user_profile');
     }
 }
-
-
-
-    
-    
-    
-
-    
-    
-

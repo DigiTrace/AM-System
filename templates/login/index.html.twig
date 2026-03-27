@@ -10,11 +10,11 @@
         {% if error %}
         <div class="alert alert-danger">{{ error.messageKey|trans(error.messageData, 'security') }}</div>
         {% endif %}
-        <form action="{{ path("Nutzerlogin") }}" method="post">
+        <form action="{{ path("login") }}" method="post">
             
             <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}" />
           
-            <label for="username">{{ 'security.login.username'|trans }}</label>
+            <label for="username">{{ 'user.username'|trans }}</label>
             <div class="input-group">
 
                 <span class="input-group-addon"><i class="glyphicon glyphicon-user"></i></span>

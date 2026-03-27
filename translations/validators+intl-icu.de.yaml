@@ -1,0 +1,8 @@
+barcode:
+  validation:
+    failed: 'Barcode ist nicht korrekt'
+
+user:
+  violation:
+    incorrect_password: 'Falsches Passwort'
+    passwords_not_matching: 'Neue Passwörter stimmen nicht überein'

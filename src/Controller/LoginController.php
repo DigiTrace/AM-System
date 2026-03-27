@@ -9,7 +9,7 @@ use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
 
 class LoginController extends AbstractController
 {
-    #[Route('/login', name: 'Nutzerlogin')]
+    #[Route('/login', name: 'login')]
     public function index(AuthenticationUtils $authenticationUtils): Response
     {
         // get the login error if there is one
@@ -26,7 +26,7 @@ class LoginController extends AbstractController
     }
 
     
-    #[Route('/logout', name: 'Nutzerlogout')]
+    #[Route('/logout', name: 'logout')]
     public function logoutAction()
     {
        throw new \Exception('Don\'t forget to activate logout in security.yaml');

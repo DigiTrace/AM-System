@@ -109,7 +109,7 @@ class DefaultController extends AbstractController
             $session->set('_locale', $form->getData()['language']);
 
             // return to user page
-            return $this->redirectToRoute('Nutzerprofil', []);
+            return $this->redirectToRoute('user_profile', []);
         }
 
         // show form

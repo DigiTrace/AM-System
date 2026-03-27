@@ -1,0 +1,180 @@
+{#
+   // AM-System
+   // Copyright (C) 2019 Robert Krasowski
+   // This program was created during an internship at DigiTrace GmbH
+   // Read LIZENZ.txt for full notice
+
+   // This program is free software: you can redistribute it and/or modify
+   // it under the terms of the GNU General Public License as published by
+   // the Free Software Foundation, either version 3 of the License, or
+   // (at your option) any later version.
+
+   // This program is distributed in the hope that it will be useful,
+   // but WITHOUT ANY WARRANTY; without even the implied warranty of
+   // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   // GNU General Public License for more details.
+
+   // You should have received a copy of the GNU General Public License
+   // along with this program.  If not, see <http://www.gnu.org/licenses/>.
+   
+#}
+{% extends 'base.html.twig' %} 
+{# Admin only #}
+{% block content1 %}  
+    <h2>{{ 'user.overview' | trans }}:</h2>
+    <div id="alert-anchor">
+    {% for label, messages in app.flashes %}
+        {% for message in messages %}
+            <div class="alert alert-{{ label }}">
+                {{ message |trans }}
+            </div>
+        {% endfor %}
+    {% endfor %}
+    </div>
+
+    <table class="table">
+    <thead>
+      <tr>
+        <th style="max-width:100px">{{ 'user.user' | trans }}</th>
+        <th>{{ 'security.login.fullname' | trans }}</th>
+        <th>{{ 'user.form.email' | trans }}</th>
+        <th>{{ 'user.form.state' | trans }}</th>
+        <th>{{ 'user.form.actions' | trans }}</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for user in users%}
+        <tr>
+            <td class="col-md-2">{{ user.getUsername }}</td>
+            <td class="col-md-2">{{ user.getFullname }}</td>
+            <td class="col-md-2">{{ user.getEmail }}</td>
+            <td class="col-md-1">
+                <span class="user_state badge badge-success" data-username={{ user.getUsername | e('html_attr')}} {{ not user.isEnabled ? 'style="display:none;"' }}>{{ 'user.form.state_enabled' | trans }}</span>
+                <span class="user_state badge badge-light" data-username={{ user.getUsername | e('html_attr')}} {{ user.isEnabled ? 'style="display:none;"' }}>{{ 'user.form.state_disabled' | trans }}</span>
+                <span class="subscription_state badge badge-info" data-username={{ user.getUsername | e('html_attr')}} {{ not user.getNotifyCaseCreation ? 'style="display:none;"' }}>{{ 'user.form.state_subscribed' | trans }}</span>
+                <span class="subscription_state badge badge-light" data-username={{ user.getUsername | e('html_attr')}} {{ user.getNotifyCaseCreation ? 'style="display:none;"' }}>{{ 'user.form.state_unsubscribed' | trans }}</span>
+            </td>
+            <td class="col-md-5">
+                {% if "ROLE_ADMIN" not in user.getRoles %}
+
+                {# User enabled toggling#}
+                <a class="user_state toggle_enable_user" data-username={{ user.getUsername | e('html_attr')}} data-enable="0" data-toggle="tooltip" title="{{ 'user.actions.deactivate' | trans }}" {{ not user.isEnabled ? 'style="display:none;"' }}>
+                    <span class="glyphicon glyphicon glyphicon-ban-circle"></span>
+                </a>
+                <a class="user_state toggle_enable_user" data-username={{ user.getUsername | e('html_attr')}} data-enable="1" data-toggle="tooltip" title="{{ 'user.actions.activate' | trans }}" {{ user.isEnabled ? 'style="display:none;"' }}>
+                    <span class="glyphicon glyphicon glyphicon-ok-circle"></span>
+                </a>
+
+                {% endif %}
+                 
+                {# Case creation subscription toggling#}
+                <a class="subscription_state toggle_case_subscription" data-username={{ user.getUsername | e('html_attr')}} data-enable="0" data-toggle="tooltip" title="{{ 'user.actions.unsubscribe_case' | trans }}" {{ not user.getNotifyCaseCreation ? 'style="display:none;"' }}>
+                    <span class="glyphicon glyphicon glyphicon-eye-close"></span>
+                </a>
+                <a class="subscription_state toggle_case_subscription" data-username={{ user.getUsername | e('html_attr')}} data-enable="1" data-toggle="tooltip" title="{{ 'user.actions.subscribe_case' | trans }}" {{ user.getNotifyCaseCreation ? 'style="display:none;"' }}>
+                    <span class="glyphicon glyphicon glyphicon-envelope"></span>
+                </a>
+            </td>
+      </tr>
+      {% endfor %}
+   </tbody>
+</table>
+
+<script>
+/**
+ * Set user enabled via ajax request.
+ */
+const set_user_enabled = function(e) {
+    const username = $(this).data("username");
+    const enable = $(this).data("enable");
+    const url = "{{ path('set_enable_user') }}";
+    
+    const data = {
+        username: username,
+        enable: enable,
+        _token: '{{ csrf_token('set_enable_user') | e('js') }}',
+    }
+    
+    console.debug(data, url);
+    $.ajax({
+        url: url,
+        data: data,
+        method: 'POST',
+        success: function(data) {
+            console.debug(data);
+            // toggle all form elements
+            $(`.user_state[data-username="${username}"]`).toggle();
+            showAlert("info", data.enabled ?
+                '{{ 'user.form.enabled' | trans }}' :
+                '{{ 'user.form.disabled' | trans }}' ,
+                '#alert-anchor'
+            );
+        },
+        error: function(xhr, status, error) {
+            const err = JSON.parse(xhr.responseText);
+            console.error(err)
+            showAlert("warning", err.errors,
+                '#alert-anchor'
+            );
+        }
+    })
+};
+
+/**
+ * Set user case subscription via ajax.
+ */
+const set_user_case_subscription = function(e) {
+    const username = $(this).data("username");
+    const enable = $(this).data("enable");
+    const url = "{{ path('set_case_subscription_user') }}";
+    
+    const data = {
+        username: username,
+        enable: enable,
+        _token: '{{ csrf_token('set_case_subscription_user') | e('js') }}',
+    }
+    
+    console.debug(data, url);
+    $.ajax({
+        url: url,
+        data: data,
+        method: 'POST',
+        success: function(data) {
+            console.debug(data);
+            // toggle all form elements
+            $(`.subscription_state[data-username="${username}"]`).toggle();
+            showAlert("info", data.notfiyCaseCreation ?
+                '{{ 'user.form.subscribed' | trans }}' :
+                '{{ 'user.form.unsubscribed' | trans }}' ,
+                '#alert-anchor'
+            );
+        },
+        error: function(xhr, status, error) {
+            const err = JSON.parse(xhr.responseText);
+            console.error(err)
+            showAlert("warning", err.errors,
+                '#alert-anchor'
+            );
+        }
+    })
+};
+$(document).ready(function(){
+    $('[data-toggle="tooltip"]').tooltip();
+    $(".toggle_enable_user").click(set_user_enabled);
+    $(".toggle_case_subscription").click(set_user_case_subscription);
+});
+
+</script>
+{# Include bootstrap js alert helper #}
+
+{% endblock %}
+
+
+
+{% block context %}
+    {{ include('admin/context.html.twig') }}
+{% endblock %}
+
+{%  block javascripts %}
+    {{ include('utils/js_bootstrap_alert.html.twig') }}
+{% endblock %}

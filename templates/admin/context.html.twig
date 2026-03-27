@@ -1,0 +1,7 @@
+<a href='{{ path('user_profile') }}'>{{ 'action.show.profile' | trans }}</a><br>
+<a href='{{ path('user_change_password') }}'>{{ 'action.change.password' | trans }}</a><br>
+{% if is_granted('ROLE_ADMIN') %}
+    <a href='{{ path('add_user') }}'>{{ 'user.actions.add' | trans }} </a><br>
+    <a href='{{ path('user_overview') }}'>{{ 'user.actions.show' | trans }} </a><br>
+{% endif %}
+<a href='{{ path('change_language') }}'>{{ 'action.change.language' | trans }} </a><br>
