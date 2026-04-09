@@ -14,6 +14,7 @@ use Symfony\Component\Form\Event\PostSubmitEvent;
 use Symfony\Component\Form\Event\SubmitEvent;
 use Symfony\Component\Form\Extension\Core\Type as Field;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
+use Symfony\Component\Form\Extension\Core\Type\HiddenType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\Form\FormEvents;
 use Symfony\Component\OptionsResolver\OptionsResolver;
@@ -99,15 +100,18 @@ class AddAssetType extends AbstractType
                 'mapped' => false,
                 'required' => false,
             ])
-            ->add('case', EntityType::class, [
-                'label' => 'asset.add.form.case',
-                'placeholder' => 'asset.add.form.no_case',
-                'class' => CaseFile::class,
-                'choice_label' => fn (CaseFile $case) => $case->getCaseId().' | '.$case->getDescription(),
-                'choices' => [],
-                'attr' => ['size' => '7'],
-                'required' => false,
+            ->add('case', HiddenType::class, [
+                # TODO add contraint for cases
             ])
+            // ->add('case', EntityType::class, [
+            //     'label' => 'asset.add.form.case',
+            //     'placeholder' => 'asset.add.form.no_case',
+            //     'class' => CaseFile::class,
+            //     'choice_label' => fn (CaseFile $case) => $case->getCaseId().' | '.$case->getDescription(),
+            //     'choices' => [],
+            //     'attr' => ['size' => '7'],
+            //     'required' => false,
+            // ])
             // add drive form
             ->add('drive', DriveType::class)
             ->add('save', Field\SubmitType::class, [

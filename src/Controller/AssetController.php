@@ -597,10 +597,46 @@ class AssetController extends BaseController
                 'usage_required' => true,
                 'selector' => [
                     'name' => 'location',
+                    'repo' => $repo,
                     'class' => Asset::class,
                     'label' => fn (Asset $asset) => $asset->getBarcode().' | '.$asset->getName(),
                     'choices' => $repo->findAllStorageAssets(null, 10),
                     'model' => fn ($query, $limit) => $repo->findAllStorageAssets($query, $limit),
+                    'headers' => [
+                        [
+                            'class' => 'small',
+                            'label' => 'asset.attr.barcode',
+                        ],
+                        // [
+                        //     'class' => 'small',
+                        //     'label' => 'asset.attr.category',
+                        // ],
+                        [
+                            'class' => 'small',
+                            'label' => 'asset.attr.usage',
+                        ],
+                        [
+                            'class' => 'small text-center',
+                            'label' => 'link',
+                        ],
+                    ],
+                    'definitions' => [
+                        [
+                            'class' => "small",
+                            'name' => 'barcode',
+                            'escape' => true,
+                        ],
+                        // [
+                        //     'class' => "small",
+                        //     'name' => 'category',
+                        //     'escape' => true,
+                        // ],
+                        [
+                            'class' => "small text-truncate",
+                            'name' => 'usage',
+                            'escape' => true,
+                        ],
+                    ],
                 ],
             ],
             'api_url' => 'asset_action_query_locations',
@@ -651,6 +687,33 @@ class AssetController extends BaseController
                     'label' => fn (CaseFile $case) => $case->getCaseId().' | '.$case->getDescription(),
                     'choices' => $repo->findBySimpleSearch('%%', 10),
                     'model' => fn ($query, $limit) => $repo->findBySimpleSearch($query, $limit),
+                    'headers' => [
+                        [
+                            'class' => 'small',
+                            'label' => 'case.attr.case_id',
+                        ],
+                        [
+                            'class' => 'small',
+                            'label' => 'case.attr.description',
+                        ],
+                        [
+                            'class' => 'small text-center',
+                            'label' => 'link',
+                        ],
+                    ],
+                    'empty_label' => 'asset.add.form.no_case',
+                    'definitions' => [
+                        [
+                            'class' => "small",
+                            'name' => 'caseId',
+                            'escape' => true,
+                        ],
+                        [
+                            'class' => "small text-truncate",
+                            'name' => 'description',
+                            'escape' => true,
+                        ],
+                    ],
                 ],
             ],
             'api_url' => 'add_asset_query_cases',
@@ -1061,19 +1124,23 @@ class AssetController extends BaseController
         }
 
         $repository = $this->entityManager->getRepository(CaseFile::class);
-        $cases = $repository->findBySimpleSearch($query, 10);
+        $total = $repository->count(['active' => 1]);
+        $cases = $repository->findBySimpleSearch($query, null);
 
         $data = [];
         foreach ($cases as $case) {
             $data[] = [
-                'val' => $case->getId(),
-                'text' => $case->getCaseId().' | '.$case->getDescription(),
+                'id' => $case->getId(),
+                'caseId' => $case->getCaseId(),
+                'description' => $case->getDescription(),
+                'link' => $this->generateUrl('detail_case', ['id' => $case->getCaseId()]),
             ];
         }
 
         return new JsonResponse([
             'update' => true,
             'data' => $data,
+            'total' => $total,
         ]);
     }
 
@@ -1095,19 +1162,23 @@ class AssetController extends BaseController
         }
 
         $repository = $this->entityManager->getRepository(Asset::class);
-        $locations = $repository->findAllStorageAssets($query, 10);
+        $total = $repository->count([]);
+        $locations = $repository->findAllStorageAssets($query, null);
 
         $data = [];
-        foreach ($locations as $asset) {
+        foreach ($locations as $value) {
             $data[] = [
-                'val' => $asset->getBarcode(),
-                'text' => $asset->getBarcode().' | '.$asset->getName(),
+                'id' => $value->getBarcode(),
+                'barcode' => $value->getBarcode(),
+                'usage' => $value->getUsage(),
+                'link' => $this->generateUrl('details_asset', ['id' => $value->getBarcode()]),
             ];
         }
 
         return new JsonResponse([
             'update' => true,
             'data' => $data,
+            'total' => $total,
         ]);
     }
 
@@ -1128,7 +1199,7 @@ class AssetController extends BaseController
         }
 
         $repository = $this->entityManager->getRepository(Asset::class);
-        $locations = $repository->findAllHddImageTargetAssets(null, $query, 10);
+        $locations = $repository->findAllHddImageTargetAssets(null, $query, null);
 
         $data = [];
         foreach ($locations as $asset) {
@@ -1161,7 +1232,7 @@ class AssetController extends BaseController
         }
 
         $repository = $this->entityManager->getRepository(Asset::class);
-        $locations = $repository->findAllHddImageSourceAssets(null, $query, 10);
+        $locations = $repository->findAllHddImageSourceAssets(null, $query, null);
 
         $data = [];
         foreach ($locations as $asset) {

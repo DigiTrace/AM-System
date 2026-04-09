@@ -31,8 +31,8 @@
 
             {{ form_start(form) }}
 
-            <div class="row">
-                <div class="col-lg-8 col-xs-12">
+            <div class="row row-equal-height">
+                <div class="col-lg-6 col-xs-12">
                     <div class="well">
                         {{ 'asset.action.transition' | trans }}:
                         <span class="label label-default">
@@ -47,15 +47,54 @@
                     {{ form_row(form.usage) }}
                     {{ form_row(form.lastUpdatePerformedOn) }}
                 </div>
-                <div class="col-lg-4 col-xs-12">
 
                 {% if options.form.selector is defined %}
-                    {% set field = options.form.selector.name  %}
-                    {{ form_row(form.selector_search) }}
-                    {{ form_widget(form[field]) }}
-                    {{ form_errors(form[field]) }}
-                {% endif %}
+                <div class="col-lg-6 col-xs-12 table-column ">
+                    {% set selector = options.form.selector %}
+
+                    {% set field = selector.name  %}
+                        {{ form_row(form.selector_search) }}
+                        {# {{ form_widget(form[field]) }} #}
+                        {{ form_errors(form[field]) }}
+                        
+                    <div class="card">
+                        <div class="card-body p-2">
+                            <div class="scrollable-tbody">
+                                <table class="table table-sm table-hover mb-0" id="selector">
+                                    <thead class="table-light">
+                                        <tr>
+                                        {% for header in selector.headers %}
+                                            <th class="{{ header.class ?? ''}}" style="{{ header.style ?? ''}}">
+                                                {{ header.label | trans }}
+                                            </th>
+                                        {% endfor %}
+                                        </tr>
+                                    </thead>
+                                    <tbody id="selector-body" >
+                                        {% if selector.empty_label is defined %}
+                                        <tr class="selector-row info"
+                                        data-id="0"
+                                        style="cursor: pointer;">
+                                            <td colspan="10" class="text-muted text-center small">
+                                                {{ selector.empty_label | trans }}
+                                            </td>
+                                        </tr>
+                                        {% endif %}
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center mt-2 px-1">
+                                <small class="text-muted" id="selector-info">
+                                    Showing 0 out of 0 entries
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+
+
                 </div>
+
+                {% endif %}
             </div>
             
             <div class="form-footer">
@@ -66,25 +105,142 @@
     {# </div>
     </div> #}
 {% endblock %}
-
 {% block stylesheets %}
+<style> 
+.row-equal-height {
+            display: flex;
+            align-items: stretch;  /* Stretch columns to have equal height */
+        }
+.table-column {
+        display: flex;
+        flex-direction: column;
+    }
+
+.scrollable-tbody {
+    flex: 1;
+    max-height: 600px; /* Set the height for scrolling */
+    overflow-y: auto;
+}
+thead th {
+    position: sticky;
+    top: 0;
+    background-color: #f9f9f9; /* To avoid overlap with content */
+    z-index: 1;
+}
+</style>
 {% endblock %}
-
-
 
 {% block javascripts %}
 {% if options.form.selector is defined %}
+{% set selector = options.form.selector %}
 <script>
     {# TODO replace with `field_id()` twig functions in future symfony versions #}
     const SEARCH_FIELD = 'action_asset_selector_search';
     const SELECTION = 'action_asset_{{ options.form.selector.name }}';
 
     const SelectAPI = (function(){
+        let selectionField;
+        let tbody;
+        let infoLabel;
+
+        let items = [];
+        let total = 0;
+
         let prevRequest = null;
+
+
+        const renderTable = function() {
+            tbody.innerHTML = ''
+
+
+            {% if selector.empty_label is defined %}    
+            const emptyItem = document.createElement('tr');
+            emptyItem.classList.add('selector-row');
+            emptyItem.style.cursor = 'pointer';
+            emptyItem.dataset.id = 0;
+            emptyItem.innerHTML = `
+            <td colspan="10" class="text-muted text-center small">
+                {{ selector.empty_label | trans }}
+            </td>
+            `;
+            emptyItem.addEventListener('click', () => {
+                selectRow(emptyItem, 0);
+            });
+            
+            tbody.appendChild(emptyItem);
+            {% endif %}
+
+            items.forEach(item => {
+                const tr = document.createElement('tr');
+                tr.classList.add('selector-row');
+                tr.style.cursor = 'pointer';
+                tr.dataset.id = item.id;
+
+                innerHtml = "";
+                {% for definition in selector.definitions %}
+                    innerHtml += `<td 
+                    class="{{ definition.class ?? '' }}"
+                    style="{{ definition.style ?? '' }}"
+                    attr="{{ definition.attr ?? '' }}"
+                    >`
+                    
+                    {% if definition.escape %}
+                        innerHtml += `${item.{{ definition.name }}}`
+                    {% else %}
+                        innerHtml += `${escapeHtml(item.{{ definition.name }})}`
+                    {% endif %}
+
+                    innerHtml += '</td>';
+                {% endfor %}
+
+                // add link last
+                innerHtml += `<td class="text-center">
+                    <a href="${item.link}" 
+                        class="btn btn-sm btn-outline-primary"
+                        onclick="event.stopPropagation();">
+                        {{ 'view'|trans }}
+                    </a>
+                </td>`;
+
+                tr.innerHTML = innerHtml;
+
+                tr.addEventListener('click', () => {
+                    selectRow(tr, item.id);
+                });
+
+                tbody.appendChild(tr);
+            });
+        }
+
+        const selectRow = function(row, id) {
+            // set input value
+            selectionField.value = id;
+
+            // highlight selection
+            tbody.querySelectorAll('tr')
+                .forEach(r => r.classList.remove('info'));
+
+            row.classList.add('info');
+        }
+
+        const updateInfo = function() {
+
+            infoLabel.textContent = `Showing ${items.length} out of ${total} entries`;
+        }
+
+        const escapeHtml = function(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
 
         return {
             init: function(){
-                // location search handler
+                tbody = document.getElementById('selector-body');
+                infoLabel = document.getElementById('selector-info');
+                selectionField = document.getElementById(SELECTION)
+
+                // search handler
                 $(`#${SEARCH_FIELD}`).on("keydown", function(){
                     const data = $(this).val();
                     const url = '{{ path(options.api_url) }}';                    
@@ -104,24 +260,30 @@
                                 return;
                             }
 
-                            const locations =  $(`#${SELECTION}`);
-                            // remove all expect placeholder
-                            locations.find(' > option').each(function(index){
-                                const elem = $(this)
-                                if (elem.val()) {
-                                    elem.remove()
-                                }
-                            })
+                            total = response.total;
+                            items = response.data;
+                            renderTable();
+                            updateInfo();
+                            return;
 
-                            // append new items
-                            response.data.forEach(item => {
-                                const option = document.createElement('option');
-                                const text = document.createTextNode(item.text);
-                                option.value = item.val;
-                                option.appendChild(text);
+                            // const locations =  $(`#${SELECTION}`);
+                            // // remove all expect placeholder
+                            // locations.find(' > option').each(function(index){
+                            //     const elem = $(this)
+                            //     if (elem.val()) {
+                            //         elem.remove()
+                            //     }
+                            // })
+
+                            // // append new items
+                            // response.data.forEach(item => {
+                            //     const option = document.createElement('option');
+                            //     const text = document.createTextNode(item.text);
+                            //     option.value = item.val;
+                            //     option.appendChild(text);
                                 
-                                locations.append(option);
-                            });
+                            //     locations.append(option);
+                            // });
                         }
                     });
                 });

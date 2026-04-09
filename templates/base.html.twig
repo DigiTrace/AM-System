@@ -79,7 +79,9 @@
   
         <div class="container-fluid text-right">    
           <div class="row content">
-            <div class="col-print-12 col-sm-10  text-left">
+
+            {% set _block = block('context') %}
+            <div class="col-print-12 {{ (_block is not empty) ? 'col-sm-10' : 'col-lg-12' }} text-left">
                 
                {% block content1 %}{% endblock %}
               
@@ -89,7 +91,6 @@
                
             </div>
             
-            {% set _block = block('context') %}
             {% if _block is not empty %}
             <div class="col-sm-2 sidenav text-left hidden-print " >
                

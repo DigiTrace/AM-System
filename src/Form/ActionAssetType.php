@@ -8,10 +8,15 @@ use DateTimeInterface;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Form\AbstractType;
 
+use Symfony\Component\Form\Event\PostSetDataEvent;
 use Symfony\Component\Form\Event\PostSubmitEvent;
+use Symfony\Component\Form\Event\PreSetDataEvent;
+use Symfony\Component\Form\Event\PreSubmitEvent;
 use Symfony\Component\Form\Extension\Core\Type as Field;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
+use Symfony\Component\Form\Extension\Core\Type\HiddenType;
 use Symfony\Component\Form\FormBuilderInterface;
+use Symfony\Component\Form\FormEvent;
 use Symfony\Component\Form\FormEvents;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Validator\Constraints as Constraints;
@@ -64,37 +69,55 @@ class ActionAssetType extends AbstractType
                     'mapped' => false,
                     'required' => false,
                 ])
-                ->add($selector['name'], EntityType::class, [
-                    'label' => "asset.action.form.{$selector['name']}",
-                    'mapped' => $selector['mapped'] ?? true,
-                    'class' => $selector['class'],
-                    'choice_label' => $selector['label'],
-                    'choices' => $selector['choices'],
-                    'attr' => ['size' => '10'],
-                    'required' => true,
+                // ->add($selector['name'], EntityType::class, [
+                //     'label' => "asset.action.form.{$selector['name']}",
+                //     'mapped' => $selector['mapped'] ?? true,
+                //     'class' => $selector['class'],
+                //     'choice_label' => $selector['label'],
+                //     'choices' => $selector['choices'],
+                //     'attr' => ['size' => '10'],
+                //     'required' => true,
+                //     'constraints' => new Constraints\NotBlank,
+                // ]) 
+                ->add($selector['name'], HiddenType::class, [
                     'constraints' => new Constraints\NotBlank,
-                ]) 
+                ])
+                ->addEventListener(
+                    FormEvents::PRE_SUBMIT,
+                    function(FormEvent $event) use ($selector): void {
+                        $data = $event->getData();
+                        // TODO replace find with custom cb
+                        if ($value = $data[$selector['name']]) {
+                            $item = null;
+                            if($value != "0" ) {
+                                $item = $selector['repo']->find($value);
+                            }
+                            $data[$selector['name']] = $item;
+                            $event->setData($data);
+                        }
+                    }
+                )
             ;
 
             // add custom submit handler for search field, in order to populate choices
-            $elem = $builder->get('selector_search');
-            $elem->addEventListener(
-                FormEvents::POST_SUBMIT, 
-                function (PostSubmitEvent $event) use ($selector): void {
-                    $data = $event->getData();
-                    $form = $event->getForm();
+            // $elem = $builder->get('selector_search');
+            // $elem->addEventListener(
+            //     FormEvents::POST_SUBMIT, 
+            //     function (PostSubmitEvent $event) use ($selector): void {
+            //         $data = $event->getData();
+            //         $form = $event->getForm();
 
-                    $form->getParent()->add($selector['name'], EntityType::class, [
-                        'label' => "asset.action.form.{$selector['name']}",
-                        'mapped' => $selector['mapped'] ?? true,
-                        'class' => $selector['class'],
-                        'choice_label' => $selector['label'],
-                        'choices' => $selector['model']($data, 10),
-                        'attr' => ['size' => '10'],
-                        'required' => true,
-                        'constraints' => new Constraints\NotBlank,
-                    ]);
-            });
+            //         $form->getParent()->add($selector['name'], EntityType::class, [
+            //             'label' => "asset.action.form.{$selector['name']}",
+            //             'mapped' => $selector['mapped'] ?? true,
+            //             'class' => $selector['class'],
+            //             'choice_label' => $selector['label'],
+            //             'choices' => $selector['model']($data, 10),
+            //             'attr' => ['size' => '10'],
+            //             'required' => true,
+            //             'constraints' => new Constraints\NotBlank,
+            //         ]);
+            // });
         }
     }
 
