@@ -2,6 +2,10 @@
 
 namespace App\Service;
 use App\Entity\Asset;
+use App\Entity\AssetHistory;
+use App\Entity\CaseFile;
+use App\Entity\Drive;
+use App\Entity\Nutzer;
 use App\Enum\AssetCategory;
 use App\Enum\AssetState;
 use Doctrine\ORM\Query;
@@ -37,11 +41,14 @@ class ExtendedAssetSearch extends ExtendedSearch
      */
     protected function simpleSearchQuery(string $query): Query
     {
-        $dql = <<<'DQL'
-        SELECT asset FROM App:Asset asset 
-            LEFT JOIN App:AssetHistory ho 
-                WITH asset.barcode = ho.barcode 
-            LEFT JOIN App:Drive d 
+        $assetClass = Asset::class;
+        $historyClass = AssetHistory::class;
+        $driveClass = Drive::class;
+        $dql = <<<DQL
+        SELECT asset FROM {$assetClass} asset 
+            LEFT JOIN {$historyClass} ha 
+                WITH asset.barcode = ha.barcode 
+            LEFT JOIN {$driveClass} d 
                 WITH asset.barcode = d.barcode 
         WHERE asset.name like :searchword 
             OR asset.usage like :searchword 
@@ -92,25 +99,25 @@ class ExtendedAssetSearch extends ExtendedSearch
 
         // join requiered tables
         if ($this->historyJoin)
-            $builder->leftjoin("App:AssetHistory", "h_asset", "WITH", "h_asset.barcode = asset.barcode");
+            $builder->leftjoin(AssetHistory::class, "h_asset", "WITH", "h_asset.barcode = asset.barcode");
         if ($this->driveJoin)
-            $builder->leftjoin("App:Drive", "drive", "WITH", "drive.barcode = asset.barcode");
+            $builder->leftjoin(Drive::class, "drive", "WITH", "drive.barcode = asset.barcode");
         if ($this->userJoin)
-            $builder->leftjoin("App:Nutzer", "user", "WITH", "user.id = asset.modifiedBy");
+            $builder->leftjoin(Nutzer::class, "user", "WITH", "user.id = asset.modifiedBy");
         if ($this->historyUserJoin)
-            $builder->leftjoin("App:Nutzer", "h_user", "WITH", "h_user.id = h_asset.modifiedBy");
+            $builder->leftjoin(Nutzer::class, "h_user", "WITH", "h_user.id = h_asset.modifiedBy");
         if ($this->reservedUserJoin)
-            $builder->leftjoin("App:Nutzer", "reserver", "WITH", "reserver.id = asset.reservedBy");
+            $builder->leftjoin(Nutzer::class, "reserver", "WITH", "reserver.id = asset.reservedBy");
         if ($this->historyReservedUserJoin)
-            $builder->leftjoin("App:Nutzer", "h_reserver", "WITH", "h_reserver.id = h_asset.reservedBy");
+            $builder->leftjoin(Nutzer::class, "h_reserver", "WITH", "h_reserver.id = h_asset.reservedBy");
         if ($this->locationJoin)
-            $builder->leftjoin("App:Asset", "location", "WITH", "location.barcode = asset.location");
+            $builder->leftjoin(Asset::class, "location", "WITH", "location.barcode = asset.location");
         if ($this->historyLocationJoin)
-            $builder->leftjoin("App:Asset", "h_location", "WITH", "h_location.barcode = h_asset.location");
+            $builder->leftjoin(Asset::class, "h_location", "WITH", "h_location.barcode = h_asset.location");
         if ($this->caseJoin) //  "case" is SQL keyword -> we use "_case"
-            $builder->leftjoin("App:CaseFile", "_case", "WITH", "_case.id = asset.case");
+            $builder->leftjoin(CaseFile::class, "_case", "WITH", "_case.id = asset.case");
         if ($this->historyCaseJoin)
-            $builder->leftjoin("App:CaseFile", "h_case", "WITH", "h_case.id = h_asset.case");
+            $builder->leftjoin(CaseFile::class, "h_case", "WITH", "h_case.id = h_asset.case");
 
         return $builder;
     }

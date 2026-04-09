@@ -37,7 +37,7 @@ class CaseType extends AbstractType
                 'expanded' => false,
                 'multiple' => false,
                 'choices' =>  CaseSecrecy::cases(),
-                'choice_translation_domain' => false,
+                // 'choice_translation_domain' => false,
                 'required' => false,
             ])
             ->add('description', Field\TextareaType::class, [

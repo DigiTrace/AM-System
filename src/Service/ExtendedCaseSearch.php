@@ -2,6 +2,8 @@
 
 namespace App\Service;
 
+use App\Entity\Asset;
+use App\Entity\AssetHistory;
 use Doctrine\ORM\Query\Expr\Orx;
 use Doctrine\ORM\Query\Expr\Func;
 use Doctrine\ORM\Query\Expr\Comparison;
@@ -52,9 +54,9 @@ class ExtendedCaseSearch extends ExtendedSearch {
 
         // join requiered tables
         if ($this->assetJoin)
-            $builder->leftjoin("App:Asset", "asset", "WITH", "asset.case = caseFile.id");
+            $builder->leftjoin(Asset::class, "asset", "WITH", "asset.case = caseFile.id");
         if ($this->assetHistoryJoin)
-            $builder->leftjoin("App:AssetHistory", "h_asset", "WITH", "h_asset.case = caseFile.id");
+            $builder->leftjoin(AssetHistory::class, "h_asset", "WITH", "h_asset.case = caseFile.id");
 
         return $builder;
     }
