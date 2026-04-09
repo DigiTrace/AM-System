@@ -71,7 +71,7 @@ final class AssetFactory extends PersistentProxyObjectFactory
      *
      * @return string DT barcode label
      */
-    public function generateBarcode(AssetCategory $category)
+    public function generateBarcode(AssetCategory $category): string
     {
         return $category->getDtBarcodePrefix().str_pad(self::faker()->randomNumber(5), 4, '0', STR_PAD_LEFT);
     }

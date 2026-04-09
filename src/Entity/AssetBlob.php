@@ -58,7 +58,7 @@ class AssetBlob
      * @param mixed $streamId
      * @return AssetBlob
      */
-    public function setPicture(?string $streamId): static
+    public function setPicture(?string $streamId): AssetBlob
     {
         if (empty($streamId)) {
             $this->picture = null;
@@ -75,7 +75,7 @@ class AssetBlob
      *
      * @return string
      */
-    public function getPicture()
+    public function getPicture(): string
     {
         return $this->picture;
     }

@@ -177,7 +177,7 @@ class Asset
      *
      * @return string base64 encoded blob
      */
-    public function getPicture()
+    public function getPicture(): string
     {
         return $this->assetBlob?->getPicture();
     }
@@ -201,7 +201,7 @@ class Asset
      *
      * @return string
      */
-    public function getPicturePath()
+    public function getPicturePath(): string
     {
         return $this->assetBlob?->getPath();
     }
@@ -211,7 +211,7 @@ class Asset
      *
      * @return string
      */
-    public function __toString()
+    public function __toString(): string
     {
         return $this->getBarcode();
     }

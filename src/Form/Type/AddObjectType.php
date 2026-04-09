@@ -45,14 +45,14 @@ class AddObjectType extends AbstractType
     private $em;
     // private $newstatus;
 
-    public function configureOptions(OptionsResolver $resolver)
+    public function configureOptions(OptionsResolver $resolver): void
     {
         $resolver->setDefaults([
             'entityManager' => null,
         ]);
     }
 
-    public function buildForm(FormBuilderInterface $builder, array $options)
+    public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $this->em = $options['entityManager'];
         // $kategorien = helper::$kategorienToId;

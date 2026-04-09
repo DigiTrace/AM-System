@@ -74,7 +74,7 @@ final class ObjektFactory extends PersistentProxyObjectFactory
      *
      * @return string DT barcode label
      */
-    public static function generateBarcode(?string $prefix = null)
+    public static function generateBarcode(?string $prefix = null): string
     {
         $types = ['DTAS', 'DTHD', 'DTHW'];
 

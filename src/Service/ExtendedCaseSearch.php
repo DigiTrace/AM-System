@@ -2,6 +2,10 @@
 
 namespace App\Service;
 
+use Doctrine\ORM\Query\Expr\Orx;
+use Doctrine\ORM\Query\Expr\Func;
+use Doctrine\ORM\Query\Expr\Comparison;
+use Doctrine\ORM\Query\Expr\Andx;
 use App\Entity\CaseFile;
 use Doctrine\ORM\QueryBuilder;
 use Doctrine\ORM\Query;
@@ -17,7 +21,8 @@ class ExtendedCaseSearch extends ExtendedSearch {
     private bool $assetHistoryJoin = false;
 
 
-    protected function simpleSearchQuery(string $query): Query {
+    protected function simpleSearchQuery(string $query): Query 
+    {
         /**
          * @var \App\Repository\CaseRepository
          */
@@ -29,7 +34,8 @@ class ExtendedCaseSearch extends ExtendedSearch {
         ;
     }
 
-    protected function matchQueryKey(string $key, $data) {
+    protected function matchQueryKey(string $key, array $data): Andx|Comparison|Func|Orx|string|null
+    {
         return match (strtolower($key)) {
             'id', 'c', 'f', 'case', 'fall', 'caseid', 'fallid'                        => $this->caseIdQuery($data['neg'], $data['val']),
             'desc', 'description', 'beschreibung'                                     => $this->descriptionQuery($data['neg'], $data['val']),
@@ -39,7 +45,8 @@ class ExtendedCaseSearch extends ExtendedSearch {
         };
     }
 
-    protected function getQueryBuilderWithTables(): QueryBuilder {
+    protected function getQueryBuilderWithTables(): QueryBuilder 
+    {
         $repository = $this->entityManager->getRepository(CaseFile::class);
         $builder = $repository->createQueryBuilder('caseFile');
 
@@ -56,15 +63,18 @@ class ExtendedCaseSearch extends ExtendedSearch {
     // ========= QUERY METHODS =========
     //
 
-    protected function caseIdQuery(bool $neg, array $values) {
+    protected function caseIdQuery(bool $neg, array $values) 
+    {
         return $this->stringQuery('caseFile.caseId', $neg, $values);
     }
 
-    protected function descriptionQuery(bool $neg, array $values) {
+    protected function descriptionQuery(bool $neg, array $values) 
+    {
         return $this->stringQuery('caseFile.description', $neg, $values);
     }
 
-    protected function activeQuery(bool $neg, array $values) {
+    protected function activeQuery(bool $neg, array $values) 
+    {
         if (1 == \count($values) && ($bool = $this->to_bool($values[0])) !== null){
             return $this->equalQuery('caseFile.active', $neg, [$bool]);
         }
@@ -73,7 +83,8 @@ class ExtendedCaseSearch extends ExtendedSearch {
         return null;
     }
 
-    protected function openedOnQuery(bool $neg, array $values) {
+    protected function openedOnQuery(bool $neg, array $values) 
+    {
         return $this->dateQuery('caseFile.openedOn', $neg, $values);
     }
 }

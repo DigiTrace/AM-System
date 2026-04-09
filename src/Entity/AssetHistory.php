@@ -68,7 +68,7 @@ class AssetHistory
      *
      * @return string
      */
-    public function __toString()
+    public function __toString(): string
     {
         return (string) $this->asset->getBarcode();
     }
@@ -80,7 +80,7 @@ class AssetHistory
      *
      * @return AssetHistory
      */
-    public static function fromAsset(Asset $asset)
+    public static function fromAsset(Asset $asset): AssetHistory
     {
         $entry = new self();
         $entry->setAsset($asset);

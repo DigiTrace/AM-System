@@ -52,7 +52,7 @@ class LocaleSubscriber implements EventSubscriberInterface
     /**
      * @return array
     */
-    public static function getSubscribedEvents()
+    public static function getSubscribedEvents(): array
     {
         return [
             // must be registered before (i.e. with a higher priority than) the default Locale listener
