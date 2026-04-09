@@ -13,8 +13,6 @@ use Zenstruck\Foundry\Test\ResetDatabase;
  */
 abstract class BaseWebTestCase extends WebTestCase
 {
-    use ResetDatabase;
-    use Factories;
     
     protected function loginAdmin(KernelBrowser $client): KernelBrowser
     {

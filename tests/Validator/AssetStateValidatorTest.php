@@ -18,8 +18,6 @@ use Zenstruck\Foundry\Test\Factories;
 class AssetStateValidatorTest extends KernelTestCase
 {
     use AssertViolations;
-    use Factories;
-
     private ?ValidatorInterface $validator;
     private ?EntityManagerInterface $entityManager;
 

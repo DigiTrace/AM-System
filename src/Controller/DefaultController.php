@@ -64,7 +64,6 @@ class DefaultController extends BaseController
 
     /**
      * Show changelog.
-     * @codeCoverageIgnore
      */
     #[Route('/changelog', name: 'changelog')]
     public function changelog(Request $request)

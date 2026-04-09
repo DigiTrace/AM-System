@@ -15,8 +15,6 @@ use Zenstruck\Foundry\Test\Factories;
 class AssetLocationValidatorTest extends KernelTestCase
 {
     use AssertViolations;
-    use Factories;
-
     private ?ValidatorInterface $validator;
 
     protected function setUp(): void

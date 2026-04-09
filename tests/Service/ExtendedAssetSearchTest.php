@@ -9,6 +9,7 @@ use App\Tests\Factory\CaseFactory;
 use App\Tests\Factory\NutzerFactory;
 use App\Tests\Factory\AssetFactory;
 use DateTime;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use ReflectionClass;
 use Zenstruck\Foundry\Test\Factories;
@@ -21,9 +22,6 @@ use function PHPUnit\Framework\assertSameSize;
 
 class ExtendedAssetSearchTest extends KernelTestCase
 {
-    use ResetDatabase;
-    use Factories;
-
     // helper function
     private function getInstance(): ExtendedAssetSearch
     {
@@ -103,7 +101,7 @@ class ExtendedAssetSearchTest extends KernelTestCase
         }
     }
 
-    public function matchProvider(){
+    public static function matchProvider(){
         // [query, #matches single, #matches mult]
         yield ['test', 0, 0];
         yield ['name:heinz', 1, 0];
@@ -117,9 +115,7 @@ class ExtendedAssetSearchTest extends KernelTestCase
         yield ['c:[Asservat|Datentraeger] name:"HDD" || c:2 s:2', 3, 1];
     }
 
-    /**
-     * @dataProvider matchProvider
-     */
+    #[DataProvider("matchProvider")]
     public function testMatchValue($query, $single, $mult){
 
         $obj = $this->getInstance();
@@ -135,7 +131,7 @@ class ExtendedAssetSearchTest extends KernelTestCase
         assertCount($mult, $res);
     }
 
-    public function keyValueProvider() {
+    public static function keyValueProvider() {
         // [query, single key-val pairs, mult key-val pairs]
         yield [
             '!s:1 c:0 name:"Heinz " barcode:\'DTHW32310\' c:[0|1] name:["Franz F."|\'Günther D.\'| possible]', 
@@ -157,9 +153,7 @@ class ExtendedAssetSearchTest extends KernelTestCase
         ]];
     }
 
-    /**
-     * @dataProvider keyValueProvider
-     */
+    #[DataProvider("keyValueProvider")]
     public function testMatchKeyValue($query, $single, $mult){
         $obj = $this->getInstance();
 
@@ -184,7 +178,7 @@ class ExtendedAssetSearchTest extends KernelTestCase
         }
     }
 
-    public function queryValueProvider() {
+    public static function queryValueProvider() {
         // [query, parsed values]
         yield [
             '!s:1 c:0 name:"Heinz" barcode:\'DTHW32310\' !c:[0|1] name:["Franz F."|\'Günther D.\'|possible]', 
@@ -206,9 +200,7 @@ class ExtendedAssetSearchTest extends KernelTestCase
         ];
     }
 
-    /**
-     * @dataProvider queryValueProvider
-     */
+    #[DataProvider("queryValueProvider")]
     public function testGetQueryValues($query, $values) {
         $obj = $this->getInstance();
         $method = (new ReflectionClass(ExtendedAssetSearch::class))->getMethod('getQueryValues');
@@ -217,7 +209,7 @@ class ExtendedAssetSearchTest extends KernelTestCase
         assertEquals($values, $res);
     }
 
-    public function extendedSearchCheckProvider() {
+    public static function extendedSearchCheckProvider() {
         // [query, isExtended]
         yield ['suche', false];
         yield ['komplizierter suchterm', false];
@@ -225,9 +217,7 @@ class ExtendedAssetSearchTest extends KernelTestCase
         yield ['dasist:einekomplexesuche', true];
     }
 
-    /**
-     * @dataProvider extendedSearchCheckProvider
-     */
+    #[DataProvider("extendedSearchCheckProvider")]
     public function testIsExtended($query, $isExtended){
         $search = $this->getInstance();
         assertEquals($isExtended, $search->isExtendedQuery($query));
