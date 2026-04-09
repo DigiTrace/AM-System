@@ -7,6 +7,7 @@ use App\Tests\_support\AssertViolations;
 use App\Tests\Factory\AssetFactory;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
+use Zenstruck\Foundry\Test\Factories;
 
 /**
  * @author Ben Brooksnieder
@@ -14,6 +15,7 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
 class AssetLocationValidatorTest extends KernelTestCase
 {
     use AssertViolations;
+    use Factories;
 
     private ?ValidatorInterface $validator;
 
