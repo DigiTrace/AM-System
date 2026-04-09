@@ -175,9 +175,9 @@ class Asset
     /**
      * Get picture as base64 encoded blob.
      *
-     * @return string base64 encoded blob
+     * @return string|null base64 encoded blob
      */
-    public function getPicture(): string
+    public function getPicture(): ?string
     {
         return $this->assetBlob?->getPicture();
     }
@@ -199,9 +199,9 @@ class Asset
     /**
      * Get picture path.
      *
-     * @return string
+     * @return string|null
      */
-    public function getPicturePath(): string
+    public function getPicturePath(): ?string
     {
         return $this->assetBlob?->getPath();
     }
