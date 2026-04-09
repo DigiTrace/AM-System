@@ -99,6 +99,9 @@
     <a href="{{ path("search_cases_faq") }}"><span class="glyphicon glyphicon-question-sign"></span> {{ 'case.actions.faq' | trans }}</a> <br>
 {% endblock %}
 
+{% block stylesheets %}
+{{ knp_pagination_rel_links(pagination) }}
+{% endblock %}
 
 {% block searchbar %}
 
