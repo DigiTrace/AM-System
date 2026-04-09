@@ -114,6 +114,8 @@ class Nutzer implements UserInterface, PasswordAuthenticatedUserInterface
 
     /**
      * A visual identifier that represents this user.
+     * 
+     * Alias for `getUsername`.
      *
      * @see UserInterface
      */

@@ -11,6 +11,7 @@ use App\Tests\Factory\AssetFactory;
 use DateTime;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use ReflectionClass;
+use Zenstruck\Foundry\Test\ResetDatabase;
 use function PHPUnit\Framework\assertArrayHasKey;
 use function PHPUnit\Framework\assertCount;
 use function PHPUnit\Framework\assertEmpty;
@@ -19,7 +20,7 @@ use function PHPUnit\Framework\assertSameSize;
 
 class ExtendedAssetSearchTest extends KernelTestCase
 {
-
+    use ResetDatabase;
     // helper function
     private function getInstance(): ExtendedAssetSearch
     {
