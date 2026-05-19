@@ -24,7 +24,7 @@ namespace App\Controller;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 //use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
-use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\HttpFoundation\JsonResponse;
 
@@ -41,9 +41,7 @@ use Symfony\Component\HttpFoundation\Response;
 class AdminController extends AbstractController
 {
     
-    /**
-     * @Route("/admin/nutzeruebersicht", name="usersummary")
-     */
+    #[Route("/admin/nutzeruebersicht", name:"usersummary")]
     public function usersummaryAction(ManagerRegistry $doctrine,Request $request)
     {        
               
@@ -75,21 +73,16 @@ class AdminController extends AbstractController
     }
     
     
-    
-    
-    /**
-     * @Route("/admin/setzte/benachrichtigung", name="set_subscribe_case_creation")
-     */
-    public function setsubscribeUserToCaseCreationAction(Request $request)
+        
+    #[Route("/admin/setzte/benachrichtigung", name: "set_subscribe_case_creation")]
+    public function setsubscribeUserToCaseCreationAction(Request $request, EntityManagerInterface $entityManager)
     {        
         $form = $this->getform();
         
         $form->handleRequest($request);
  
         if ($form->isValid()) {
-            
-            $em = $this->getDoctrine()->getManager();
-            $user = $em->getRepository(Nutzer::class)->findOneBy(array("username" => $form->getData()['user'] ));
+            $user = $entityManager->getRepository(Nutzer::class)->findOneBy(array("username" => $form->getData()['user'] ));
             
             if($user != null){
                 if($user->getNotifyCaseCreation() == true){
@@ -99,7 +92,7 @@ class AdminController extends AbstractController
                     $user->setNotifyCaseCreation(true);
                 }
 
-                $em->flush();
+                $entityManager->flush();
 
                 return new JsonResponse(array('message' => 'Success!'), 200);
             }
@@ -113,21 +106,15 @@ class AdminController extends AbstractController
         return $response;
     }
     
-    
-    
-     /**
-     * @Route("/admin/setzte/aktiv", name="set_enable_user")
-     */
-    public function setEnableUserAction(Request $request)
+    #[Route("/admin/setzte/aktiv", name: "set_enable_user")]
+    public function setEnableUserAction(Request $request, EntityManagerInterface $entityManager)
     {        
         $form = $this->getform();
         
         $form->handleRequest($request);
  
         if ($form->isValid()) {
-            
-            $em = $this->getDoctrine()->getManager();
-            $user = $em->getRepository(Nutzer::class)->findOneBy(array("username" => $form->getData()['user'] ));
+            $user = $entityManager->getRepository(Nutzer::class)->findOneBy(array("username" => $form->getData()['user'] ));
             
             if($user != null){
                 if($user->getEnabled() == true){
@@ -137,7 +124,7 @@ class AdminController extends AbstractController
                     $user->setEnabled(true);
                 }
 
-                $em->flush();
+                $entityManager->flush();
 
                 return new JsonResponse(array('message' => 'Success!'), 200);
             }
@@ -153,42 +140,33 @@ class AdminController extends AbstractController
     
     
     
-    /**
-     * @Route("/admin/{name}/deaktivieren", name="deactivate_user")
-     */
-    public function deactivateUserAction(Request $request,$name)
+    #[Route("/admin/{name}/deaktivieren", name: "deactivate_user")]
+    public function deactivateUserAction(Request $request,EntityManagerInterface $entityManager, $name)
     {        
         
-        $em = $this->getDoctrine()->getManager();
-        
-        $user = $em->getRepository(Nutzer::class)->findOneBy(array("username" => $name));
+        $user = $entityManager->getRepository(Nutzer::class)->findOneBy(array("username" => $name));
         if($user == null){
             $this->addFlash("danger", "user.not.found");
             $this->redirectToRoute("usersummary");
         }
         else{
             $user->setEnabled(false);
-            $em->flush();
+            $entityManager->flush();
         }
         return $this->redirectToRoute("usersummary");
     }
     
-    /**
-     * @Route("/admin/{name}/reaktivieren", name="reactivate_user")
-     */
-    public function reactivateUserAction(Request $request,$name)
-    {        
-        
-        $em = $this->getDoctrine()->getManager();
-        
-        $user = $em->getRepository(Nutzer::class)->findOneBy(array("username" => $name));
+    #[Route("/admin/{name}/reaktivieren", name: "reactivate_user")]
+    public function reactivateUserAction(Request $request, EntityManagerInterface $entityManager, $name)
+    {              
+        $user = $entityManager->getRepository(Nutzer::class)->findOneBy(array("username" => $name));
         if($user == null){
             $this->addFlash("danger", "user.not.found");
             $this->redirectToRoute("usersummary");
         }
         else{
             $user->setEnabled(true);
-            $em->flush();
+            $entityManager->flush();
         }
         return $this->redirectToRoute("usersummary");
     }

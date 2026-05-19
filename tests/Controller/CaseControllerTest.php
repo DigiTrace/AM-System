@@ -5,27 +5,29 @@ namespace App\Tests\Controller;
 use App\Repository\CaseRepository;
 use App\Tests\_support\BaseWebTestCase;
 use App\Tests\Factory\CaseFactory;
+use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\Depends;
 
 /**
  * @author Ben Brooksnieder
  */
 class CaseControllerTest extends BaseWebTestCase
 {
-    public function genericUrlProvider()
+    public static function genericUrlProvider()
     {
         yield ['/faelle'];
         yield ['/faelle/faq'];
         yield ['/fall/anlegen'];
     }
 
-    public function detailUrlProvider()
+    public static function detailUrlProvider()
     {
         yield ['/fall/%s/anzeigen/'];
         yield ['/fall/%s/aktualisieren/'];
         yield ['/fall/%s/downloadWord/'];
     }
 
-    public function validCaseProvider()
+    public static function validCaseProvider()
     {
         yield [['id' => 'XIVv2', 'desc' => '(TEST)Computersabotage']];
         yield [['id' => 'TLG', 'desc' => '(TEST)Einbruch im Hochsicherheitstrakt beim HIER BEKANNTE FIRMA EINTRAGEN. Laptop mit HIER WICHTIGE DATENBESTAND EINFÜGEN Daten entwendet']];
@@ -34,16 +36,14 @@ class CaseControllerTest extends BaseWebTestCase
         yield [['id' => 'Schmidt AG', 'desc' => '(TEST)Pentest des Front Webservers']];
     }
 
-    public function invalidCaseProvider()
+    public static function invalidCaseProvider()
     {
         yield 'empty ID' => [['id' => '', 'desc' => 'Fall ohne ID darf es nicht geben']];
         yield 'empty description' => [['id' => 'Fall ohne description darf es nicht geben', 'desc' => '']];
     }
 
-    /**
-     * @dataProvider genericUrlProvider
-     * @dataProvider detailUrlProvider
-     */
+    #[DataProvider("genericUrlProvider")]
+    #[DataProvider("detailUrlProvider")]
     public function testProtectedUrls($url)
     {
         $client = static::createClient();
@@ -52,9 +52,7 @@ class CaseControllerTest extends BaseWebTestCase
         $this->assertResponseRedirects('http://localhost/login', 302);
     }
 
-    /**
-     * @dataProvider genericUrlProvider
-     */
+    #[DataProvider("genericUrlProvider")]
     public function testGenericUrls($url)
     {
         $client = static::createClient();
@@ -63,23 +61,19 @@ class CaseControllerTest extends BaseWebTestCase
         $this->assertResponseIsSuccessful();
     }
 
-    /**
-     * @dataProvider detailUrlProvider
-     */
+    #[DataProvider("detailUrlProvider")]
     public function testDetailUrls($url)
     {
+        $client = static::createClient();
         $factory = CaseFactory::new();
         $case = $factory->active()->create();
 
-        $client = static::createClient();
         $this->loginUser($client)->request('GET', sprintf($url, $case->getCaseId()));
 
         $this->assertResponseIsSuccessful();
     }
 
-    /**
-     * @dataProvider validCaseProvider
-     */
+    #[DataProvider("validCaseProvider")]
     public function testAddCaseValid($params)
     {
         // setup
@@ -108,11 +102,8 @@ class CaseControllerTest extends BaseWebTestCase
         return $client;
     }
 
-    /**
-     * @dataProvider invalidCaseProvider
-     *
-     * @depends testAddCaseValid
-     */
+    #[Depends("testAddCaseValid")]
+    #[DataProvider("invalidCaseProvider")]
     public function testAddCaseInvalid($params)
     {
         // setup
@@ -134,9 +125,7 @@ class CaseControllerTest extends BaseWebTestCase
         return $client;
     }
 
-    /**
-     * @depends testAddCaseInvalid
-     */
+    #[Depends("testAddCaseInvalid")]
     public function testAddCaseDuplicate()
     {
         // setup

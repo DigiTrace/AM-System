@@ -27,12 +27,12 @@ use App\Entity\Asset;
 use App\Entity\CaseFile;
 use App\Entity\Nutzer;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
-use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Component\Security\Core\Security;
+use Symfony\Component\Routing\Attribute\Route;
 
 /**
  * @author Ben Brooksnieder
@@ -64,7 +64,6 @@ class DefaultController extends BaseController
 
     /**
      * Show changelog.
-     * @codeCoverageIgnore
      */
     #[Route('/changelog', name: 'changelog')]
     public function changelog(Request $request)

@@ -15,7 +15,7 @@ class AssetBlob
 {
     #[ORM\OneToOne(inversedBy: 'assetBlob', cascade: ['persist', 'remove'])]
     #[ORM\Id]
-    #[ORM\JoinColumn(name: 'barcode_id', referencedColumnName: 'barcode_id', nullable: false)]
+    #[ORM\JoinColumn(name: 'barcode_id', referencedColumnName: 'barcode_id')]
     private Asset $asset;
 
     #[ORM\Column(type: 'text', nullable: true, name: 'bild')]
@@ -58,7 +58,7 @@ class AssetBlob
      * @param mixed $streamId
      * @return AssetBlob
      */
-    public function setPicture(?string $streamId): static
+    public function setPicture(?string $streamId): AssetBlob
     {
         if (empty($streamId)) {
             $this->picture = null;
@@ -75,12 +75,12 @@ class AssetBlob
      *
      * @return string
      */
-    public function getPicture()
+    public function getPicture(): ?string
     {
         return $this->picture;
     }
 
-    public function getPath()
+    public function getPath(): ?string
     {
         return $this->path;
     }

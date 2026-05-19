@@ -10,6 +10,7 @@ use App\Tests\Factory\AssetFactory;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
+use Zenstruck\Foundry\Test\Factories;
 
 /**
  * @author Ben Brooksnieder
@@ -17,7 +18,6 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
 class AssetStateValidatorTest extends KernelTestCase
 {
     use AssertViolations;
-
     private ?ValidatorInterface $validator;
     private ?EntityManagerInterface $entityManager;
 

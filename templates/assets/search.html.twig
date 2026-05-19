@@ -131,3 +131,7 @@
     {# <a href='{{ path("select_new_status_for_multiple_objects")}}'> <span class="glyphicon glyphicon-pencil"></span> {{ 'action.chosen.object.change' | trans }}</a><br> #}
       
 {% endblock %}
+
+{% block stylesheets %}
+{{ knp_pagination_rel_links(pagination) }}
+{% endblock %}

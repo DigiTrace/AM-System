@@ -14,8 +14,8 @@ use PhpOffice\PhpWord\TemplateProcessor;
 use Symfony\Component\HttpFoundation\File\File;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Session\SessionInterface;
-use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Component\Security\Core\Security;
+use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
 /**
@@ -69,8 +69,8 @@ class CaseController extends BaseController
         }
         
         // no search term provided, default query for listing all objects
-        $search ??= $request->get('suche');
-        $search ??= $request->get('search');
+        $search ??= $request->attributes->get('suche');
+        $search ??= $request->attributes->get('search');
         
         // apply extended case search to create query
         if ($search) {

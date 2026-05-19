@@ -175,9 +175,9 @@ class Asset
     /**
      * Get picture as base64 encoded blob.
      *
-     * @return string base64 encoded blob
+     * @return string|null base64 encoded blob
      */
-    public function getPicture()
+    public function getPicture(): ?string
     {
         return $this->assetBlob?->getPicture();
     }
@@ -185,7 +185,7 @@ class Asset
     /**
      * Set picture path.
      */
-    public function setPicturePath($path): static
+    public function setPicturePath(?string $path): static
     {
         if (null === $this->assetBlob) {
             $this->assetBlob = new AssetBlob($this);
@@ -199,9 +199,9 @@ class Asset
     /**
      * Get picture path.
      *
-     * @return string
+     * @return string|null
      */
-    public function getPicturePath()
+    public function getPicturePath(): ?string
     {
         return $this->assetBlob?->getPath();
     }
@@ -211,7 +211,7 @@ class Asset
      *
      * @return string
      */
-    public function __toString()
+    public function __toString(): string
     {
         return $this->getBarcode();
     }

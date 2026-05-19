@@ -23,6 +23,7 @@ use App\Tests\_support\BaseWebTestCase;
 use App\Tests\Factory\CaseFactory;
 use App\Tests\Factory\NutzerFactory;
 use App\Tests\Factory\AssetFactory;
+use PHPUnit\Framework\Attributes\DataProvider;
 
 /**
  * @author Ben Brooksnieder
@@ -36,13 +37,13 @@ class DefaultControllerTest extends BaseWebTestCase
     /**
      * @see \App\Tests\Story\DefaultUserStory
      */
-    public function correctLoginCredentialsProvider()
+    public static function correctLoginCredentialsProvider()
     {
         yield ['name' => 'admin', 'password' => 'test'];
         yield ['name' => 'user', 'password' => 'test'];
     }
 
-    public function invalidLoginCredentialsProvider()
+    public static function invalidLoginCredentialsProvider()
     {
         yield ['name' => 'berti', 'password' => 'test'];
         yield ['name' => 'user', 'password' => '123456!'];
@@ -52,9 +53,7 @@ class DefaultControllerTest extends BaseWebTestCase
     // ================ TESTS ================
     //
 
-    /**
-     * @dataProvider correctLoginCredentialsProvider
-     */
+    #[DataProvider("correctLoginCredentialsProvider")]
     public function testLoginWithCorrectCredentials($name, $password){
         $client = static::createClient();
         
@@ -69,9 +68,7 @@ class DefaultControllerTest extends BaseWebTestCase
         $this->assertSelectorTextContains('#myNavbar', $name);
     }
 
-    /**
-     * @dataProvider invalidLoginCredentialsProvider
-     */
+    #[DataProvider("invalidLoginCredentialsProvider")]
     public function testLoginWithIncorrectCredentials($name, $password){
         $client = static::createClient();
         
@@ -107,6 +104,7 @@ class DefaultControllerTest extends BaseWebTestCase
 
     public function testDashboard()
     {
+        $client = static::createClient();
         // setup
         $assetFactory = AssetFactory::new();
         $caseFactory = CaseFactory::new();
@@ -135,7 +133,6 @@ class DefaultControllerTest extends BaseWebTestCase
         $unreserved = $assetFactory->many(3)->create();
 
         // do request
-        $client = static::createClient();
         $this->loginUser($client)->request('GET', 'http://localhost/');
 
         // test whether open cases are displayed

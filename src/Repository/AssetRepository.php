@@ -70,8 +70,8 @@ class AssetRepository extends ServiceEntityRepository
     {
         // TODO optimize query
         $builder = $this->createQueryBuilder('a')
-            ->join(AssetHistory::class, 'ha', 'with', 'ha.asset = a.barcode')
-            ->leftJoin(Asset::class, 'sa', 'with', 'sa.barcode = a.location')
+            ->join(AssetHistory::class, 'ha', 'ON', 'ha.asset = a.barcode')
+            ->leftJoin(Asset::class, 'sa', 'ON', 'sa.barcode = a.location')
             ->where('ha.case = :case')
             ->andWhere('a.case != :case OR a.case IS NULL')
             ->setParameter('case', $case->getId());

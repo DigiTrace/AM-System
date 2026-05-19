@@ -8,8 +8,11 @@ use App\Repository\AssetHistoryRepository;
 use App\Repository\AssetRepository;
 use App\Repository\DriveRepository;
 use App\Tests\_support\BaseWebTestCase;
+use App\Tests\_support\TestHelper;
 use App\Tests\Factory\AssetFactory;
 use App\Tests\Factory\CaseFactory;
+use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\Depends;
 use Symfony\Component\HttpFoundation\JsonResponse;
 
 /**
@@ -17,7 +20,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
  */
 class AssetControllerTest extends BaseWebTestCase
 {
-    public function addValidProvider()
+    public static function addValidProvider()
     {
         yield 'SimpleExhibit' => [[
             'barcode' => 'DTAS00001',
@@ -119,9 +122,7 @@ class AssetControllerTest extends BaseWebTestCase
         ]];
     }
 
-    /**
-     * @dataProvider addValidProvider
-     */
+    #[DataProvider("addValidProvider")]
     public function testAddValid($asset, $drive = null)
     {
         // setup
@@ -181,18 +182,14 @@ class AssetControllerTest extends BaseWebTestCase
         return $client;
     }
 
-    /**
-     * @dataProvider addValidProvider
-     *
-     * @depends testAddValid
-     */
+    #[Depends("testAddValid")]
+    #[DataProvider("addValidProvider")]
     public function testAddValidWithCase($asset, $drive = null)
     {
-        $caseFactory = CaseFactory::new();
-        $case = $caseFactory->create();
+        $client = static::createClient();
+        $case = CaseFactory::createOne();
 
         // setup
-        $client = static::createClient();
         $crawler = $this->loginUser($client)->request('GET', '/objekt/anlegen');
 
         // get form
@@ -278,9 +275,7 @@ class AssetControllerTest extends BaseWebTestCase
         return $client;
     }
 
-    /**
-     * @depends testAddValidWithCase
-     */
+    #[Depends("testAddValidWithCase")]
     public function testAddInvalidMissingData()
     {
         $client = static::createClient();
@@ -308,9 +303,7 @@ class AssetControllerTest extends BaseWebTestCase
         $this->assertSelectorExists('span.glyphicon-exclamation-sign');
     }
 
-    /**
-     * @depends testAddInvalidMissingData
-     */
+    #[Depends("testAddInvalidMissingData")]
     public function testAddInvalidBarcode()
     {
         $client = static::createClient();
@@ -344,9 +337,7 @@ class AssetControllerTest extends BaseWebTestCase
         $this->dontSeeInDatabase(AssetRepository::class, $asset);
     }
 
-    /**
-     * @depends testAddInvalidBarcode
-     */
+    #[Depends("testAddInvalidBarcode")]
     public function testAddInvalidWrongCategory()
     {
         $client = static::createClient();
@@ -380,15 +371,14 @@ class AssetControllerTest extends BaseWebTestCase
         $this->dontSeeInDatabase(AssetRepository::class, $asset);
     }
 
-    /**
-     * @depends testAddInvalidWrongCategory
-     */
+    #[Depends("testAddInvalidWrongCategory")]
     public function testAddInvalidDuplicate()
     {
+        $client = static::createClient();
+
         $factory = AssetFactory::new();
         $duplicate = $factory->create();
 
-        $client = static::createClient();
         $crawler = $this->loginUser($client)->request('GET', '/objekt/anlegen');
 
         // get form
@@ -421,9 +411,13 @@ class AssetControllerTest extends BaseWebTestCase
 
     public function testEditActionValid()
     {
+        $client = static::createClient();
+
         $factory = AssetFactory::new();
         $asset = $factory->hdd()->create();
+        $asset->_disableAutoRefresh();
         $barcode = $asset->getBarcode();
+        $drive = $asset->getDrive();
 
         $history = [
             'asset' => $asset->_real(),
@@ -433,7 +427,6 @@ class AssetControllerTest extends BaseWebTestCase
         ];
 
         $name = 'edit_asset';
-        $client = static::createClient();
         $crawler = $this->loginUser($client)->request('GET', "/objekt/$barcode/editieren");
         $form = $crawler->selectButton($name.'[save]')->form();
         $data = [
@@ -442,7 +435,6 @@ class AssetControllerTest extends BaseWebTestCase
             'note' => 'Hä',
         ];
 
-        $drive = $asset->getDrive();
         $driveData = [
             'formFactor' => $drive?->getFormFactor().'_test',
             'type' => $drive?->getType().'_test',
@@ -480,13 +472,12 @@ class AssetControllerTest extends BaseWebTestCase
         $this->seeInDatabase(DriveRepository::class, $driveData);
     }
 
-    /**
-     * @depends testEditActionValid
-     */
+    #[Depends("testEditActionValid")]
     public function testEditActionInvalidNoChanges()
     {
-        $factory = AssetFactory::new();
-        $asset = $factory->create();
+        $client = static::createClient();
+        $asset = AssetFactory::createOne();
+        $asset->_disableAutoRefresh();
         $barcode = $asset->getBarcode();
 
         $history = [
@@ -496,16 +487,18 @@ class AssetControllerTest extends BaseWebTestCase
             'modifiedBy' => $asset->getModifiedBy(),
         ];
 
-        $name = 'edit_asset';
-        $client = static::createClient();
-        $crawler = $this->loginUser($client)->request('GET', "/objekt/$barcode/editieren");
-        $form = $crawler->selectButton($name.'[save]')->form();
 
         $data = [
             'barcode' => $barcode,
             'usage' => $asset->getUsage(),
             'state' => $asset->getState(),
         ];
+        $this->seeInDatabase(AssetRepository::class, $data);
+
+        $name = 'edit_asset';
+        $crawler = $this->loginUser($client)->request('GET', "/objekt/$barcode/editieren");
+        $form = $crawler->selectButton($name.'[save]')->form();
+
 
         // no changes
         $client->submit($form);
@@ -522,6 +515,7 @@ class AssetControllerTest extends BaseWebTestCase
 
     public function testNullActionValid()
     {
+        $client = static::createClient();
         // TODO test for images
         $factory = AssetFactory::new();
         $asset = $factory->hdd()->create();
@@ -535,7 +529,6 @@ class AssetControllerTest extends BaseWebTestCase
         ];
 
         $name = 'action_asset';
-        $client = static::createClient();
         $crawler = $this->loginUser($client)->request('GET', "/objekt/$barcode/nullen");
         $form = $crawler->selectButton($name.'[save]')->form();
 
@@ -561,50 +554,45 @@ class AssetControllerTest extends BaseWebTestCase
         $this->seeInDatabase(AssetRepository::class, $data);
     }
 
-    /**
-     * @depends testNullActionValid
-     */
+    #[Depends("testNullActionValid")]
     public function testNullActionInvalidCategory()
     {
+        $client = static::createClient();
         $factory = AssetFactory::new();
         $asset = $factory->record()->create();
         $barcode = $asset->getBarcode();
 
-        $client = static::createClient();
         $this->loginUser($client)->request('GET', "/objekt/$barcode/nullen");
         $this->assertResponseRedirects("/objekt/$barcode");
     }
 
-    /**
-     * @depends testNullActionInvalidCategory
-     */
+    #[Depends("testNullActionInvalidCategory")]
     public function testNullActionInvalidSameState()
     {
+        $client = static::createClient();
         $factory = AssetFactory::new();
         $asset = $factory->hdd()->with(['state' => State::Cleaned])->create();
         $barcode = $asset->getBarcode();
 
-        $client = static::createClient();
         $this->loginUser($client)->request('GET', "/objekt/$barcode/nullen");
         $this->assertResponseRedirects("/objekt/$barcode");
     }
 
-    /**
-     * @depends testNullActionInvalidSameState
-     */
+    #[Depends("testNullActionInvalidSameState")]
     public function testNullActionInvalidState()
     {
+        $client = static::createClient();
         $factory = AssetFactory::new();
         $asset = $factory->hdd()->lost()->create();
         $barcode = $asset->getBarcode();
 
-        $client = static::createClient();
         $this->loginUser($client)->request('GET', "/objekt/$barcode/nullen");
         $this->assertResponseRedirects("/objekt/$barcode");
     }
 
     public function testUseActionValid()
     {
+        $client = static::createClient();
         $factory = AssetFactory::new();
         $asset = $factory->create();
         $barcode = $asset->getBarcode();
@@ -617,7 +605,6 @@ class AssetControllerTest extends BaseWebTestCase
         ];
 
         $name = 'action_asset';
-        $client = static::createClient();
         $crawler = $this->loginUser($client)->request('GET', "/objekt/$barcode/verwenden");
         $form = $crawler->selectButton($name.'[save]')->form();
 
@@ -643,11 +630,10 @@ class AssetControllerTest extends BaseWebTestCase
         $this->seeInDatabase(AssetRepository::class, $data);
     }
 
-    /**
-     * @depends testUseActionValid
-     */
+    #[Depends("testUseActionValid")]
     public function testUseActionInvalidUsage()
     {
+        $client = static::createClient();
         $factory = AssetFactory::new();
         $asset = $factory->create();
         $barcode = $asset->getBarcode();
@@ -660,7 +646,6 @@ class AssetControllerTest extends BaseWebTestCase
         ];
 
         $name = 'action_asset';
-        $client = static::createClient();
         $crawler = $this->loginUser($client)->request('GET', "/objekt/$barcode/verwenden");
         $form = $crawler->selectButton($name.'[save]')->form();
 
@@ -683,6 +668,7 @@ class AssetControllerTest extends BaseWebTestCase
 
     public function testDestroyActionValid()
     {
+        $client = static::createClient();
         $factory = AssetFactory::new();
         $asset = $factory->create();
         $barcode = $asset->getBarcode();
@@ -695,7 +681,6 @@ class AssetControllerTest extends BaseWebTestCase
         ];
 
         $name = 'action_asset';
-        $client = static::createClient();
         $crawler = $this->loginUser($client)->request('GET', "/objekt/$barcode/vernichtet");
         $form = $crawler->selectButton($name.'[save]')->form();
 
@@ -721,22 +706,21 @@ class AssetControllerTest extends BaseWebTestCase
         $this->seeInDatabase(AssetRepository::class, $data);
     }
 
-    /**
-     * @depends testDestroyActionValid
-     */
+    #[Depends("testDestroyActionValid")]
     public function testDestroyActionInvalidSameState()
     {
+        $client = static::createClient();
         $factory = AssetFactory::new();
         $asset = $factory->hdd()->with(['state' => State::Destroyed])->create();
         $barcode = $asset->getBarcode();
 
-        $client = static::createClient();
         $this->loginUser($client)->request('GET', "/objekt/$barcode/vernichtet");
         $this->assertResponseRedirects("/objekt/$barcode");
     }
 
     public function testLostActionValid()
     {
+        $client = static::createClient();
         $factory = AssetFactory::new();
         $asset = $factory->create();
         $barcode = $asset->getBarcode();
@@ -749,7 +733,6 @@ class AssetControllerTest extends BaseWebTestCase
         ];
 
         $name = 'action_asset';
-        $client = static::createClient();
         $crawler = $this->loginUser($client)->request('GET', "/objekt/$barcode/verloren");
         $form = $crawler->selectButton($name.'[save]')->form();
 
@@ -775,22 +758,21 @@ class AssetControllerTest extends BaseWebTestCase
         $this->seeInDatabase(AssetRepository::class, $data);
     }
 
-    /**
-     * @depends testLostActionValid
-     */
+    #[Depends("testLostActionValid")]
     public function testLostActionInvalidSameState()
     {
+        $client = static::createClient();
         $factory = AssetFactory::new();
         $asset = $factory->hdd()->with(['state' => State::Lost])->create();
         $barcode = $asset->getBarcode();
 
-        $client = static::createClient();
         $this->loginUser($client)->request('GET', "/objekt/$barcode/verloren");
         $this->assertResponseRedirects("/objekt/$barcode");
     }
 
     public function testHandoverActionValid()
     {
+        $client = static::createClient();
         $factory = AssetFactory::new();
         $asset = $factory->create();
         $barcode = $asset->getBarcode();
@@ -803,7 +785,6 @@ class AssetControllerTest extends BaseWebTestCase
         ];
 
         $name = 'action_asset';
-        $client = static::createClient();
         $crawler = $this->loginUser($client)->request('GET', "/objekt/$barcode/uebergeben");
         $form = $crawler->selectButton($name.'[save]')->form();
 
@@ -829,11 +810,10 @@ class AssetControllerTest extends BaseWebTestCase
         $this->seeInDatabase(AssetRepository::class, $data);
     }
 
-    /**
-     * @depends testHandoverActionValid
-     */
+    #[Depends("testHandoverActionValid")]
     public function testHandoverActionInvalidUsage()
     {
+        $client = static::createClient();
         $factory = AssetFactory::new();
         $asset = $factory->create();
         $barcode = $asset->getBarcode();
@@ -846,7 +826,6 @@ class AssetControllerTest extends BaseWebTestCase
         ];
 
         $name = 'action_asset';
-        $client = static::createClient();
         $crawler = $this->loginUser($client)->request('GET', "/objekt/$barcode/uebergeben");
         $form = $crawler->selectButton($name.'[save]')->form();
 
@@ -869,6 +848,7 @@ class AssetControllerTest extends BaseWebTestCase
 
     public function testReserveActionValid()
     {
+        $client = static::createClient();
         $factory = AssetFactory::new();
         $asset = $factory->create();
         $barcode = $asset->getBarcode();
@@ -882,7 +862,6 @@ class AssetControllerTest extends BaseWebTestCase
         ];
 
         $name = 'action_asset';
-        $client = static::createClient();
         $crawler = $this->loginUser($client)->request('GET', "/objekt/$barcode/reservieren");
         $form = $crawler->selectButton($name.'[save]')->form();
 
@@ -909,9 +888,7 @@ class AssetControllerTest extends BaseWebTestCase
         $this->seeInDatabase(AssetRepository::class, $data);
     }
 
-    /**
-     * @depends testReserveActionValid
-     */
+    #[Depends("testReserveActionValid")]
     public function testReserveActionInvalidSameReservedBy()
     {
         $client = static::createClient();
@@ -976,9 +953,7 @@ class AssetControllerTest extends BaseWebTestCase
         $this->seeInDatabase(AssetRepository::class, $data);
     }
 
-    /**
-     * @depends testUnreserveActionValid
-     */
+    #[Depends("testUnreserveActionValid")]
     public function testUnreserveActionInvaliNotReserved()
     {
         $client = static::createClient();
@@ -1045,9 +1020,7 @@ class AssetControllerTest extends BaseWebTestCase
         $this->seeInDatabase(AssetRepository::class, $data);
     }
 
-    /**
-     * @depends testPullOutOfContainerActionValid
-     */
+    #[Depends("testPullOutOfContainerActionValid")]
     public function testPullOutOfContainerActionInvalidNotStored()
     {
         $client = static::createClient();
@@ -1074,9 +1047,8 @@ class AssetControllerTest extends BaseWebTestCase
     {
         $client = static::createClient();
         $factory = AssetFactory::new();
-        $caseFactory = CaseFactory::new();
 
-        $case = $caseFactory->create();
+        $case = CaseFactory::createOne();
         $asset = $factory->assignedToCase($case->_real())->create();
         $barcode = $asset->getBarcode();
 
@@ -1115,9 +1087,7 @@ class AssetControllerTest extends BaseWebTestCase
         $this->seeInDatabase(AssetRepository::class, $data);
     }
 
-    /**
-     * @depends testRemoveFromCaseActionValid
-     */
+    #[Depends("testRemoveFromCaseActionValid")]
     public function testRemoveFromCaseActionInvalidNotAssigned()
     {
         $client = static::createClient();
@@ -1144,9 +1114,8 @@ class AssetControllerTest extends BaseWebTestCase
     {
         $client = static::createClient();
         $factory = AssetFactory::new();
-        $caseFactory = CaseFactory::new();
 
-        $case = $caseFactory->create();
+        $case = CaseFactory::createOne();
         $container = $factory->container()->create();
 
         $asset = $factory
@@ -1205,9 +1174,7 @@ class AssetControllerTest extends BaseWebTestCase
         $this->seeInDatabase(AssetRepository::class, $data);
     }
 
-    /**
-     * @depends testNeutralizeActionValid
-     */
+    #[Depends("testNeutralizeActionValid")]
     public function testNeutralizeActionInvalidNotHdd()
     {
         $client = static::createClient();
@@ -1232,9 +1199,7 @@ class AssetControllerTest extends BaseWebTestCase
         $this->assertNoAssetChanges($history, $barcode);
     }
 
-    /**
-     * @depends testNeutralizeActionValid
-     */
+    #[Depends("testNeutralizeActionValid")]
     public function testNeutralizeActionInvalidNotApplicable()
     {
         $client = static::createClient();
@@ -1356,9 +1321,7 @@ class AssetControllerTest extends BaseWebTestCase
         $this->seeInDatabase(AssetRepository::class, $data);
     }
 
-    /**
-     * @depends testStoreActionValidContainer
-     */
+    #[Depends("testStoreActionValidContainer")]
     public function testStoreActionInvalidNotContainer()
     {
         $client = static::createClient();
@@ -1405,9 +1368,7 @@ class AssetControllerTest extends BaseWebTestCase
         $this->assertNoAssetChanges($history, $barcode);
     }
 
-    /**
-     * @depends testStoreActionValidStorageOverride
-     */
+    #[Depends("testStoreActionValidStorageOverride")]
     public function testStoreActionInvalidStorageOverride()
     {
         $client = static::createClient();
@@ -1460,9 +1421,8 @@ class AssetControllerTest extends BaseWebTestCase
     {
         $client = static::createClient();
         $factory = AssetFactory::new();
-        $caseFactory = CaseFactory::new();
 
-        $case = $caseFactory->create();
+        $case = CaseFactory::createOne();
         $asset = $factory->create();
         $barcode = $asset->getBarcode();
 
@@ -1508,16 +1468,13 @@ class AssetControllerTest extends BaseWebTestCase
         $this->seeInDatabase(AssetRepository::class, $data);
     }
 
-    /**
-     * @depends testAssignCaseActionValid
-     */
+    #[Depends("testAssignCaseActionValid")]
     public function testAssignCaseActionInvalidAlreadyAssigned()
     {
         $client = static::createClient();
         $factory = AssetFactory::new();
-        $caseFactory = CaseFactory::new();
 
-        $case = $caseFactory->create();
+        $case = CaseFactory::createOne();
         $asset = $factory
             ->assignedToCase($case->_real())
             ->with(['state' => State::Used]) // to prevent same state error
@@ -1671,9 +1628,7 @@ class AssetControllerTest extends BaseWebTestCase
         $this->assertContains($source->_real(), $target->getImages());
     }
 
-    /**
-     * @depends testSaveImageOnDriveActionValidFromTarget
-     */
+    #[Depends("testSaveImageOnDriveActionValidFromTarget")]
     public function testSaveImageOnDriveActionInvalidFromTargetInvalidSource()
     {
         $client = static::createClient();
@@ -1726,9 +1681,7 @@ class AssetControllerTest extends BaseWebTestCase
         $this->assertNoAssetChanges($target_history, $target->getBarcode());
     }
 
-    /**
-     * @depends testSaveImageOnDriveActionValidFromSource
-     */
+    #[Depends("testSaveImageOnDriveActionValidFromSource")]
     public function testSaveImageOnDriveActionInvalidFromSourceInvalidTarget()
     {
         $client = static::createClient();
@@ -1781,10 +1734,8 @@ class AssetControllerTest extends BaseWebTestCase
         $this->assertNoAssetChanges($target_history, $target->getBarcode());
     }
 
-    /**
-     * @depends testSaveImageOnDriveActionValidFromTarget
-     * @depends testSaveImageOnDriveActionValidFromSource
-     */
+    #[Depends("testSaveImageOnDriveActionValidFromTarget")]
+    #[Depends("testSaveImageOnDriveActionValidFromSource")]
     public function testSaveImageOnDriveActionInvalidNotApplicable()
     {
         $client = static::createClient();

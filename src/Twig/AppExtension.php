@@ -44,7 +44,7 @@ class AppExtension extends AbstractExtension
     /**
      * @return array
      */
-    public function getFilters()
+    public function getFilters(): array
     {
         return [
             new TwigFilter('barcodelinker', [$this, 'barcodeLinker']),

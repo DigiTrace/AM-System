@@ -12,7 +12,7 @@ final class TestHelper
      * Call after something thats changes the DB state. Now the DB changes are actually persisted and you can debug them
      * @return never
      */
-    public static function dieForDebug()
+    public static function dieForDebug(): never
     {
         // ... something thats changes the DB state
         \DAMA\DoctrineTestBundle\Doctrine\DBAL\StaticDriver::commit();

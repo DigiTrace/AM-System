@@ -2,6 +2,10 @@
 
 namespace App\Service;
 use App\Entity\Asset;
+use App\Entity\AssetHistory;
+use App\Entity\CaseFile;
+use App\Entity\Drive;
+use App\Entity\Nutzer;
 use App\Enum\AssetCategory;
 use App\Enum\AssetState;
 use Doctrine\ORM\Query;
@@ -35,13 +39,17 @@ class ExtendedAssetSearch extends ExtendedSearch
      * @param string $query
      * @return Query
      */
-    protected function simpleSearchQuery(string $query): Query {
-        $dql = <<<'DQL'
-        SELECT asset FROM App:Asset asset 
-            LEFT JOIN App:AssetHistory ho 
-                WITH asset.barcode = ho.barcode 
-            LEFT JOIN App:Drive d 
-                WITH asset.barcode = d.barcode 
+    protected function simpleSearchQuery(string $query): Query
+    {
+        $assetClass = Asset::class;
+        $historyClass = AssetHistory::class;
+        $driveClass = Drive::class;
+        $dql = <<<DQL
+        SELECT asset FROM {$assetClass} asset 
+            LEFT JOIN {$historyClass} ha 
+                ON asset.barcode = ha.asset 
+            LEFT JOIN {$driveClass} d 
+                ON asset.barcode = d.barcode 
         WHERE asset.name like :searchword 
             OR asset.usage like :searchword 
             OR asset.note like :searchword 
@@ -52,7 +60,8 @@ class ExtendedAssetSearch extends ExtendedSearch
         return $this->entityManager->createQuery($dql)->setParameter(':searchword', "%$query%");
     }
     
-    protected function matchQueryKey(string $key, $data) {
+    protected function matchQueryKey(string $key, array $data): Andx|Comparison|Func|Orx|string|null
+    {
         return match (strtolower($key)) {
             'c','k','cat','kat','category','kategorie'                      => $this->categoryQuery($data['neg'], $data['val']),
             's','state', 'status'                                           => $this->statusQuery($data['neg'], $data['val']),
@@ -83,31 +92,32 @@ class ExtendedAssetSearch extends ExtendedSearch
         };
     }
 
-    protected function getQueryBuilderWithTables(): QueryBuilder {
+    protected function getQueryBuilderWithTables(): QueryBuilder 
+    {
         $repository = $this->entityManager->getRepository(Asset::class);
         $builder = $repository->createQueryBuilder('asset');
 
         // join requiered tables
         if ($this->historyJoin)
-            $builder->leftjoin("App:AssetHistory", "h_asset", "WITH", "h_asset.barcode = asset.barcode");
+            $builder->leftjoin(AssetHistory::class, "h_asset", "ON", "h_asset.barcode = asset.barcode");
         if ($this->driveJoin)
-            $builder->leftjoin("App:Drive", "drive", "WITH", "drive.barcode = asset.barcode");
+            $builder->leftjoin(Drive::class, "drive", "ON", "drive.barcode = asset.barcode");
         if ($this->userJoin)
-            $builder->leftjoin("App:Nutzer", "user", "WITH", "user.id = asset.modifiedBy");
+            $builder->leftjoin(Nutzer::class, "user", "ON", "user.id = asset.modifiedBy");
         if ($this->historyUserJoin)
-            $builder->leftjoin("App:Nutzer", "h_user", "WITH", "h_user.id = h_asset.modifiedBy");
+            $builder->leftjoin(Nutzer::class, "h_user", "ON", "h_user.id = h_asset.modifiedBy");
         if ($this->reservedUserJoin)
-            $builder->leftjoin("App:Nutzer", "reserver", "WITH", "reserver.id = asset.reservedBy");
+            $builder->leftjoin(Nutzer::class, "reserver", "ON", "reserver.id = asset.reservedBy");
         if ($this->historyReservedUserJoin)
-            $builder->leftjoin("App:Nutzer", "h_reserver", "WITH", "h_reserver.id = h_asset.reservedBy");
+            $builder->leftjoin(Nutzer::class, "h_reserver", "ON", "h_reserver.id = h_asset.reservedBy");
         if ($this->locationJoin)
-            $builder->leftjoin("App:Asset", "location", "WITH", "location.barcode = asset.location");
+            $builder->leftjoin(Asset::class, "location", "ON", "location.barcode = asset.location");
         if ($this->historyLocationJoin)
-            $builder->leftjoin("App:Asset", "h_location", "WITH", "h_location.barcode = h_asset.location");
+            $builder->leftjoin(Asset::class, "h_location", "ON", "h_location.barcode = h_asset.location");
         if ($this->caseJoin) //  "case" is SQL keyword -> we use "_case"
-            $builder->leftjoin("App:CaseFile", "_case", "WITH", "_case.id = asset.case");
+            $builder->leftjoin(CaseFile::class, "_case", "ON", "_case.id = asset.case");
         if ($this->historyCaseJoin)
-            $builder->leftjoin("App:CaseFile", "h_case", "WITH", "h_case.id = h_asset.case");
+            $builder->leftjoin(CaseFile::class, "h_case", "ON", "h_case.id = h_asset.case");
 
         return $builder;
     }
@@ -124,7 +134,8 @@ class ExtendedAssetSearch extends ExtendedSearch
      * @param array $values Matching values.
      * @return Comparison|Func|string|null
      */
-    protected function categoryQuery(bool $neg, array $values): Comparison|Func|string|null {
+    protected function categoryQuery(bool $neg, array $values): Comparison|Func|string|null
+    {
         // translate all categories into categorie ids
         foreach ($values as $key => $c) {
             if(is_numeric($c) && ($c < 0 || $c >= \count(AssetCategory::cases()))) {
@@ -147,7 +158,8 @@ class ExtendedAssetSearch extends ExtendedSearch
      * @param array $values Matching values.
      * @return Comparison|Func|string
      */
-    protected function statusQuery(bool $neg, array $values): Comparison|Func|string|null {
+    protected function statusQuery(bool $neg, array $values): Comparison|Func|string
+    {
         // translate all status into status ids
         foreach ($values as $key => $s) {
             if(is_numeric($s) && ($s < 0 || $s >= \count(AssetState::cases()))) {
@@ -169,7 +181,8 @@ class ExtendedAssetSearch extends ExtendedSearch
      * @param array $values Matching values.
      * @return Comparison|Orx|string
      */
-    protected function barcodeQuery(bool $neg, array $values): Comparison|Orx|string { 
+    protected function barcodeQuery(bool $neg, array $values): Comparison|Orx|string
+    {
         if (1 == \count($values) && ($bool = $this->to_bool($values[0])) !== null){
             return $this->existenceQuery('asset.barcode', $neg xor $bool);
         }
@@ -183,7 +196,8 @@ class ExtendedAssetSearch extends ExtendedSearch
      * @param array $values Matching values.
      * @return Comparison|Orx|string
      */
-    protected function nameQuery(bool $neg, array $values): Comparison|Orx|string {
+    protected function nameQuery(bool $neg, array $values): Comparison|Orx|string
+    {
         if (1 == \count($values) && ($bool = $this->to_bool($values[0])) !== null){
             return $this->existenceQuery('asset.name', $neg xor $bool);
         }
@@ -197,7 +211,8 @@ class ExtendedAssetSearch extends ExtendedSearch
      * @param array $values Matching values.
      * @return Comparison|Orx|string
      */
-    protected function noteQuery(bool $neg, array $values): Comparison|Orx|string {
+    protected function noteQuery(bool $neg, array $values): Comparison|Orx|string
+    {
         if (1 == \count($values) && ($bool = $this->to_bool($values[0])) !== null){
             return $this->existenceQuery('asset.note', $neg xor $bool);
         }
@@ -211,7 +226,8 @@ class ExtendedAssetSearch extends ExtendedSearch
      * @param array $values Matching values.
      * @return Comparison|Orx|string
      */
-    protected function usageQuery(bool $neg, array $values): Comparison|Orx|string {
+    protected function usageQuery(bool $neg, array $values): Comparison|Orx|string
+    {
         if (1 == \count($values) && ($bool = $this->to_bool($values[0])) !== null){
             return $this->existenceQuery('asset.usage', $neg xor $bool);
         }
@@ -225,7 +241,8 @@ class ExtendedAssetSearch extends ExtendedSearch
      * @param array $values Matching values.
      * @return Comparison|Orx|string
      */
-    protected function historyUsageQuery(bool $neg, array $values): Comparison|Orx|string {
+    protected function historyUsageQuery(bool $neg, array $values): Comparison|Orx|string
+    {
         $this->historyJoin = true;
         if (1 == \count($values) && ($bool = $this->to_bool($values[0])) !== null){
             return $this->existenceQuery('h_asset.usage', $neg xor $bool);
@@ -240,7 +257,8 @@ class ExtendedAssetSearch extends ExtendedSearch
      * @param array $values Matching values.
      * @return Comparison|Orx
      */
-    protected function modifiedByQuery(bool $neg, array $values): Comparison|Orx {
+    protected function modifiedByQuery(bool $neg, array $values): Comparison|Orx
+    {
         $this->userJoin = true;
         
         return $this->stringQuery('user.fullname', $neg, $values);
@@ -252,7 +270,8 @@ class ExtendedAssetSearch extends ExtendedSearch
      * @param array $values Matching values.
      * @return Comparison|Orx
      */
-    protected function historyModifiedByQuery(bool $neg, array $values): Comparison|Orx {
+    protected function historyModifiedByQuery(bool $neg, array $values): Comparison|Orx
+    {
         $this->historyJoin = true;
         $this->historyUserJoin = true;
         return $this->stringQuery('h_user.fullname', $neg, $values);
@@ -264,7 +283,8 @@ class ExtendedAssetSearch extends ExtendedSearch
      * @param array $values Matching values.
      * @return Comparison|Orx|string
      */
-    protected function reservedQuery(bool $neg, array $values): Comparison|Orx|string {
+    protected function reservedQuery(bool $neg, array $values): Comparison|Orx|string
+    {
         $this->reservedUserJoin = true;
 
         if (1 == \count($values) && ($bool = $this->to_bool($values[0])) !== null){
@@ -280,7 +300,8 @@ class ExtendedAssetSearch extends ExtendedSearch
      * @param array $values Matching values.
      * @return Comparison|Orx|string
      */
-    protected function historyReservedQuery(bool $neg, array $values): Comparison|Orx|string {
+    protected function historyReservedQuery(bool $neg, array $values): Comparison|Orx|string
+    {
         $this->historyJoin = true;
         $this->historyReservedUserJoin = true;
 
@@ -297,7 +318,8 @@ class ExtendedAssetSearch extends ExtendedSearch
      * @param array $values Matching values.
      * @return Comparison|Orx|string
      */
-    protected function locationQuery(bool $neg, array $values): Comparison|Orx|string {
+    protected function locationQuery(bool $neg, array $values): Comparison|Orx|string
+    {
         $this->locationJoin = true;
 
         if (1 == \count($values) && ($bool = $this->to_bool($values[0])) !== null){
@@ -313,7 +335,8 @@ class ExtendedAssetSearch extends ExtendedSearch
      * @param array $values Matching values.
      * @return Comparison|Orx|string
      */
-    protected function historyLocationQuery(bool $neg, array $values): Comparison|Orx|string {
+    protected function historyLocationQuery(bool $neg, array $values): Comparison|Orx|string
+    {
         $this->historyJoin = true;
         $this->historyLocationJoin = true;
 
@@ -330,7 +353,8 @@ class ExtendedAssetSearch extends ExtendedSearch
      * @param array $values Matching values.
      * @return Comparison|Orx|string
      */
-    protected function caseQuery(bool $neg, array $values): Comparison|Orx|string {
+    protected function caseQuery(bool $neg, array $values): Comparison|Orx|string
+    {
         $this->caseJoin = true;
 
         if (1 == \count($values) && ($bool = $this->to_bool($values[0])) !== null){
@@ -346,7 +370,8 @@ class ExtendedAssetSearch extends ExtendedSearch
      * @param array $values Matching values.
      * @return Comparison|Orx|string
      */
-    protected function historyCaseQuery(bool $neg, array $values): Comparison|Orx|string {
+    protected function historyCaseQuery(bool $neg, array $values): Comparison|Orx|string
+    {
         $this->historyJoin = true;
         $this->historyCaseJoin = true;
 
@@ -357,7 +382,8 @@ class ExtendedAssetSearch extends ExtendedSearch
         return $this->stringQuery('h_case.caseId', $neg, $values);
     }
 
-    protected function caseActiveQuery(bool $neg, array $values): Andx|Comparison|Func|Orx|string|null {
+    protected function caseActiveQuery(bool $neg, array $values): Andx|Comparison|Func|Orx|string|null 
+    {
         $this->caseJoin = true;
 
         if (1 == \count($values) && ($bool = $this->to_bool($values[0])) !== null){
@@ -374,7 +400,8 @@ class ExtendedAssetSearch extends ExtendedSearch
      * @param array $values Matching values.
      * @return Comparison|Orx|string
      */
-    protected function typeQuery(bool $neg, array $values): Comparison|Orx|string {
+    protected function typeQuery(bool $neg, array $values): Comparison|Orx|string
+    {
         $this->driveJoin = true;
 
         if (1 == \count($values) && ($bool = $this->to_bool($values[0])) !== null){
@@ -390,7 +417,8 @@ class ExtendedAssetSearch extends ExtendedSearch
      * @param array $values Matching values.
      * @return Comparison|Orx|string
      */
-    protected function formFactorQuery(bool $neg, array $values): Comparison|Orx|string {
+    protected function formFactorQuery(bool $neg, array $values): Comparison|Orx|string
+    {
         $this->driveJoin = true;
 
         if (1 == \count($values) && ($bool = $this->to_bool($values[0])) !== null){
@@ -406,7 +434,8 @@ class ExtendedAssetSearch extends ExtendedSearch
      * @param array $values Matching values.
      * @return Comparison|Orx|string
      */
-    protected function sizeQuery(bool $neg, array $values): Comparison|Orx|string {
+    protected function sizeQuery(bool $neg, array $values): Comparison|Orx|string
+    {
         $this->driveJoin = true;
 
         if (1 == \count($values) && ($bool = $this->to_bool($values[0])) !== null){
@@ -467,7 +496,8 @@ class ExtendedAssetSearch extends ExtendedSearch
      * @param array $values Matching values.
      * @return Comparison|Orx|string
      */
-    protected function manufacturerQuery(bool $neg, array $values): Comparison|Orx|string {
+    protected function manufacturerQuery(bool $neg, array $values): Comparison|Orx|string
+    {
         $this->driveJoin = true;
 
         if (1 == \count($values) && ($bool = $this->to_bool($values[0])) !== null){
@@ -483,7 +513,8 @@ class ExtendedAssetSearch extends ExtendedSearch
      * @param array $values Matching values.
      * @return Comparison|Orx|string
      */
-    protected function modelQuery(bool $neg, array $values): Comparison|Orx|string {
+    protected function modelQuery(bool $neg, array $values): Comparison|Orx|string
+    {
         $this->driveJoin = true;
 
         if (1 == \count($values) && ($bool = $this->to_bool($values[0])) !== null){
@@ -499,7 +530,8 @@ class ExtendedAssetSearch extends ExtendedSearch
      * @param array $values Matching values.
      * @return Comparison|Orx|string
      */
-    protected function productNumberQuery(bool $neg, array $values): Comparison|Orx|string {
+    protected function productNumberQuery(bool $neg, array $values): Comparison|Orx|string
+    {
         $this->driveJoin = true;
 
         if (1 == \count($values) && ($bool = $this->to_bool($values[0])) !== null){
@@ -515,7 +547,8 @@ class ExtendedAssetSearch extends ExtendedSearch
      * @param array $values Matching values.
      * @return Comparison|Orx|string
      */
-    protected function serialNumberQuery(bool $neg, array $values): Comparison|Orx|string {
+    protected function serialNumberQuery(bool $neg, array $values): Comparison|Orx|string
+    {
         $this->driveJoin = true;
 
         if (1 == \count($values) && ($bool = $this->to_bool($values[0])) !== null){
@@ -531,7 +564,8 @@ class ExtendedAssetSearch extends ExtendedSearch
      * @param array $values Matching values.
      * @return Comparison|Orx|string
      */
-    protected function connectorQuery(bool $neg, array $values): Comparison|Orx|string {
+    protected function connectorQuery(bool $neg, array $values): Comparison|Orx|string
+    {
         $this->driveJoin = true;
 
         if (1 == \count($values) && ($bool = $this->to_bool($values[0])) !== null){
@@ -541,7 +575,8 @@ class ExtendedAssetSearch extends ExtendedSearch
         return $this->stringQuery('drive.connector', $neg, $values);
     }
 
-    protected function lastUpdatedOnQuery(bool $neg, array $values) {
+    protected function lastUpdatedOnQuery(bool $neg, array $values) 
+    {
         return $this->dateQuery('asset.lastUpdatedOn', $neg, $values);
     }
 }

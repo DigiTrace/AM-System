@@ -3,6 +3,7 @@
 namespace App\Service;
 
 
+use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Query;
 use Doctrine\ORM\Query\Expr;
@@ -10,6 +11,7 @@ use Doctrine\ORM\Query\Expr\Andx;
 use Doctrine\ORM\Query\Expr\Comparison;
 use Doctrine\ORM\Query\Expr\Func;
 use Doctrine\ORM\Query\Expr\Orx;
+use Doctrine\ORM\Query\Parameter;
 use Doctrine\ORM\QueryBuilder;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
@@ -23,8 +25,8 @@ abstract class ExtendedSearch {
     public static string $regex_single_match = '/(!?\w+):((?:(?:(["\'])[\w <>()\-\.\/,=!üÜöÖäÄ]+)\3)|(?:[\w<>()\-\.\/,=!üÜöÖäÄ]+))/';
     public static string $regex_multiple_match = '/(!?\w+):\[((?:(["\']?)[\w <>()\-\.\/,=!üÜöÖäÄ]+\3\|)*(["\']?)[\w <>()\-\.\/,=!üÜöÖäÄ]+\4)\]/';
 
-    private array $params = [];
-    private array $errors = []; 
+    protected array $params = [];
+    protected array $errors = []; 
     protected Expr $exprBuilder;
 
     public function __construct(
@@ -45,7 +47,7 @@ abstract class ExtendedSearch {
      * @param array{key: string, neg: bool, val: array} $data Argument data
      * @return Andx|Comparison|Func|Orx|string|null
      */
-    abstract protected function matchQueryKey(string $key, $data);
+    abstract protected function matchQueryKey(string $key, array $data): Andx|Comparison|Func|Orx|string|null;
 
     /**
      * Return QueryBuilder for search instance, with necessary table joins.
@@ -58,7 +60,8 @@ abstract class ExtendedSearch {
      * @param string $query Input query
      * @return Query|null Search query or `null` on failure
      */
-    public function generateSearchQuery(string $query): Query|null {
+    public function generateSearchQuery(string $query): ?Query
+    {
         if ($this->isExtendedQuery($query)) {            
             return $this->parseQuery($query);
         }
@@ -72,7 +75,8 @@ abstract class ExtendedSearch {
      * @param string $query Query to check.
      * @return bool
      */
-    public function isExtendedQuery(string $query): bool {
+    public function isExtendedQuery(string $query): bool
+    {
         $exlusiveChars = '<>[]:|';
         if (strpbrk($query, $exlusiveChars)){
             return true;
@@ -82,7 +86,8 @@ abstract class ExtendedSearch {
         return false;
     }
 
-    protected function parseQuery(string $query): Query|null {
+    protected function parseQuery(string $query): Query|null 
+    {
         $this->params = [];
         $this->errors = [];
 
@@ -142,8 +147,15 @@ abstract class ExtendedSearch {
         // place query
         $builder->where($exprs);
         
-        // place parameters
-        $builder->setParameters($this->params);
+        if (\count($this->params) !== 0) {
+            // place parameters
+            $params = array_map(fn($elem, $i) => new Parameter($i, $elem), 
+                $this->params, 
+                range(0, \count($this->params)-1)
+            );
+            $params = new ArrayCollection($params);
+            $builder->setParameters($params);
+        }
 
         return $builder->getQuery();
     }
@@ -159,7 +171,8 @@ abstract class ExtendedSearch {
      * @param array $values         Search values, needs to match at least one
      * @return Comparison|Orx
      */
-    protected function stringQuery(string $identifier, bool $neg, array $values): Comparison|Andx|Orx {
+    protected function stringQuery(string $identifier, bool $neg, array $values): Comparison|Andx|Orx
+    {
         // add "%" to match any characters
         $values = array_map(fn ($val) => "%$val%", $values);
 
@@ -192,7 +205,8 @@ abstract class ExtendedSearch {
      * @param array $values         Search values, needs to match at least one
      * @return Comparison|Func
      */
-    protected function equalQuery(string $identifier, bool $neg, array $values): Comparison|Func {
+    protected function equalQuery(string $identifier, bool $neg, array $values): Comparison|Func
+    {
         if (\is_string($values))
             $values = [$values];
 
@@ -221,7 +235,8 @@ abstract class ExtendedSearch {
      * @param bool $exists       If field should be set or not
      * @return string 
      */
-    protected function existenceQuery(string $identifier, bool $exists): string {
+    protected function existenceQuery(string $identifier, bool $exists): string
+    {
         if($exists)    
             return $this->exprBuilder->isNotNull($identifier);
         else
@@ -244,8 +259,8 @@ abstract class ExtendedSearch {
      * @param array $values Matching values.
      * @return Comparison|Func|Orx
      */
-    protected function dateQuery(string $identifier, bool $neg, array $values): Comparison|Func|Orx {
-
+    protected function dateQuery(string $identifier, bool $neg, array $values): Comparison|Func|Orx
+    {
         $pattern = [
             '/(?<operator>[<>]|<=|>=)?(?<day>\d{2})\.(?<month>\d{2})\.(?<year>\d{4}|\d{2})/',
             '/(?<operator>[<>]|<=|>=)?(?<year>\d{4})-(?<month>\d{2})-(?<day>\d{2})/',
@@ -308,7 +323,8 @@ abstract class ExtendedSearch {
      * @param mixed $parameter Parameter to add
      * @return string Reference in the form of "?x"
      */
-    protected function addParam($parameter): string {
+    protected function addParam($parameter): string
+    {
         $id = array_push($this->params, $parameter) - 1;
         return "?$id";
     }
@@ -322,7 +338,8 @@ abstract class ExtendedSearch {
      * @param string $query
      * @return array<array{key: string, neg: bool, val: array}>
      */
-    protected function getQueryValues(string $query): array {
+    protected function getQueryValues(string $query): array
+    {
         $res = [];
         // get single key values
         $matches = $this->matchKeySingleValue($query);
@@ -352,7 +369,8 @@ abstract class ExtendedSearch {
      * @param string $query
      * @return array Array with entries for each key, value pair.
      */
-    private function matchKeySingleValue(string $query): array {
+    private function matchKeySingleValue(string $query): array
+    {
         $matches = [];
         // key -> $matches[1], value -> $matches[2] 
         preg_match_all(static::$regex_single_match, $query, $matches, PREG_SET_ORDER);
@@ -366,7 +384,8 @@ abstract class ExtendedSearch {
      * @param string $query
      * @return array Array with entries for each key, value pair.
      */
-    private function matchKeyMultipleValue(string $query): array {
+    private function matchKeyMultipleValue(string $query): array
+    {
         $matches = [];
         preg_match_all(static::$regex_multiple_match, $query, $matches, PREG_SET_ORDER);        
         return $matches;
@@ -381,7 +400,8 @@ abstract class ExtendedSearch {
      * @param string $str
      * @return bool|null The value or null of not machted
      */
-    protected function to_bool(string $str): bool|null{
+    protected function to_bool(string $str): ?bool
+    {
         return match (strtolower($str)) {
             'f', 'false', 'falsch' => false,
             't', 'true', 'wahr' => true,
@@ -393,7 +413,8 @@ abstract class ExtendedSearch {
      * Get error messages
      * @return array{type: string, message: string}
      */
-    public function getErrors(): array {
+    public function getErrors(): array
+    {
         return $this->errors;
     }
 
@@ -404,7 +425,8 @@ abstract class ExtendedSearch {
      * @param array $params
      * @return static
      */
-    protected function addError(string $type, string $message, array $params = []): static{
+    protected function addError(string $type, string $message, array $params = []): static
+    {
         $this->errors[] = ['type' => $type, 'message' => $this->translator->trans($message, $params)];
         return $this;
     }

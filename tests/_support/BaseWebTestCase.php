@@ -5,6 +5,7 @@ namespace App\Tests\_support;
 use App\Repository\NutzerRepository;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
+use Zenstruck\Foundry\Test\Factories;
 use Zenstruck\Foundry\Test\ResetDatabase;
 
 /**
@@ -12,7 +13,7 @@ use Zenstruck\Foundry\Test\ResetDatabase;
  */
 abstract class BaseWebTestCase extends WebTestCase
 {
-    use ResetDatabase;
+    
     protected function loginAdmin(KernelBrowser $client): KernelBrowser
     {
         $userRepository = static::getContainer()->get(NutzerRepository::class);

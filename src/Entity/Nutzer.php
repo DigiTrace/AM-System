@@ -3,6 +3,7 @@
 namespace App\Entity;
 
 use App\Repository\NutzerRepository;
+use Deprecated;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
@@ -114,6 +115,8 @@ class Nutzer implements UserInterface, PasswordAuthenticatedUserInterface
 
     /**
      * A visual identifier that represents this user.
+     * 
+     * Alias for `getUsername`.
      *
      * @see UserInterface
      */
@@ -170,6 +173,7 @@ class Nutzer implements UserInterface, PasswordAuthenticatedUserInterface
     /**
      * @see UserInterface
      */
+    #[Deprecated()]
     public function eraseCredentials(): void
     {
         // If you store any temporary, sensitive data on the user, clear it here
