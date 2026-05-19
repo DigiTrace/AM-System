@@ -47,9 +47,9 @@ class ExtendedAssetSearch extends ExtendedSearch
         $dql = <<<DQL
         SELECT asset FROM {$assetClass} asset 
             LEFT JOIN {$historyClass} ha 
-                WITH asset.barcode = ha.barcode 
+                ON asset.barcode = ha.asset 
             LEFT JOIN {$driveClass} d 
-                WITH asset.barcode = d.barcode 
+                ON asset.barcode = d.barcode 
         WHERE asset.name like :searchword 
             OR asset.usage like :searchword 
             OR asset.note like :searchword 
@@ -99,25 +99,25 @@ class ExtendedAssetSearch extends ExtendedSearch
 
         // join requiered tables
         if ($this->historyJoin)
-            $builder->leftjoin(AssetHistory::class, "h_asset", "WITH", "h_asset.barcode = asset.barcode");
+            $builder->leftjoin(AssetHistory::class, "h_asset", "ON", "h_asset.barcode = asset.barcode");
         if ($this->driveJoin)
-            $builder->leftjoin(Drive::class, "drive", "WITH", "drive.barcode = asset.barcode");
+            $builder->leftjoin(Drive::class, "drive", "ON", "drive.barcode = asset.barcode");
         if ($this->userJoin)
-            $builder->leftjoin(Nutzer::class, "user", "WITH", "user.id = asset.modifiedBy");
+            $builder->leftjoin(Nutzer::class, "user", "ON", "user.id = asset.modifiedBy");
         if ($this->historyUserJoin)
-            $builder->leftjoin(Nutzer::class, "h_user", "WITH", "h_user.id = h_asset.modifiedBy");
+            $builder->leftjoin(Nutzer::class, "h_user", "ON", "h_user.id = h_asset.modifiedBy");
         if ($this->reservedUserJoin)
-            $builder->leftjoin(Nutzer::class, "reserver", "WITH", "reserver.id = asset.reservedBy");
+            $builder->leftjoin(Nutzer::class, "reserver", "ON", "reserver.id = asset.reservedBy");
         if ($this->historyReservedUserJoin)
-            $builder->leftjoin(Nutzer::class, "h_reserver", "WITH", "h_reserver.id = h_asset.reservedBy");
+            $builder->leftjoin(Nutzer::class, "h_reserver", "ON", "h_reserver.id = h_asset.reservedBy");
         if ($this->locationJoin)
-            $builder->leftjoin(Asset::class, "location", "WITH", "location.barcode = asset.location");
+            $builder->leftjoin(Asset::class, "location", "ON", "location.barcode = asset.location");
         if ($this->historyLocationJoin)
-            $builder->leftjoin(Asset::class, "h_location", "WITH", "h_location.barcode = h_asset.location");
+            $builder->leftjoin(Asset::class, "h_location", "ON", "h_location.barcode = h_asset.location");
         if ($this->caseJoin) //  "case" is SQL keyword -> we use "_case"
-            $builder->leftjoin(CaseFile::class, "_case", "WITH", "_case.id = asset.case");
+            $builder->leftjoin(CaseFile::class, "_case", "ON", "_case.id = asset.case");
         if ($this->historyCaseJoin)
-            $builder->leftjoin(CaseFile::class, "h_case", "WITH", "h_case.id = h_asset.case");
+            $builder->leftjoin(CaseFile::class, "h_case", "ON", "h_case.id = h_asset.case");
 
         return $builder;
     }

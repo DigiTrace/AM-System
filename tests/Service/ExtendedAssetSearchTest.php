@@ -90,7 +90,8 @@ class ExtendedAssetSearchTest extends KernelTestCase
      */
     private function testQuery(ExtendedAssetSearch $search, array $queries, array $expected, string $method){
         foreach ($queries as $q) {
-            $res = $search->generateSearchQuery($q)->execute();
+            $query = $search->generateSearchQuery($q);
+            $res = $query->execute();
 
             if(empty($expected)){
                 assertEmpty($res, "query '$q' did not return empty result");
@@ -358,7 +359,7 @@ class ExtendedAssetSearchTest extends KernelTestCase
     }
 
     public function testFormerUsageQuery() {
-        $this->markTestIncomplete();
+        $this->markTestIncomplete('Not yet implemented');
     }
 
     public function testModifiedByQuery() {
@@ -394,7 +395,7 @@ class ExtendedAssetSearchTest extends KernelTestCase
     }
 
     public function testFormerModifiedByQuery() {
-        $this->markTestIncomplete();
+        $this->markTestIncomplete('Not yet implemented');
     }
 
     public function testReservedByQuery() {
@@ -445,7 +446,7 @@ class ExtendedAssetSearchTest extends KernelTestCase
     }
 
     public function testFormerReservedQuery() {
-        $this->markTestIncomplete();
+        $this->markTestIncomplete('Not yet implemented');
     }
 
     public function testLocationQuery() {
@@ -480,7 +481,7 @@ class ExtendedAssetSearchTest extends KernelTestCase
     }
     
     public function testFormerLocationQuery() {
-        $this->markTestIncomplete();
+        $this->markTestIncomplete('Not yet implemented');
     }
 
     public function testCaseQuery() {
@@ -517,7 +518,7 @@ class ExtendedAssetSearchTest extends KernelTestCase
     }
     
     public function testFormerCaseQuery() {
-        $this->markTestIncomplete();
+        $this->markTestIncomplete('Not yet implemented');
     }
 
     public function testCaseActiveQuery() {

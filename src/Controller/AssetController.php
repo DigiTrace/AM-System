@@ -101,8 +101,8 @@ class AssetController extends BaseController
         }
 
         // no search term provided, default query for listing all objects
-        $search ??= $request->get('suche');
-        $search ??= $request->get('search');
+        $search ??= $request->attributes->get('suche');
+        $search ??= $request->attributes->get('search');
 
         // apply extended asset search to create query
         if ($search) {
@@ -1054,7 +1054,7 @@ class AssetController extends BaseController
     #[Route('/asset/cases', name: 'add_asset_query_cases')]
     public function listCaseOptions(Request $request): JsonResponse
     {
-        $query = $request->get('query', '');
+        $query = $request->attributes->get('quey', '');
 
         if (empty(\trim($query))) {
             $query = null;
@@ -1088,7 +1088,7 @@ class AssetController extends BaseController
     #[Route('/asset/locations', name: 'asset_action_query_locations')]
     public function listStorageOptions(Request $request): JsonResponse
     {
-        $query = $request->get('query', '');
+        $query = $request->attributes->get('quey', '');
 
         if (empty(\trim($query))) {
             $query = null;
@@ -1121,7 +1121,7 @@ class AssetController extends BaseController
     #[Route('/asset/image_targets', name: 'asset_action_query_image_targets')]
     public function listHddImageTargets(Request $request): JsonResponse
     {
-        $query = $request->get('query', '');
+        $query = $request->attributes->get('quey', '');
 
         if (empty(\trim($query))) {
             $query = null;
@@ -1154,7 +1154,7 @@ class AssetController extends BaseController
     #[Route('/asset/image_sources', name: 'asset_action_query_image_sources')]
     public function listHddImageSources(Request $request): JsonResponse
     {
-        $query = $request->get('query', '');
+        $query = $request->attributes->get('quey', '');
 
         if (empty(\trim($query))) {
             $query = null;

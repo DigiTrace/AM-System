@@ -185,7 +185,7 @@ class Asset
     /**
      * Set picture path.
      */
-    public function setPicturePath($path): static
+    public function setPicturePath(?string $path): static
     {
         if (null === $this->assetBlob) {
             $this->assetBlob = new AssetBlob($this);

@@ -66,7 +66,7 @@ user:
     reset: *FORM_RESET
     save: *FORM_SAVE
     edit_profile: 'Edit profile information:'
-    edit_successul: 'Profile updated succesfully'
+    edit_successful: 'Profile updated succesfully'
     change_password: '' # left empty
     password_change_successful: 'Password succesfully changed'
     error:

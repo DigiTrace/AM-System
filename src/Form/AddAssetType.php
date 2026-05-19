@@ -39,9 +39,9 @@ class AddAssetType extends AbstractType
                     'autofocus' => true,
                     'placeholder' => 'DTXX00000',
                 ],
-                'constraints' => new Barcode([
-                    'payload' => ['propertyPath' => 'parent.data.category'],
-                ]),
+                'constraints' => new Barcode(
+                    propertyPath: 'parent.data.category',
+                ),
                 'required' => true,
             ])
             ->add('name', Field\TextType::class, [

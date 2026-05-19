@@ -54,9 +54,9 @@ class ExtendedCaseSearch extends ExtendedSearch {
 
         // join requiered tables
         if ($this->assetJoin)
-            $builder->leftjoin(Asset::class, "asset", "WITH", "asset.case = caseFile.id");
+            $builder->leftjoin(Asset::class, "asset", "ON", "asset.case = caseFile.id");
         if ($this->assetHistoryJoin)
-            $builder->leftjoin(AssetHistory::class, "h_asset", "WITH", "h_asset.case = caseFile.id");
+            $builder->leftjoin(AssetHistory::class, "h_asset", "ON", "h_asset.case = caseFile.id");
 
         return $builder;
     }

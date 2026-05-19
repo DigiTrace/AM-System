@@ -69,8 +69,8 @@ class CaseController extends BaseController
         }
         
         // no search term provided, default query for listing all objects
-        $search ??= $request->get('suche');
-        $search ??= $request->get('search');
+        $search ??= $request->attributes->get('suche');
+        $search ??= $request->attributes->get('search');
         
         // apply extended case search to create query
         if ($search) {

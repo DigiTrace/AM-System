@@ -3,6 +3,7 @@
 namespace App\Service;
 
 
+use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Query;
 use Doctrine\ORM\Query\Expr;
@@ -10,6 +11,7 @@ use Doctrine\ORM\Query\Expr\Andx;
 use Doctrine\ORM\Query\Expr\Comparison;
 use Doctrine\ORM\Query\Expr\Func;
 use Doctrine\ORM\Query\Expr\Orx;
+use Doctrine\ORM\Query\Parameter;
 use Doctrine\ORM\QueryBuilder;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
@@ -23,8 +25,8 @@ abstract class ExtendedSearch {
     public static string $regex_single_match = '/(!?\w+):((?:(?:(["\'])[\w <>()\-\.\/,=!üÜöÖäÄ]+)\3)|(?:[\w<>()\-\.\/,=!üÜöÖäÄ]+))/';
     public static string $regex_multiple_match = '/(!?\w+):\[((?:(["\']?)[\w <>()\-\.\/,=!üÜöÖäÄ]+\3\|)*(["\']?)[\w <>()\-\.\/,=!üÜöÖäÄ]+\4)\]/';
 
-    private array $params = [];
-    private array $errors = []; 
+    protected array $params = [];
+    protected array $errors = []; 
     protected Expr $exprBuilder;
 
     public function __construct(
@@ -145,8 +147,15 @@ abstract class ExtendedSearch {
         // place query
         $builder->where($exprs);
         
-        // place parameters
-        $builder->setParameters($this->params);
+        if (\count($this->params) !== 0) {
+            // place parameters
+            $params = array_map(fn($elem, $i) => new Parameter($i, $elem), 
+                $this->params, 
+                range(0, \count($this->params)-1)
+            );
+            $params = new ArrayCollection($params);
+            $builder->setParameters($params);
+        }
 
         return $builder->getQuery();
     }

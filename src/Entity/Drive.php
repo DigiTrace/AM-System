@@ -16,7 +16,7 @@ class Drive
 {
     #[ORM\OneToOne(inversedBy: 'drive', cascade: ['persist', 'remove'])]
     #[ORM\Id]
-    #[ORM\JoinColumn(name: 'barcode_id', referencedColumnName: 'barcode_id', nullable: false)]
+    #[ORM\JoinColumn(name: 'barcode_id', referencedColumnName: 'barcode_id')]
     private ?Asset $barcode = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true, name: 'formfaktor')]
