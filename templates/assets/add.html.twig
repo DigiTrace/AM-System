@@ -18,206 +18,90 @@
    // along with this program.  If not, see <http://www.gnu.org/licenses/>.
    
 #}
-{% set aa_form = 'aa-form' %}
-{% set drive_form = 'drive-form' %}
-
 {% extends 'base.html.twig' %}
-{% form_theme form 'bootstrap_3_layout.html.twig' %} 
 {% block content1 %}
-    {# <div class="wrapper">
-        <div class="container" > #}
-            <h2>{{ 'asset.add.header' | trans}}</h2>
+    <h2>{{ 'asset.add.header' | trans}}</h2>
 
-            {{ include('messages.html.twig') }}
-        
-            {{ form_start(form, {'attr': {'id': aa_form } }) }}
-            
+    {{ include('messages.html.twig') }}
 
-            <div class="row row-equal-height ">
-                <div class="col-lg-8 col-xs-12">
-                    <div class="row">
-                        <div class="col-lg-6 col-xs-12">
-                            {{ form_row(form.barcode) }}
-                            {{ form_row(form.name) }}
-                        </div>
-                        
-                        <div class="col-lg-6 col-xs-12">
-                            {{ form_row(form.category) }}
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-lg-6 col-xs-12">
-                            {{ form_row(form.lastUpdatePerformedOn) }}
-                        </div>
-                        
-                        <div class="col-lg-6 col-xs-12">
-                            {{ form_row(form.storageOverride) }}
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-lg-6 col-xs-12">
-                            {{ form_row(form.usage) }}
-                        </div>
-                        
-                        <div class="col-lg-6 col-xs-12">
-                            {{ form_row(form.note) }}
-                        </div>
-                    </div>
+    {{ form_start(form) }}
+    
 
-                      <div class="divider">{{ 'entity.drive' | trans}}</div>
-
-                    {# drive form #}
-                    <div id="{{ drive_form|e('html') }}">
-                        <div class="row">
-                            <div class="col-lg-6">
-                            {{ form_row(form.drive.type) }}
-                            </div>
-                            <div class="col-lg-6">
-                            {{ form_row(form.drive.formFactor) }}
-                            </div>
-                        </div>
-
-                        <div class="row">
-                            <div class="col-lg-6">
-                            {{ form_row(form.drive.manufacturer) }}
-                            </div>
-                            <div class="col-lg-6">
-                            {{ form_row(form.drive.model) }}
-                            </div>
-                        </div>
-
-                        <div class="row">
-                            <div class="col-lg-6">
-                                <div class="row">
-                                    <div class="col-lg-4">
-                                        {{ form_row(form.drive.size_choice) }}
-                                    </div>
-                                    <div class="col-lg-8">
-                                        {{ form_row(form.drive.size) }}
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-lg-6">
-                            {{ form_row(form.drive.connector) }}
-                            </div>
-                        </div>
-
-                        <div class="row">
-                            <div class="col-lg-6">
-                            {{ form_row(form.drive.serialNumber) }}
-                            </div>
-                            <div class="col-lg-6">
-                            {{ form_row(form.drive.productNumber) }}
-                            </div>
-                        </div>
-                    </div>
+    <div class="row row-equal-height ">
+        <div class="col-lg-8 col-xs-12">
+            <div class="row">
+                <div class="col-lg-6 col-xs-12">
+                    {{ form_row(form.barcode) }}
+                    {{ form_row(form.name) }}
                 </div>
-                <div class="col-lg-4 col-xs-12 table-column ">
-                        {{ form_row(form.case_search) }}
-                        {{ form_widget(form.case) }}
-                        {{ form_errors(form.case) }}
-                        
-                    <div class="card">
-                        <div class="card-body p-2">
-                            <div class="scrollable-tbody">
-                                <table class="table table-sm table-hover mb-0" id="case-table">
-                                    <thead class="table-light">
-                                        <tr>
-                                            <th class="small">Case Id</th>
-                                            <th class="small">Description</th>
-                                            <th class="small text-center">Link</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="case-table-body" >
-                                        <tr class="case-row info"
-                                        data-case-id="0"
-                                        style="cursor: pointer;">
-                                            <td colspan="3" class="text-muted text-center small">
-                                                {{ 'asset.add.form.no_case'|trans }}
-                                            </td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
-                            <div class="d-flex justify-content-between align-items-center mt-2 px-1">
-                                <small class="text-muted" id="case-table-info">
-                                    Showing 0 out of 0 entries
-                                </small>
-                            </div>
-                        </div>
-                    </div>
-
-
+                
+                <div class="col-lg-6 col-xs-12">
+                    {{ form_row(form.category) }}
                 </div>
             </div>
-            <div class="form-footer">
-                {{ form_widget(form.save) }}
-                {{ form_widget(form.save_and_new) }}
-                {{ form_widget(form.save_and_keep) }}
+            <div class="row">
+                <div class="col-lg-6 col-xs-12">
+                    {{ form_row(form.lastUpdatePerformedOn) }}
+                </div>
+                
+                <div class="col-lg-6 col-xs-12">
+                    {{ form_row(form.storageOverride) }}
+                </div>
             </div>
-          
+            <div class="row">
+                <div class="col-lg-6 col-xs-12">
+                    {{ form_row(form.usage) }}
+                </div>
+                
+                <div class="col-lg-6 col-xs-12">
+                    {{ form_row(form.note) }}
+                </div>
+            </div>
 
-            {{ form_end(form) }}
-        {# </div>
-    </div> #}
+            <div class="divider">{{ 'entity.drive' | trans}}</div>
+
+            {{ form_row(form.drive) }}
+        </div>
+        <div class="col-lg-4 col-xs-12 table-column ">
+            {{ form_row(form.case) }}
+
+        </div>
+    </div>
+    <div class="form-footer">
+        {{ form_widget(form.save) }}
+        {{ form_widget(form.save_and_new) }}
+        {{ form_widget(form.save_and_keep) }}
+    </div>
+    
+    {{ form_end(form) }}
     
 {% endblock %}
 
 {% block stylesheets %}
-<style> 
-.row-equal-height {
-            display: flex;
-            align-items: stretch;  /* Stretch columns to have equal height */
-        }
-.table-column {
-        display: flex;
-        flex-direction: column;
-    }
-
-.scrollable-tbody {
-    flex: 1;
-    max-height: 600px; /* Set the height for scrolling */
-    overflow-y: auto;
-}
-thead th {
-    position: sticky;
-    top: 0;
-    background-color: #f9f9f9; /* To avoid overlap with content */
-    z-index: 1;
-}
-</style>
 {% endblock %}
 
 
 {% block javascripts %}
 <script>
-    {# TODO replace with `field_id()` twig functions in future symfony versions #}
-    const AA_FORM = '{{ aa_form }}';
-    const AA_DRIVE_FORM = '{{ drive_form }}';
-    const AA_BARCODE_FIELD = 'add_asset_barcode';
-    const AA_CATEGORY_FIELD = 'add_asset_category';
-    const AA_CASE_SEARCH_FIELD = 'add_asset_case_search';
-    const AA_CASE_FIELD = 'add_asset_case';
-    const AA_STORAGE_OVERRIDE_FIELD = 'add_asset_storageOverride'
-
     const AddAsset = (function(){
-        let caseField;
-        let tbody;
-        let infoLabel;
+        const formSelector = '#{{ form.vars.id }}';
+        const driveSelector = '[name*="{{ form.drive.vars.full_name }}"]';
+        const barcodeSelector = '#{{ form.barcode.vars.id }}';
+        const categorySelector = '#{{ form.category.vars.id }}';
+        const storageOverrideSelector = '#{{ form.storageOverride.vars.id }}';
 
-        let cases = [];
-        let total = 0;
-
-        let prevRequest = null;
+        const auto_text = '{{ 'asset.add.form.storage_override_opt.auto' | trans }}';
+        const enabled_text = '{{ 'asset.add.form.storage_override_opt.enabled' | trans }}';
+        const disabled_text = '{{ 'asset.add.form.storage_override_opt.disabled' | trans }}';
 
         const setDriveFormEnable = function(enabled) {
-            $(`#${AA_DRIVE_FORM} [name]`).each(function(_) {
+            $(driveSelector).each(function(_) {
                 $(this).attr('disabled', enabled ? null : 'disabled');
             })
         }
 
         const setStorageOverrideEnable = function(enabled) {
-            $(`#${AA_STORAGE_OVERRIDE_FIELD}`).each(function(_) {
+            $(storageOverrideSelector).each(function(_) {
                 $(this).attr('disabled', enabled ? null : 'disabled');
                 if (!enabled) {
                     $(this).val(2);
@@ -225,168 +109,33 @@ thead th {
             })
         }
 
-        const renderCaseTable = function() {
-            tbody.innerHTML = ''
-            const noCase = document.createElement('tr');
-            noCase.classList.add('case-row');
-            noCase.style.cursor = 'pointer';
-            noCase.dataset.caseId = 0;
-            noCase.innerHTML = `
-                <td colspan="3" class="text-muted text-center small">
-                    {{ 'asset.add.form.no_case'|trans }}
-                </td>
-            `;
-            noCase.addEventListener('click', () => {
-                selectCaseRow(noCase, 0);
-            });
+        const categoryUpdate = function(e){
+            const option = $(this).find(':selected');
+            const prefix = option.data('prefix');
+            const drive = option.data('drive');
+            
+            // set DT prefix
+            const barcode = $(barcodeSelector);
+            const val = barcode.val()
+            const new_val = prefix + val.substring(4)
+            barcode.val(new_val)
 
-            tbody.appendChild(noCase);
+            // enable/disable drive form
+            setDriveFormEnable(drive);
 
-            cases.forEach(c => {
-                const tr = document.createElement('tr');
-                tr.classList.add('case-row');
-                tr.style.cursor = 'pointer';
-                tr.dataset.caseId = c.id;
+            // enable/disbale storage override form
+            setStorageOverrideEnable(!drive)
 
-                tr.innerHTML = `
-                    <td class="small">${c.caseId}</td>
-                    <td class="small text-truncate" style="max-width: 120px;">
-                        ${escapeHtml(c.description)}
-                    </td>
-                    <td class="text-center">
-                        <a href="${c.link}" 
-                            class="btn btn-sm btn-outline-primary"
-                            onclick="event.stopPropagation();">
-                            {{ 'view'|trans }}
-                        </a>
-                    </td>
-                `;
+            // storage override hint
+            const auto_option = $(`${storageOverrideSelector} > [value="0"]`)
 
-                tr.addEventListener('click', () => {
-                    selectCaseRow(tr, c.id);
-                });
-
-                tbody.appendChild(tr);
-            });
+            const text = `${auto_text} (${option.data('storage') ? enabled_text : disabled_text})`;
+            auto_option.text(text);
         }
-
-        const selectCaseRow = function(row, caseId) {
-            // set input value
-            caseField.value = caseId;
-
-            // highlight selection
-            tbody.querySelectorAll('tr')
-                .forEach(r => r.classList.remove('info'));
-
-            row.classList.add('info');
-        }
-
-        const updateInfo = function() {
-
-            infoLabel.textContent = `Showing ${cases.length} out of ${total} entries`;
-        }
-
-        const escapeHtml = function(text) {
-            const div = document.createElement('div');
-            div.textContent = text;
-            return div.innerHTML;
-        }
-
-
 
         return {
             init: function(){
-                tbody = document.getElementById('case-table-body');
-                infoLabel = document.getElementById('case-table-info');
-                caseField = document.getElementById(AA_CASE_FIELD)
-
-                // category handler
-                $(`#${AA_CATEGORY_FIELD}`).on("change", function(){
-                    const option = $(this).find(':selected');
-                    const prefix = option.data('prefix');
-                    const drive = option.data('drive');
-                    
-                    // set DT prefix
-                    const barcode = $(`#${AA_BARCODE_FIELD}`);
-                    const val = barcode.val()
-                    const new_val = prefix + val.substring(4)
-                    barcode.val(new_val)
-
-                    // enable/disable drive form
-                    setDriveFormEnable(drive);
-
-                    // enable/disbale storage override form
-                    setStorageOverrideEnable(!drive)
-
-                    // storage override hint
-                    const auto_text = '{{ 'asset.add.form.storage_override_opt.auto' | trans }}';
-                    const enabled_text = '{{ 'asset.add.form.storage_override_opt.enabled' | trans }}';
-                    const disabled_text = '{{ 'asset.add.form.storage_override_opt.disabled' | trans }}';
-                    const auto_option = $(`#${AA_STORAGE_OVERRIDE_FIELD} > [value="0"]`)
-
-                    const text = `${auto_text} (${option.data('storage') ? enabled_text : disabled_text})`;
-                    console.log(auto_option, text);
-                    
-                    auto_option.text(text);
-                });
-
-                // case search handler
-                $(`#${AA_CASE_SEARCH_FIELD}`).on("keyup", function(){
-                    const data = $(this).val();
-                    const url = '{{ path('add_asset_query_cases') }}';
-
-                    // if (data.length < 2) {
-                    //     return;
-                    // }
-                    
-                    // improve performance by canceling old requests
-                    if (prevRequest != null) {
-                        prevRequest.abort();
-                    }
-                    
-                    prevRequest = $.ajax({
-                        url : url,
-                        data: {
-                            query: data,
-                        },
-                        success: function(response) {
-                            if(!response.update) {
-                                return;
-                            }
-
-                            total = response.total;
-                            cases = response.data;
-                            renderCaseTable();
-                            updateInfo();
-                            return;
-                            
-                            // // const no_case = '{{ 'asset.add.form.no_case' | trans }}';
-
-                            // const cases =  $(`#${AA_CASE_FIELD}`);
-                            // // remove all expect placeholder
-                            // cases.find(' > option').each(function(index){
-                            //     const elem = $(this)
-                            //     if (elem.val()) {
-                            //         elem.remove()
-                            //     }
-                            // })
-
-                            // // append new items
-                            // response.data.forEach(item => {
-                            //     const option = document.createElement('option');
-                            //     const text = document.createTextNode(item.text);
-                            //     option.value = item.val;
-                            //     option.appendChild(text);
-                                
-                            //     cases.append(option);
-                            // });
-                        }
-                    });
-                });
-
-                // var e = jQuery.Event("keyup");
-                // e.which = 50; // # Some key code value
-                // $(`#${AA_CASE_SEARCH_FIELD}`).trigger(e);
+                $(categorySelector).on("change", categoryUpdate); 
             }
         }
     })();

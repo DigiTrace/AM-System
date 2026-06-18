@@ -189,6 +189,11 @@ asset:
       save_and_keep: 'Objekt speichern und ähnliches hinufügen'
       success: 'Objekt erfolgreich hinzugefügt.'
 
+
+  select:
+    edit_selected: 'Alle {count} ausgewählten Objekte ändern'
+    all: 'Alle auswählen'
+
   search:
     header: 'Objektübersicht'
     reserved_by: 'Reserviert von {user}' 

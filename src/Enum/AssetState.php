@@ -113,6 +113,30 @@ enum AssetState: int implements TranslatableInterface
         ];
     }
 
+    /**
+     * Maps states to bootstrap color label.
+     */
+    public function bootstrapColor(): string
+    {
+        return match ($this) {
+            self::Added => 'success',
+            self::Cleaned => 'success',
+            self::TakenToCustomer => 'default',
+            self::Destroyed => 'warning',
+            self::HandoverPerson => 'default',
+            self::Reserved => 'primary',
+            self::Lost => 'danger',
+            self::StoredInContainer => 'primary',
+            self::PulledOutOfContainer => 'default',
+            self::AssignedCase => 'primary',
+            self::RemovedFromCase => 'default',
+            self::UnbindReservation => 'default',
+            self::Used => 'primary',
+            self::Edited => 'primary',
+            self::SavedImage => 'default',
+        };
+    }
+
     
     public function trans(TranslatorInterface $translator, ?string $locale = null): string
     {

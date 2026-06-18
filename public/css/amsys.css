@@ -40,3 +40,25 @@
     gap: 5px;
     margin-top: 10px;
 }
+
+.scrollable-tbody {
+    border-bottom: 2px solid #ddd;
+    flex: 1;
+    max-height: 600px; /* Set the height for scrolling */
+    overflow-y: auto;
+}
+.list-table {
+    margin-bottom: 0px;
+}
+.list-table>thead th {
+    position: sticky;
+    top: 0;
+    background-color: #f9f9f9; /* To avoid overlap with content */
+    z-index: 1;
+}
+.empty-row {
+    display: none;
+}
+.list-table>tbody> :last-child.empty-row {
+    display: revert;
+}

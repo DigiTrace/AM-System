@@ -2,17 +2,22 @@
 
 namespace App\Controller;
 
+use App\Action\Asset as Actions;
+use App\Action\Asset\AssetAction;
 use App\Entity\Asset;
 use App\Entity\AssetHistory;
-use App\Entity\CaseFile;
 use App\Enum\AssetCategory as Category;
 use App\Enum\AssetState as State;
-use App\Form\ActionAssetType;
-use App\Form\AddAssetType;
-use App\Form\EditAssetType;
-use App\Form\SimpleAssetSearchType;
-use App\Form\UploadPictureType;
+use App\Form\Asset\AddType;
+use App\Form\Asset\MultiActionType;
+use App\Form\Asset\SingleActionType;
+use App\Form\Asset\UploadPictureType;
+use App\Form\Type\EntitySearchType;
+use App\Repository\AssetRepository;
+use App\Service\AssetActionManager;
 use App\Service\ExtendedAssetSearch;
+use App\Service\ExtendedCaseSearch;
+use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\EntityManagerInterface;
 use Knp\Component\Pager\PaginatorInterface;
 use Symfony\Component\Finder\Finder;
@@ -20,35 +25,12 @@ use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Session\SessionInterface;
-use Symfony\Component\PropertyAccess\PropertyAccess;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
 /**
  * Controller for managing assets.
- *
- * @todo Test
- * @todo Add:
- * - [x] add
- * - [x] details
- * - [x] edit
- * - [ ] Alter multiple
- * - [x] Null action
- * - [x] Use action
- * - [x] Destroy action
- * - [x] Lost action
- * - [x] Handover action
- * - [x] Reserve action
- * - [x] Unreserve action
- * - [x] Pull out action
- * - [x] Remove from case action
- * - [x] Neutralize action
- * - [x] Store action
- * - [x] Add to case action
- * - [x] Upload picture
- * - [x] Select exhibit hdd
- * - [x] Save image action
  *
  * @author Ben Brooksnieder
  */
@@ -74,17 +56,14 @@ class AssetController extends BaseController
         $search = null;
         $query = null;
 
-        $form = $this->createForm(SimpleAssetSearchType::class, null, [
-            'method' => 'GET',
-            'csrf_protection' => false,
-            'attr' => ['class' => 'navbar-form navbar-right', 'id' => 'search_form'],
-            'search_action' => $this->generateURL('search_assets'),
+        // search form
+        $form = $this->createForm(EntitySearchType::class, null, [
             'limit' => $session->get('limit'),
+            'show_extended_search' => true,
         ]);
         $form->handleRequest($request);
 
-        // if form is submitted, apply form parameters
-        if ($form->isSubmitted() && $form->isValid()) {
+        if ($form->isSubmitted()) {
             $formData = $form->getData();
             $search = $formData['search'];
 
@@ -113,10 +92,14 @@ class AssetController extends BaseController
         }
 
         // no search query or parse error, apply default asset listing
-        if ($query === null) {
+        if (null === $query) {
             $repo = $this->entityManager->getRepository(Asset::class);
-            $query = $repo->createQueryBuilder('asset')->getQuery();
-
+            $builder = $repo->createQueryBuilder('asset');
+            $builder->select('PARTIAL asset.{barcode, category, state, name}');
+            // // TODO optimize for doctrine N + 1 querie issues
+            // $builder->innerJoin('asset.drive', 'drive');
+            // $builder->innerJoin('asset.assetBlob', 'blob');
+            $query = $builder;
         }
 
         // populate paginator
@@ -130,9 +113,18 @@ class AssetController extends BaseController
             ]
         );
 
+        // selection form for multiple edits
+        $selectionForm = $this->createForm(MultiActionType::class, [], [
+            'method' => 'POST',
+            'action' => $this->generateUrl('asset_multi_edit'),
+            'preview' => true,
+        ],
+        );
+
         // render object table
         return $this->render('assets/search.html.twig', [
-            'form' => $form->createView(),
+            'search' => $form->createView(),
+            'selection' => $selectionForm->createView(),
             'eas_categories' => Category::cases(),
             'eas_states' => State::cases(),
             'pagination' => $pagination,
@@ -141,45 +133,57 @@ class AssetController extends BaseController
         ]);
     }
 
-    // public function editAssets(Request $request, SessionInterface $session) {
-    //     $form = $this->createForm(BatchAssetActionType::class, null, []);
-    //     $form->handleRequest($request);
+    /**
+     * Edit multiple assets at once. Might be invoked by asset overview page.
+     */
+    #[Route('objekte/aendern', name: 'asset_multi_edit')]
+    public function multiAction(
+        Request $request,
+        AssetActionManager $manager,
+    ) {
+        // populate form and handle request
+        $form = $this->createForm(MultiActionType::class, [], []);
+        $form->handleRequest($request);
 
-    //     if ($form->isSubmitted() && $form->isValid()) {
-    //         $data = $form->getData();
-    //         if ($data)
-    //     }
+        // show immediate form errors
+        $data = $form->getData();
+        foreach ($form->getErrors() as $error) {
+            $this->addFlash('danger', $error->getMessage());
+        }
 
-    //     if (    $chooseform->isSubmitted() && 
-    //             $chooseform->isValid() ) {
-            
-    //         $temp = $chooseform->getData();
-            
-    //         // if a Objects has to be stored or added to case, this action cant
-    //         // proceed, if contextthing isnt set
-    //         if(($temp["newstatus"] == State::AssignedCase ||
-    //             $temp["newstatus"] == State::StoredInContainer) &&
-    //             $temp["contextthings"] == null){
-                
-    //             $this->addFlash('danger','selected_action_needs_contextthings');
-    //         }
-    //         else{   
-    //             $session->set("newstatus",$temp["newstatus"]);
-    //             $session->set("newdescription",$temp["newdescription"]);
-    //             $session->set("contextthings",$temp["contextthings"]);
-    //             $session->set("dueDate",$temp["dueDate"]);
-                
-    //             return $this->redirectToRoute('alter_multiple_objects');
-    //         }
-            
-    //     }
-    //     else{
-    //         $this->addFlash("info",'action_description_mass_update_part1');
-    //     }
-    //     return $this->render('default/select_action.html.twig', array(
-    //         'chooseform'=> $chooseform->createView(),
-    //     ));
-    // }
+        // pre validate assets to verify that it is legitimate action
+        $violations = [];
+        if (!empty($data['assets']) && !empty($data['action'])) {
+            $violations = $manager->isValidAction($data['assets'], $data['action']);
+        }
+
+        // check if form is valid and submitted by save button (not preview)
+        if ($form->get('save')->isClicked()
+           && $form->isSubmitted()
+           && 0 == $form->getErrors()->count()
+           && empty($violations)) {
+            // perform action on multiple assets
+            $violations = $manager->performAction($data['assets'], $data, $data['action']);
+
+            // action must be valid for all assets
+            if (empty($violations)) {
+                $this->addFlash('success', 'asset.action.multi_action.success');
+
+                return $this->redirectToRoute('search_assets');
+            }
+
+            // else refresh assets
+            foreach ($data['assets'] as $asset) {
+                $this->entityManager->refresh($asset);
+            }
+        }
+
+        return $this->render('assets/multi_action.html.twig', [
+            'assets' => $data['assets'] ?? [],
+            'violations' => $violations,
+            'form' => $form->createView(),
+        ]);
+    }
 
     /**
      * Im Grunde eine Art "API" zum Verwenden des Barcode Scanners
@@ -223,7 +227,7 @@ class AssetController extends BaseController
     #[Route('/objekt/anlegen', name: 'add_asset')]
     public function add(Request $request)
     {
-        $form = $this->createForm(AddAssetType::class, null, []);
+        $form = $this->createForm(AddType::class, null, []);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
@@ -267,7 +271,7 @@ class AssetController extends BaseController
 
             $this->addFlash('success', 'asset.add.form.success');
             if ($form->get('save_and_new')->isClicked()) {
-                $form = $this->createForm(AddAssetType::class);
+                $form = $this->createForm(AddType::class);
             }
         } else {
             foreach ($form->getErrors() as $error) {
@@ -307,176 +311,97 @@ class AssetController extends BaseController
     }
 
     /**
-     * Show form to edit asset or handle asset edit form request.
+     * Apply asset action to an asset.
      */
-    #[Route('/objekt/{id}/editieren', name: 'edit_asset')]
-    public function edit(string $id, Request $request)
-    {
-        // query database for asset
+    private function action(
+        Request $request,
+        AssetActionManager $manager,
+        string $id,
+        AssetAction $action,
+    ) {
         $asset = $this->entityManager->getRepository(Asset::class)->find($id);
 
-        // check if asset was found
-        if (null == $asset) {
+        if (null === $asset) {
             $this->addFlash('danger', 'asset.error.not_found');
 
             return $this->redirectToRoute('search_assets');
         }
 
-        // create history entry, but don't persist yet
-        $history = AssetHistory::fromAsset($asset);
-        $drive = $asset->getDrive();
+        $collection = new ArrayCollection([$asset]);
 
         // simulate state change to verify that it is legitimate action
-        $currentState = $asset->getState();
-        $asset->setState(State::Edited);
+        $violations = $manager->isValidAction($collection, $action);
 
-        // proccess form
-        $form = $this->createForm(EditAssetType::class, $asset, []);
+        if (!empty($violations)) {
+            foreach ($violations[$asset->getBarcode()] as $error) {
+                $this->addFlash('danger', $error->getMessage());
+            }
+
+            return $this->redirectToRoute('details_asset', ['id' => $asset->getBarcode()]);
+        }
+
+        // create action form
+        $form = $this->createForm(SingleActionType::class, [
+            'usage' => $asset->getUsage(),
+            'name' => $asset->getName(),
+            'note' => $asset->getNote(),
+            'drive' => $asset->getDrive(),
+        ], [
+            'asset_action' => $action,
+            'not_before' => $asset->getLastUpdatePerformedOn(),
+        ]);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            // restore state for change calculation
-            $asset->setState($currentState);
-            // check if entity has changed
-            $uow = $this->entityManager->getUnitOfWork();
-            $uow->computeChangeSets();
-            $asset_changes = $uow->getEntityChangeSet($asset);
-            $drive_changes = $asset->isDrive() ? $uow->getEntityChangeSet($drive) : [];
-            
-            // changes are detected, refresh entities, reapply changes and commit
-            if (empty($drive_changes) && empty($asset_changes)) {
-                $this->addFlash('info', 'asset.edit.no_changes_made');
-            }
-            else {       
-                $propertyAccesor = PropertyAccess::createPropertyAccessor();
-                if ($drive_changes) {
-                    $uow->refresh($drive);
-                    foreach ($drive_changes as $key => $value) {
-                        $propertyAccesor->setValue($drive, $key, $value['1']);
-                    }
-                    $this->entityManager->persist($drive);
-                }
-                
-                $uow->refresh($asset);
-                foreach ($asset_changes as $key => $value) {
-                    $propertyAccesor->setValue($asset, $key, $value['1']);
-                }
-                
-                $asset->setState(State::Edited);
-                $asset->setSystemAction(false);
-                $asset->setModifiedBy($this->getUser());
-                $asset->setLastUpdatedOn(new \DateTime());
-                $this->entityManager->persist($asset);
-                $this->entityManager->persist($history);
+            $violations = $manager->performAction($collection, $form->getData(), $action);
 
-                $this->entityManager->flush();
-                $this->addFlash('success', 'asset.edit.success');
-                
-                return $this->redirectToRoute('details_asset', ['id' => $asset->getBarcode()]);        
+            if (empty($violations)) {
+                $this->addFlash('success', 'asset.action.success');
+
+                return $this->redirectToRoute('details_asset', ['id' => $asset->getBarcode()]);
             }
-        } else {
-            foreach ($form->getErrors() as $error) {
+
+            foreach ($violations[$asset->getBarcode()] as $error) {
                 $this->addFlash('danger', $error->getMessage());
             }
-            $this->addFlash('info', 'asset.edit.info');
         }
 
-        return $this->render('assets/edit.html.twig', [
+        // print errors
+        foreach ($form->getErrors() as $error) {
+            $this->addFlash('danger', $error->getMessage());
+        }
+        // show additional messages
+        foreach ($action->getMessages() as $message) {
+            $this->addFlash($message[0], $message[1]);
+        }
+
+        return $this->render('assets/single_action.html.twig', [
             'asset' => $asset,
+            'action' => $action,
             'form' => $form->createView(),
         ]);
+    }
+
+    //
+    // ====================== Asset action methods ======================
+    //
+
+    /**
+     * Show form to edit asset or handle asset edit form request.
+     */
+    #[Route('/objekt/{id}/editieren', name: 'edit_asset')]
+    public function edit(Request $request, AssetActionManager $manager, string $id)
+    {
+        return $this->action($request, $manager, $id, new Actions\Edit());
     }
 
     /**
      * Show form to neutralize drive asset.
      */
     #[Route('/objekt/{id}/neutralisieren', name: 'neutralize_asset')]
-    public function neutralize(string $id, Request $request)
+    public function neutralize(Request $request, AssetActionManager $manager, string $id)
     {
-        // query database for asset
-        $asset = $this->entityManager->getRepository(Asset::class)->find($id);
-
-        // check if asset was found
-        if (null == $asset) {
-            $this->addFlash('danger', 'asset.error.not_found');
-
-            return $this->redirectToRoute('search_assets');
-        }
-
-        // action only allowed for drives
-        if (Category::Hdd != $asset->getCategory()) {
-            $this->addFlash('danger', 'asset.action.neutralize.not_hdd');
-
-            return $this->redirectToRoute('details_asset', ['id' => $asset->getBarcode()]);
-        }
-
-        // create history entry, but don't persist yet
-        $history = AssetHistory::fromAsset($asset);
-        $currentState = $asset->getState();
-
-        // bypass same state validation and check if neutralize is applicable
-        if (State::Cleaned != $currentState) {
-            $asset->setState(State::Cleaned);
-        } elseif (null !== $asset->getLocation()) {
-            $asset->setState(State::StoredInContainer);
-        } elseif (null !== $asset->getCase()) {
-            $asset->setState(State::AssignedCase);
-        } else {
-            $this->addFlash('danger', 'asset.action.neutralize.already_neutralized');
-
-            return $this->redirectToRoute('details_asset', ['id' => $asset->getBarcode()]);
-        }
-
-        // proccess form
-        $form = $this->createForm(ActionAssetType::class, $asset, []);
-        $form->handleRequest($request);
-
-        if ($form->isSubmitted() && $form->isValid()) {
-            $asset->setSystemAction(true);
-            $asset->setModifiedBy($this->getUser());
-            $asset->setLastUpdatedOn(new \DateTime());
-
-            // TODO pack all changes into one history entry
-
-            // if state is not cleaned, set to cleaned
-            if (State::Cleaned != $currentState) {
-                $this->entityManager->persist($history);
-                $history = AssetHistory::fromAsset($asset);
-            }
-
-            // if location is not null, remove from location
-            if (null !== $asset->getLocation()) {
-                $this->entityManager->persist($history);
-                $asset->setLocation(null);
-                $history = AssetHistory::fromAsset($asset);
-            }
-
-            // if assigned to case, remove from case
-            if (null !== $asset->getCase()) {
-                $this->entityManager->persist($history);
-                $asset->setCase(null);
-            }
-
-            // save asset changes
-            $this->entityManager->persist($asset);
-
-            $this->entityManager->flush();
-            $this->addFlash('success', 'asset.action.neutralize.success');
-
-            return $this->redirectToRoute('details_asset', ['id' => $asset->getBarcode()]);
-        } else {
-            foreach ($form->getErrors() as $error) {
-                $this->addFlash('danger', $error->getMessage());
-            }
-            $this->addFlash('info', 'asset.action.neutralize.info');
-        }
-
-        return $this->render('assets/action.html.twig', [
-            'asset' => $asset,
-            'cur_state' => $currentState,
-            'new_state' => 'asset.action.neutralize.state',
-            'form' => $form->createView(),
-        ]);
+        return $this->action($request, $manager, $id, new Actions\Neutralize());
     }
 
     /**
@@ -485,17 +410,9 @@ class AssetController extends BaseController
      * @see action()
      */
     #[Route('/objekt/{id}/nullen', name: 'clean_asset')]
-    public function cleanAction(string $id, Request $request)
+    public function cleanAction(Request $request, AssetActionManager $manager, string $id)
     {
-        $options = [
-            'form' => [
-                'confirm' => false,
-                'usage_required' => false,
-            ],
-            'beforePersist' => fn (Asset $asset) => $asset->flushImages(),
-        ];
-
-        return $this->action($id, State::Cleaned, $options, $request);
+        return $this->action($request, $manager, $id, new Actions\Clean());
     }
 
     /**
@@ -504,19 +421,9 @@ class AssetController extends BaseController
      * @see action()
      */
     #[Route('/objekt/{id}/vernichtet', name: 'destroy_asset')]
-    public function destroyAction(string $id, Request $request)
+    public function destroyAction(Request $request, AssetActionManager $manager, string $id)
     {
-        $options = [
-            'form' => [
-                'confirm' => true,
-                'usage_required' => true,
-            ],
-            'messages' => [
-                ['warning', 'asset.action.destroy.warning'],
-            ],
-        ];
-
-        return $this->action($id, State::Destroyed, $options, $request);
+        return $this->action($request, $manager, $id, new Actions\Destroy());
     }
 
     /**
@@ -525,19 +432,9 @@ class AssetController extends BaseController
      * @see action()
      */
     #[Route('/objekt/{id}/uebergeben', name: 'handover_asset')]
-    public function handoverAction(string $id, Request $request)
+    public function handoverAction(Request $request, AssetActionManager $manager, string $id)
     {
-        $options = [
-            'form' => [
-                'confirm' => false,
-                'usage_required' => true,
-            ],
-            'messages' => [
-                ['info', 'asset.action.handover.info'],
-            ],
-        ];
-
-        return $this->action($id, State::HandoverPerson, $options, $request);
+        return $this->action($request, $manager, $id, new Actions\Handover());
     }
 
     /**
@@ -546,17 +443,9 @@ class AssetController extends BaseController
      * @see action()
      */
     #[Route('/objekt/{id}/reservieren', name: 'reserve_asset')]
-    public function reserveAction(string $id, Request $request)
+    public function reserveAction(Request $request, AssetActionManager $manager, string $id)
     {
-        $options = [
-            'form' => [
-                'confirm' => false,
-                'usage_required' => false,
-            ],
-            'beforePersist' => fn (Asset $asset) => $asset->setReservedBy($this->getUser()),
-        ];
-
-        return $this->action($id, State::Reserved, $options, $request);
+        return $this->action($request, $manager, $id, new Actions\Reserve());
     }
 
     /**
@@ -565,20 +454,9 @@ class AssetController extends BaseController
      * @see action()
      */
     #[Route('/objekt/{id}/verloren', name: 'lost_asset')]
-    public function lostAction(string $id, Request $request)
+    public function lostAction(Request $request, AssetActionManager $manager, string $id)
     {
-        $options = [
-            'form' => [
-                'confirm' => true,
-                'usage_required' => false,
-            ],
-            'messages' => [ 
-                ['info', 'asset.action.lost.info'],
-                ['warning', 'asset.action.lost.warning'],
-            ],
-        ];
-
-        return $this->action($id, State::Lost, $options, $request);
+        return $this->action($request, $manager, $id, new Actions\Lost());
     }
 
     /**
@@ -587,62 +465,9 @@ class AssetController extends BaseController
      * @see action()
      */
     #[Route('/objekt/{id}/einlegen/in/', name: 'store_asset')]
-    public function storeAction(string $id, Request $request)
+    public function storeAction(Request $request, AssetActionManager $manager, string $id)
     {
-        $repo = $this->entityManager->getRepository(Asset::class);
-
-        $options = [
-            'form' => [
-                'confirm' => false,
-                'usage_required' => true,
-                'selector' => [
-                    'name' => 'location',
-                    'repo' => $repo,
-                    'class' => Asset::class,
-                    'label' => fn (Asset $asset) => $asset->getBarcode().' | '.$asset->getName(),
-                    'choices' => $repo->findAllStorageAssets(null, 10),
-                    'model' => fn ($query, $limit) => $repo->findAllStorageAssets($query, $limit),
-                    'headers' => [
-                        [
-                            'class' => 'small',
-                            'label' => 'asset.attr.barcode',
-                        ],
-                        // [
-                        //     'class' => 'small',
-                        //     'label' => 'asset.attr.category',
-                        // ],
-                        [
-                            'class' => 'small',
-                            'label' => 'asset.attr.usage',
-                        ],
-                        [
-                            'class' => 'small text-center',
-                            'label' => 'link',
-                        ],
-                    ],
-                    'definitions' => [
-                        [
-                            'class' => "small",
-                            'name' => 'barcode',
-                            'escape' => true,
-                        ],
-                        // [
-                        //     'class' => "small",
-                        //     'name' => 'category',
-                        //     'escape' => true,
-                        // ],
-                        [
-                            'class' => "small text-truncate",
-                            'name' => 'usage',
-                            'escape' => true,
-                        ],
-                    ],
-                ],
-            ],
-            'api_url' => 'asset_action_query_locations',
-        ];
-
-        return $this->action($id, State::StoredInContainer, $options, $request);
+        return $this->action($request, $manager, $id, new Actions\Store());
     }
 
     /**
@@ -651,20 +476,9 @@ class AssetController extends BaseController
      * @see action()
      */
     #[Route('/objekt/{id}/entnehmen', name: 'pull_out_asset')]
-    public function pullOutOfContainerAction(string $id, Request $request)
+    public function pullOutOfContainerAction(Request $request, AssetActionManager $manager, string $id)
     {
-        $options = [
-            'form' => [
-                'confirm' => false,
-                'usage_required' => true,
-            ],
-            'beforePersist' => fn (Asset $asset) => $asset->setLocation(null),
-            'messages' => [ 
-                ['info', 'asset.action.remove_container.info'],
-            ],
-        ];
-
-        return $this->action($id, State::PulledOutOfContainer, $options, $request);
+        return $this->action($request, $manager, $id, new Actions\PullOutOfContainer());
     }
 
     /**
@@ -673,53 +487,9 @@ class AssetController extends BaseController
      * @see action()
      */
     #[Route('/objekt/{id}/in/fall/', name: 'assign_case_asset')]
-    public function assignCaseAction(string $id, Request $request)
+    public function assignCaseAction(Request $request, AssetActionManager $manager, string $id)
     {
-        $repo = $this->entityManager->getRepository(CaseFile::class);
-
-        $options = [
-            'form' => [
-                'confirm' => false,
-                'usage_required' => true,
-                'selector' => [
-                    'name' => 'case',
-                    'class' => CaseFile::class,
-                    'label' => fn (CaseFile $case) => $case->getCaseId().' | '.$case->getDescription(),
-                    'choices' => $repo->findBySimpleSearch('%%', 10),
-                    'model' => fn ($query, $limit) => $repo->findBySimpleSearch($query, $limit),
-                    'headers' => [
-                        [
-                            'class' => 'small',
-                            'label' => 'case.attr.case_id',
-                        ],
-                        [
-                            'class' => 'small',
-                            'label' => 'case.attr.description',
-                        ],
-                        [
-                            'class' => 'small text-center',
-                            'label' => 'link',
-                        ],
-                    ],
-                    'empty_label' => 'asset.add.form.no_case',
-                    'definitions' => [
-                        [
-                            'class' => "small",
-                            'name' => 'caseId',
-                            'escape' => true,
-                        ],
-                        [
-                            'class' => "small text-truncate",
-                            'name' => 'description',
-                            'escape' => true,
-                        ],
-                    ],
-                ],
-            ],
-            'api_url' => 'add_asset_query_cases',
-        ];
-
-        return $this->action($id, State::AssignedCase, $options, $request);
+        return $this->action($request, $manager, $id, new Actions\AssignCase());
     }
 
     /**
@@ -728,20 +498,9 @@ class AssetController extends BaseController
      * @see action()
      */
     #[Route('/objekt/{id}/aus/Fall/entfernen', name: 'remove_case_asset')]
-    public function removeFromCaseAction(string $id, Request $request)
+    public function removeFromCaseAction(Request $request, AssetActionManager $manager, string $id)
     {
-        $options = [
-            'form' => [
-                'confirm' => false,
-                'usage_required' => true,
-            ],
-            'beforePersist' => fn (Asset $asset) => $asset->setCase(null),
-            'messages' => [
-                ['info', 'asset.action.unassing_case.info'],
-            ],
-        ];
-
-        return $this->action($id, State::RemovedFromCase, $options, $request);
+        return $this->action($request, $manager, $id, new Actions\UnassignCase());
     }
 
     /**
@@ -750,17 +509,9 @@ class AssetController extends BaseController
      * @see action()
      */
     #[Route('/objekt/{id}/reservierung/aufheben', name: 'unreserve_asset')]
-    public function unbindReservationAction(string $id, Request $request)
+    public function unbindReservationAction(Request $request, AssetActionManager $manager, string $id)
     {
-        $options = [
-            'form' => [
-                'confirm' => false,
-                'usage_required' => false,
-            ],
-            'beforePersist' => fn (Asset $asset) => $asset->setReservedBy(null),
-        ];
-
-        return $this->action($id, State::UnbindReservation, $options, $request);
+        return $this->action($request, $manager, $id, new Actions\UnbindReservation());
     }
 
     /**
@@ -769,16 +520,9 @@ class AssetController extends BaseController
      * @see action()
      */
     #[Route('/objekt/{id}/verwenden', name: 'use_asset')]
-    public function useAction(string $id, Request $request)
+    public function useAction(Request $request, AssetActionManager $manager, string $id)
     {
-        $options = [
-            'form' => [
-                'confirm' => false,
-                'usage_required' => true,
-            ],
-        ];
-
-        return $this->action($id, State::Used, $options, $request);
+        return $this->action($request, $manager, $id, new Actions\Used());
     }
 
     /**
@@ -787,196 +531,130 @@ class AssetController extends BaseController
      * @see action()
      */
     #[Route('/objekt/{id}/Asservatenimage/speichern/', name: 'save_image_on_drive_asset')]
-    public function saveImageOnDriveAction(string $id, Request $request)
+    public function saveImageOnDriveAction(Request $request, AssetActionManager $manager, string $id)
     {
-        $repo = $this->entityManager->getRepository(Asset::class);
-        $asset = $repo->find($id);
+        $asset = $this->entityManager->getRepository(Asset::class)->find($id);
 
-        if (null == $asset) {
+        if (null === $asset) {
             $this->addFlash('danger', 'asset.error.not_found');
 
             return $this->redirectToRoute('search_assets');
         }
 
-        if (!$asset->isHddImageSource() && !$asset->isHddImageTarget()) {
-            $this->addFlash('danger', 'asset.action.add_image.not_applicable');
-
-            return $this->redirectToRoute('details_asset', ['id' => $id]);
+        if ($asset->isHddImageSource()) {
+            return $this->action($request, $manager, $id, new Actions\SaveHddImage());
         }
-
-        $isSource = $asset->isHddImageSource();
-        $source = $isSource ? $asset : null;
-        $target = $isSource ? null : $asset;
-
-        $api_url = $isSource ? 'asset_action_query_image_sources' : 'asset_action_query_image_targets';
-
-        // create history entry, but don't persist yet
-        $history = $isSource ? AssetHistory::fromAsset($source) : null;
-
-        $options = [
-            'confirm' => false,
-            'usage_required' => true,
-            'not_before' => $isSource ? $source->getLastUpdatePerformedOn() : null,
-            'selector' => [
-                'name' => 'asset',
-                'mapped' => false,
-                'class' => Asset::class,
-                'label' => fn (Asset $asset) => $asset->getBarcode().' | '.$asset->getName(),
-            ],
-        ];
-
-        if ($isSource) {
-            $options['selector']['choices'] = $repo->findAllHddImageTargetAssets($source, null, 10);
-            $options['selector']['model'] = fn ($query, $limit) => $repo->findAllHddImageTargetAssets($source, $query, $limit);
-        } else {
-            $options['selector']['choices'] = $repo->findAllHddImageSourceAssets($target, null, 10);
-            $options['selector']['model'] = fn ($query, $limit) => $repo->findAllHddImageSourceAssets($target, $query, $limit);
+        if ($asset->isHddImageTarget()) {
+            return $this->action($request, $manager, $id, new Actions\AddHddImage());
         }
+        
+        $this->addFlash('danger', 'asset.action.add_image.not_applicable');
+        return $this->redirectToRoute('details_asset', ['id' => $id]);
 
-        if ($isSource) {
-            $source->setState(State::SavedImage);
-        }
 
-        $form = $this->createForm(ActionAssetType::class, $source, $options);
-        $form->handleRequest($request);
+        // $repo = $this->entityManager->getRepository(Asset::class);
+        // $asset = $repo->find($id);
 
-        if ($form->isSubmitted() && $form->isValid()) {
-            if ($isSource) {
-                $target = $form->get('asset')->getData();
-                if (!$target->isHddImageTarget()) {
-                    // todo throw error
-                }
-            } else {
-                // apply form values to source
-                $source = $form->get('asset')->getData();
-                $history = AssetHistory::fromAsset($source);
+        // if (null == $asset) {
+        //     $this->addFlash('danger', 'asset.error.not_found');
 
-                $usage = $form->get('usage')->getData();
-                $lastUpdatePerformedOn = $form->get('lastUpdatePerformedOn')->getData();
-                $source->setState(State::SavedImage);
-                $source->setUsage($usage);
-                $source->setLastUpdatePerformedOn($lastUpdatePerformedOn);
-                if (!$source->isHddImageSource()) {
-                    // todo throw error
-                }
-            }
+        //     return $this->redirectToRoute('search_assets');
+        // }
 
-            // update source
-            $source->setSystemAction(false);
-            $source->setModifiedBy($this->getUser());
-            $source->setLastUpdatedOn(new \DateTime());
+        // if (!$asset->isHddImageSource() && !$asset->isHddImageTarget()) {
+        //     $this->addFlash('danger', 'asset.action.add_image.not_applicable');
 
-            // add image entry
-            $source->addHdd($target);
+        //     return $this->redirectToRoute('details_asset', ['id' => $id]);
+        // }
 
-            $this->entityManager->persist($source);
-            $this->entityManager->persist($history);
+        // $isSource = $asset->isHddImageSource();
+        // $source = $isSource ? $asset : null;
+        // $target = $isSource ? null : $asset;
 
-            $this->entityManager->flush();
-            $this->addFlash('success', 'asset.action.add_image.success');
+        // $api_url = $isSource ? 'asset_action_query_image_sources' : 'asset_action_query_image_targets';
 
-            return $this->redirectToRoute('details_asset', ['id' => $source->getBarcode()]);
-        } else {
-            // print errors
-            foreach ($form->getErrors() as $error) {
-                $this->addFlash('danger', $error->getMessage());
-            }
-        }
+        // // create history entry, but don't persist yet
+        // $history = $isSource ? AssetHistory::fromAsset($source) : null;
 
-        return $this->render('assets/action.html.twig', [
-            'asset' => $asset,
-            'options' => [
-                'form' => $options,
-                'api_url' => $api_url,
-            ],
-            'cur_state' => $isSource ? $source->getState() : 'asset.action.add_image.save_image_prepare',
-            'new_state' => State::SavedImage,
-            'form' => $form->createView(),
-        ]);
-    }
+        // $options = [
+        //     'confirm' => false,
+        //     'usage_required' => true,
+        //     'not_before' => $isSource ? $source->getLastUpdatePerformedOn() : null,
+        //     'selector' => [
+        //         'name' => 'asset',
+        //         'mapped' => false,
+        //         'class' => Asset::class,
+        //         'label' => fn (Asset $asset) => $asset->getBarcode().' | '.$asset->getName(),
+        //     ],
+        // ];
 
-    /**
-     * Show form or apply asset action.
-     *
-     * @param Asset|string $asset   asset instance or DT-barcode
-     * @param State        $state   new state applied in this action
-     * @param array        $options options for customization
-     */
-    private function action(
-        Asset|string $asset, State $state, array $options, Request $request)
-    {
-        if (\is_string($asset)) {
-            $asset = $this->entityManager->getRepository(Asset::class)->find($asset);
-        }
+        // if ($isSource) {
+        //     $options['selector']['choices'] = $repo->findAllHddImageTargetAssets($source, null, 10);
+        //     $options['selector']['model'] = fn ($query, $limit) => $repo->findAllHddImageTargetAssets($source, $query, $limit);
+        // } else {
+        //     $options['selector']['choices'] = $repo->findAllHddImageSourceAssets($target, null, 10);
+        //     $options['selector']['model'] = fn ($query, $limit) => $repo->findAllHddImageSourceAssets($target, $query, $limit);
+        // }
 
-        if (null == $asset) {
-            $this->addFlash('danger', 'asset.error.not_found');
+        // if ($isSource) {
+        //     $source->setState(State::SavedImage);
+        // }
 
-            return $this->redirectToRoute('search_assets');
-        }
+        // $form = $this->createForm(SingleActionType::class, $source, $options);
+        // $form->handleRequest($request);
 
-        // create history entry, but don't persist yet
-        $history = AssetHistory::fromAsset($asset);
+        // if ($form->isSubmitted() && $form->isValid()) {
+        //     if ($isSource) {
+        //         $target = $form->get('asset')->getData();
+        //         if (!$target->isHddImageTarget()) {
+        //             // todo throw error
+        //         }
+        //     } else {
+        //         // apply form values to source
+        //         $source = $form->get('asset')->getData();
+        //         $history = AssetHistory::fromAsset($source);
 
-        // simulate state change to verify that it is legitimate action
-        $currentState = $asset->getState();
-        $asset->setState($state);
+        //         $usage = $form->get('usage')->getData();
+        //         $lastUpdatePerformedOn = $form->get('lastUpdatePerformedOn')->getData();
+        //         $source->setState(State::SavedImage);
+        //         $source->setUsage($usage);
+        //         $source->setLastUpdatePerformedOn($lastUpdatePerformedOn);
+        //         if (!$source->isHddImageSource()) {
+        //             // todo throw error
+        //         }
+        //     }
 
-        $violations = $this->validator->validate($asset);
-        if ($violations->count() > 0) {
-            foreach ($violations as $error) {
-                $this->addFlash('danger', $error->getMessage());
-            }
+        //     // update source
+        //     $source->setSystemAction(false);
+        //     $source->setModifiedBy($this->getUser());
+        //     $source->setLastUpdatedOn(new \DateTime());
 
-            return $this->redirectToRoute('details_asset', ['id' => $asset->getBarcode()]);
-        }
+        //     // add image entry
+        //     $source->addHdd($target);
 
-        $options['form'] ??= [];
-        $options['form']['not_before'] = $asset->getLastUpdatePerformedOn();
+        //     $this->entityManager->persist($source);
+        //     $this->entityManager->persist($history);
 
-        $form = $this->createForm(ActionAssetType::class, $asset, $options['form']);
-        $form->handleRequest($request);
+        //     $this->entityManager->flush();
+        //     $this->addFlash('success', 'asset.action.add_image.success');
 
-        if ($form->isSubmitted() && $form->isValid()) {
-            $asset->setSystemAction(false);
-            $asset->setModifiedBy($this->getUser());
-            $asset->setLastUpdatedOn(new \DateTime());
+        //     return $this->redirectToRoute('details_asset', ['id' => $source->getBarcode()]);
+        // }
+        // // print errors
+        // foreach ($form->getErrors() as $error) {
+        //     $this->addFlash('danger', $error->getMessage());
+        // }
 
-            // apply callback
-            if (!empty($options['beforePersist']) && \is_callable($options['beforePersist'])) {
-                $options['beforePersist']($asset);
-            }
-
-            $this->entityManager->persist($asset);
-            $this->entityManager->persist($history);
-
-            if ($asset->isDrive()) {
-                $this->entityManager->persist($asset->getDrive());
-            }
-
-            $this->entityManager->flush();
-            $this->addFlash('success', 'asset.action.success');
-
-            return $this->redirectToRoute('details_asset', ['id' => $asset->getBarcode()]);
-        } else {
-            // print errors
-            foreach ($form->getErrors() as $error) {
-                $this->addFlash('danger', $error->getMessage());
-            }
-        }
-
-        // show additional messages
-        foreach ($options['messages'] ?? [] as $message) {
-            $this->addFlash($message[0], $message[1]);
-        }
-
-        return $this->render('assets/action.html.twig', [
-            'asset' => $asset,
-            'options' => $options,
-            'cur_state' => $currentState,
-            'new_state' => $state,
-            'form' => $form->createView(),
-        ]);
+        // return $this->render('assets/action.html.twig', [
+        //     'asset' => $asset,
+        //     'options' => [
+        //         'form' => $options,
+        //         'api_url' => $api_url,
+        //     ],
+        //     'cur_state' => $isSource ? $source->getState() : 'asset.action.add_image.save_image_prepare',
+        //     'new_state' => State::SavedImage,
+        //     'form' => $form->createView(),
+        // ]);
     }
 
     /**
@@ -1061,7 +739,7 @@ class AssetController extends BaseController
                 }
             } elseif (!empty($data['select_public'])) {
                 $asset->setPicturePath($data['select_public']->getRelativePathname());
-                $asset->setUsage($this->translator->trans('asset.upload_pic.usage_selcted'));
+                $asset->setUsage($this->translator->trans('asset.upload_pic.usage_selected'));
             } else {
                 $this->addFlash('danger', 'asset.upload_pic.error.not_saved');
 
@@ -1078,11 +756,10 @@ class AssetController extends BaseController
             $this->addFlash('success', 'asset.upload_pic.success');
 
             return $this->redirectToRoute('details_asset', ['id' => $asset->getBarcode()]);
-        } else {
-            // print errors
-            foreach ($form->getErrors() as $error) {
-                $this->addFlash('danger', $error->getMessage());
-            }
+        }
+        // print errors
+        foreach ($form->getErrors() as $error) {
+            $this->addFlash('danger', $error->getMessage());
         }
 
         $this->addFlash('info', 'asset.upload_pic.info');
@@ -1115,17 +792,33 @@ class AssetController extends BaseController
      * @api
      */
     #[Route('/asset/cases', name: 'add_asset_query_cases')]
-    public function listCaseOptions(Request $request): JsonResponse
+    public function listCaseOptions(Request $request, ExtendedCaseSearch $extendedSearch): JsonResponse
     {
-        $query = $request->attributes->get('quey', '');
+        $search = $request->query->get('query', '');
+        $limit = $request->query->get('limit', 10);
 
-        if (empty(\trim($query))) {
-            $query = null;
+        if (empty(\trim($search))) {
+            $search = '';
         }
 
-        $repository = $this->entityManager->getRepository(CaseFile::class);
-        $total = $repository->count(['active' => 1]);
-        $cases = $repository->findBySimpleSearch($query, null);
+        $limit = match ($limit) {
+            10 => 10,
+            25 => 25,
+            50 => 50,
+            default => 10,
+        };
+
+        $builder = $extendedSearch->generateSearchQuery($search);
+        $builder->andWhere('caseFile.active = 1');
+
+        $query = $builder->getQuery();
+        $total = $builder
+        ->select('COUNT(caseFile)')
+        ->getQuery()
+        ->getSingleScalarResult();
+
+        $query->setMaxResults($limit);
+        $cases = $query->execute();
 
         $data = [];
         foreach ($cases as $case) {
@@ -1133,7 +826,6 @@ class AssetController extends BaseController
                 'id' => $case->getId(),
                 'caseId' => $case->getCaseId(),
                 'description' => $case->getDescription(),
-                'link' => $this->generateUrl('detail_case', ['id' => $case->getCaseId()]),
             ];
         }
 
@@ -1153,25 +845,103 @@ class AssetController extends BaseController
      * @api
      */
     #[Route('/asset/locations', name: 'asset_action_query_locations')]
-    public function listStorageOptions(Request $request): JsonResponse
-    {
-        $query = $request->attributes->get('quey', '');
+    public function listStorageOptions(
+        Request $request,
+        ExtendedAssetSearch $extendedSearch,
+        TranslatorInterface $translator,
+    ): JsonResponse {
+        $search = $request->query->get('query', '%%');
+        $limit = $request->query->get('limit', 10);
 
-        if (empty(\trim($query))) {
-            $query = null;
+        $limit = match ($limit) {
+            10 => 10,
+            25 => 25,
+            50 => 50,
+            default => 10,
+        };
+
+        if (empty(\trim($search))) {
+            $search = '';
         }
 
-        $repository = $this->entityManager->getRepository(Asset::class);
-        $total = $repository->count([]);
-        $locations = $repository->findAllStorageAssets($query, null);
+        $builder = $extendedSearch->generateSearchQuery($search);
+        /**
+         * @var AssetRepository
+         */
+        $repo = $this->entityManager->getRepository(Asset::class);
+        $builder->andWhere($repo->isEditableQuery('asset'));
+        $builder->andWhere($repo->isStorageQuery('asset'));
+
+        $query = $builder->getQuery();
+        $total = $builder
+        ->select('COUNT(asset)')
+        ->getQuery()
+        ->getSingleScalarResult();
+
+        $query->setMaxResults($limit);
+        $assets = $query->execute();
 
         $data = [];
-        foreach ($locations as $value) {
+        foreach ($assets as $asset) {
             $data[] = [
-                'id' => $value->getBarcode(),
-                'barcode' => $value->getBarcode(),
-                'usage' => $value->getUsage(),
-                'link' => $this->generateUrl('details_asset', ['id' => $value->getBarcode()]),
+                'active' => $asset->isEditable(),
+                'barcode' => $asset->getBarcode(),
+                'category' => $asset->getCategory()->trans($translator),
+                'color' => $asset->getCategory()->bootstrapColor(),
+                'name' => $asset->getName(),
+            ];
+        }
+
+        return new JsonResponse([
+            'update' => true,
+            'data' => $data,
+            'total' => $total,
+        ]);
+    }
+
+    /**
+     * Search for assets.
+     *
+     * @api
+     */
+    #[Route('/asset/assets', name: 'assets')]
+    public function getAssets(
+        Request $request,
+        ExtendedAssetSearch $extendedSearch,
+    ): JsonResponse {
+        $search = $request->query->get('query', '');
+        $limit = $request->query->get('limit', 10);
+        $limit = match (\intval($limit)) {
+            10 => 10,
+            25 => 25,
+            50 => 50,
+            default => 10,
+        };
+
+        if (empty(\trim($search))) {
+            $search = '';
+        }
+
+        $builder = $extendedSearch->generateSearchQuery($search);
+        $query = $builder->getQuery();
+        $total = $builder
+        ->select('COUNT(asset)')
+        ->getQuery()
+        ->getSingleScalarResult();
+
+        $query->setMaxResults($limit);
+        $assets = $query->execute();
+
+        $data = [];
+        foreach ($assets as $asset) {
+            $data[] = [
+                'active' => $asset->isEditable(),
+                'barcode' => $asset->getBarcode(),
+                'category' => $asset->getCategory()->trans($this->translator),
+                'categoryColor' => $asset->getCategory()->bootstrapColor(),
+                'state' => $asset->getState()->trans($this->translator),
+                'stateColor' => $asset->getState()->bootstrapColor(),
+                'name' => $asset->getName(),
             ];
         }
 
@@ -1190,28 +960,57 @@ class AssetController extends BaseController
      * @api
      */
     #[Route('/asset/image_targets', name: 'asset_action_query_image_targets')]
-    public function listHddImageTargets(Request $request): JsonResponse
-    {
-        $query = $request->attributes->get('quey', '');
+    public function listHddImageTargets(
+        Request $request,
+        ExtendedAssetSearch $extendedSearch,
+        TranslatorInterface $translator,
+    ): JsonResponse {
+        $search = $request->query->get('query', '%%');
+        $limit = $request->query->get('limit', 10);
 
-        if (empty(\trim($query))) {
-            $query = null;
+        $limit = match ($limit) {
+            10 => 10,
+            25 => 25,
+            50 => 50,
+            default => 10,
+        };
+
+        if (empty(\trim($search))) {
+            $search = '';
         }
 
-        $repository = $this->entityManager->getRepository(Asset::class);
-        $locations = $repository->findAllHddImageTargetAssets(null, $query, null);
+        $builder = $extendedSearch->generateSearchQuery($search);
+        /**
+         * @var AssetRepository
+         */
+        $repo = $this->entityManager->getRepository(Asset::class);
+        $builder->andWhere($repo->isEditableQuery('asset'));
+        $builder->andWhere($repo->isHddImageTargetQuery('asset'));
+
+        $query = $builder->getQuery();
+        $total = $builder
+        ->select('COUNT(asset)')
+        ->getQuery()
+        ->getSingleScalarResult();
+
+        $query->setMaxResults($limit);
+        $assets = $query->execute();
 
         $data = [];
-        foreach ($locations as $asset) {
+        foreach ($assets as $asset) {
             $data[] = [
-                'val' => $asset->getBarcode(),
-                'text' => $asset->getBarcode().' | '.$asset->getName(),
+                'active' => $asset->isEditable(),
+                'barcode' => $asset->getBarcode(),
+                'category' => $asset->getCategory()->trans($translator),
+                'color' => $asset->getCategory()->bootstrapColor(),
+                'name' => $asset->getName(),
             ];
         }
 
         return new JsonResponse([
             'update' => true,
             'data' => $data,
+            'total' => $total,
         ]);
     }
 
@@ -1223,28 +1022,57 @@ class AssetController extends BaseController
      * @api
      */
     #[Route('/asset/image_sources', name: 'asset_action_query_image_sources')]
-    public function listHddImageSources(Request $request): JsonResponse
-    {
-        $query = $request->attributes->get('quey', '');
+    public function listHddImageSources(
+        Request $request,
+        ExtendedAssetSearch $extendedSearch,
+        TranslatorInterface $translator,
+    ): JsonResponse {
+        $search = $request->query->get('query', '%%');
+        $limit = $request->query->get('limit', 10);
 
-        if (empty(\trim($query))) {
-            $query = null;
+        $limit = match ($limit) {
+            10 => 10,
+            25 => 25,
+            50 => 50,
+            default => 10,
+        };
+
+        if (empty(\trim($search))) {
+            $search = '';
         }
 
-        $repository = $this->entityManager->getRepository(Asset::class);
-        $locations = $repository->findAllHddImageSourceAssets(null, $query, null);
+        $builder = $extendedSearch->generateSearchQuery($search);
+        /**
+         * @var AssetRepository
+         */
+        $repo = $this->entityManager->getRepository(Asset::class);
+        $builder->andWhere($repo->isEditableQuery('asset'));
+        $builder->andWhere($repo->isHddImageSourceQuery('asset'));
+
+        $query = $builder->getQuery();
+        $total = $builder
+        ->select('COUNT(asset)')
+        ->getQuery()
+        ->getSingleScalarResult();
+
+        $query->setMaxResults($limit);
+        $assets = $query->execute();
 
         $data = [];
-        foreach ($locations as $asset) {
+        foreach ($assets as $asset) {
             $data[] = [
-                'val' => $asset->getBarcode(),
-                'text' => $asset->getBarcode().' | '.$asset->getName(),
+                'active' => $asset->isEditable(),
+                'barcode' => $asset->getBarcode(),
+                'category' => $asset->getCategory()->trans($translator),
+                'color' => $asset->getCategory()->bootstrapColor(),
+                'name' => $asset->getName(),
             ];
         }
 
         return new JsonResponse([
             'update' => true,
             'data' => $data,
+            'total' => $total,
         ]);
     }
 }

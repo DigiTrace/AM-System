@@ -178,7 +178,7 @@ enum AssetCategory: int implements TranslatableInterface
             self::Equipment => 'info',
             self::Container => 'success',
             self::Hdd => 'warning',
-            self::Record => 'primary',
+            self::Record => 'default',
             self::ExhibitHdd => 'primary',
         };
     }

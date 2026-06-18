@@ -23,17 +23,17 @@
 {% form_theme form 'bootstrap_3_layout.html.twig' %}
 {% block content1 %}
 
+    {{ form_start(form) }}
     <div class="row">
         <div class="col-sm-4">
             <h2>{{ 'case.search.header' | trans }}</h2>
         </div>
         <div class="col-sm-8" style="margin-top:7px">
-            {{ form_start(form) }}
-            {{ form_row(form.search) }}
-            {{ form_row(form.limit) }}
-            {{ form_end(form) }}
+            {{ form_row(form) }}
         </div>
     </div>
+    {{ form_end(form) }}
+    
     {{ include('messages.html.twig') }}
 
     <table class="table">

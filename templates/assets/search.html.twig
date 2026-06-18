@@ -21,24 +21,23 @@
 
 
 {% extends 'base.html.twig' %}
-{% form_theme form 'bootstrap_3_layout.html.twig' %} 
 {% block content1 %}
-
+    
+    {{ form_start(search) }}
     <div class="row">
         <div class="col-lg-4"> 
             <h2>{{ 'asset.search.header' | trans}}</h2>
         </div>
         <div class="col-lg-8" style="margin-top:7px">
-            {{ form_start(form) }}
-            {{ form_row(form.search) }}
-            {{ form_row(form.limit) }}
-            {{ form_row(form.eas) }}
-            {{ form_end(form) }}
+            {{ form_row(search) }}
         </div>
     </div>
+    {{ form_end(search) }}
+
+    {{ include('messages.html.twig') }}
 
     {# Include extended search form#}
-    <div id="eas_form_container" style="display: none;">
+    <div id="es_form_container" style="display: none;">
         {{ include('assets/eas.html.twig', {
             search_form: 'search_form', 
             regex_single_match: regex_single_match, 
@@ -46,11 +45,11 @@
         }) }}
     </div>
 
-    {{ include('messages.html.twig') }}
 
+    {{ form_start(selection) }}
 
    
-    <table class="table">
+    <table class="table table-striped">
         
         {% if pagination.getDirection == "desc" %} {% set arrow = '<span class="glyphicon glyphicon-arrow-down"></span>' %} 
         {% elseif pagination.getDirection == "asc" %}  {% set arrow = '<span class="glyphicon glyphicon-arrow-up"></span>' %}  
@@ -78,13 +77,20 @@
         </thead>
         <tbody>
         {% for asset in pagination %}
-            <tr {{ asset.isEditable ? '' : 'class="active"' }}>
+            <tr class="item-row {{ asset.isEditable ? '' : 'active' }}">
                 <td style='font-family: courier;font-size: large'>
-                {% if asset.isEditable %}
-                    {{ asset.getBarcode }}
-                {% else %}
-                    <s>{{ asset.getBarcode }}</s>
-                {% endif %}
+                    <div class="form-group">
+                        <div class="checkbox">
+                            <label for="{{ selection.assets.vars.id }}_{{ asset.barcode }}">
+                                <input type="checkbox" id="{{ selection.assets.vars.id }}_{{ asset.barcode }}" name="{{ selection.assets.vars.full_name }}[]" value="{{ asset.getBarcode }}">
+                                {% if asset.isEditable %}
+                                    {{ asset.getBarcode }}
+                                {% else %}
+                                    <s>{{ asset.getBarcode }}</s>
+                                {% endif %}
+                            </label>
+                        </div>
+                    </div>
                 </td>
                 
                 <td>
@@ -108,19 +114,36 @@
         </tbody>
     </table>
    
-   
-   
-   
-   {# total items count #}
-<div class="count">
-    {{ pagination.getTotalItemCount }} {{ 'form.entries_found' | trans }}
-</div>
+   <div class="row">
+        <div class="col-lg-6">
+                {# total items count #}
+            <div class="count">
+                {{ pagination.getTotalItemCount }} {{ 'form.entries_found' | trans }}
+            </div>
+            
+            {# display navigation #}
+            <div class="navigation">
+                {{ knp_pagination_render(pagination) }}
+            </div>
+        </div>
+        <div class="col-lg-6">
+            <div class="navbar-form navbar-right">
+                <div class="form-group">
+                    <label id="select_number_label" class="control-label required">
+                        {{ 'asset.select.edit_selected' | trans({'count': '0'}) }}
+                    </label>
+                    <button type="button" id="select_all" class="btn-default btn">{{ 'asset.select.all' | trans }}</button>
+                </div>
+                {{ form_widget(selection.action) }}
+                {{ form_row(selection.preview) }}
+            </div>
+        </div>
+    </div>
 
-{# display navigation #}
-<div class="navigation">
-    {{ knp_pagination_render(pagination) }}
-</div>
-
+    {{ form_widget(selection._token) }}
+    {{ form_end(selection, {'render_rest': false}) }}
+   
+   
 {% endblock %}
 
 
@@ -128,10 +151,62 @@
 {% block context %}
     <a href="{{ path("add_asset") }}"><span class="glyphicon glyphicon-pencil"></span> {{ 'asset.actions.add' | trans }}</a><br>
     <a href="{{ path("eas_faq") }}"><span class="glyphicon glyphicon-question-sign"></span> {{ 'asset.actions.faq' | trans }}</a> <br>
-    {# <a href='{{ path("select_new_status_for_multiple_objects")}}'> <span class="glyphicon glyphicon-pencil"></span> {{ 'action.chosen.object.change' | trans }}</a><br> #}
+    <a href='{{ path("asset_multi_edit")}}'> <span class="glyphicon glyphicon-pencil"></span> {{ 'action.chosen.object.change' | trans }}</a><br>
       
 {% endblock %}
 
 {% block stylesheets %}
 {{ knp_pagination_rel_links(pagination) }}
+{% endblock %}
+
+{% block javascripts %}
+<script>
+    "use strict";
+
+    const multiActionSubmitSelector = '#{{ selection.preview.vars.id }}';
+
+    const label_text = '{{ 'asset.select.edit_selected' | trans({'count': '__count__'}) }}';
+
+    const Selection = (function(){
+        const updateCounter = function(){
+            const label = $("#select_number_label");
+            const count = $("tr.item-row input[type='checkbox']:checked").length;
+
+            // update label
+            label.text(label_text.replace(/__count__/g, count));
+            // disable/enable submit button
+            $(multiActionSubmitSelector).prop('disabled', count == 0);
+        } 
+
+        return {
+            init: function(){
+                // "select all" button handler
+                $("#select_all").on("click", function(e){
+                    $("tr.item-row input[type='checkbox']").prop("checked", true);
+                    updateCounter();
+                });
+
+                $("tr.item-row input[type='checkbox']").on("change", function(e){
+                    updateCounter();
+                    
+                });
+
+                $("tr.item-row").on("click", function(e){
+                    const tag = e.target.tagName.toLowerCase();
+                    if (tag == "input" || tag == "label" || tag == "a" || tag == "s") {
+                        return;
+                    }
+
+                    const element = $(this).find("input")
+                    element.prop("checked", !element.prop("checked"));
+                    updateCounter();
+                })
+            }
+        }
+    })();
+
+    $(function() {
+        Selection.init();
+    });
+</script>
 {% endblock %}

@@ -32,7 +32,7 @@ class Asset
     private Category $category;
 
     #[ORM\Column(type: 'integer', enumType: State::class, name: 'status_id', nullable: false)]
-    #[AppConstraints\AssetState()]
+    // #[AppConstraints\AssetState(groups: ['AssetState'])]
     private State $state;
 
     #[ORM\Column(nullable: true, name: 'systemaktion')]
@@ -54,12 +54,12 @@ class Asset
 
     #[ORM\ManyToOne(inversedBy: 'assets')]
     #[ORM\JoinColumn(name: 'fall_id', nullable: true)]
-    #[AppConstraints\AssetCase()]
+    // #[AppConstraints\AssetCase()]
     private ?CaseFile $case = null;
 
     #[ORM\ManyToOne(targetEntity: self::class, inversedBy: 'storage')]
     #[ORM\JoinColumn(name: 'standort', referencedColumnName: 'barcode_id', nullable: true)]
-    #[AppConstraints\AssetLocation()]
+    // #[AppConstraints\AssetLocation()]
     private ?self $location = null;
 
     #[ORM\OneToMany(mappedBy: 'location', targetEntity: self::class)]

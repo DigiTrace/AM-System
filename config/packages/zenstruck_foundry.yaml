@@ -17,4 +17,5 @@ when@test:
     zenstruck_foundry:
         global_state:
             - App\Tests\Story\DefaultUserStory
-        auto_refresh_proxies: false
+        orm:
+            auto_persist: false

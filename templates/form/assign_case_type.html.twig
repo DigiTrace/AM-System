@@ -1,0 +1,164 @@
+{# templates/form/assing_case_type.html.twig #}
+{% block assign_case_row %}
+    {# Render search form #}
+    <div class="form-group">
+    {{ form_label(form.selector) }}
+    {{ form_errors(form.item) }}
+    {{ form_errors(form) }}
+    <div class="form-inline">
+        {{ form_widget(form.selector) }}
+        {{ form_widget(form.limit) }}
+    </div>
+    {{ form_help(form.selector) }}
+    </div>
+
+    <div class="card">
+        <div class="card-body p-2">
+            <div class="scrollable-tbody" 
+            {% if form.vars.max_height is not null %}
+            style="max-height: {{ form.vars.max_height }}px;"
+            {% endif %}
+            >
+                <table class="table table-sm table-hover mb-0 list-table" id="case-table">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="{{ form.vars.label_size }}">{{ 'case.attr.case_id' | trans }}</th>
+                            <th class="{{ form.vars.label_size }}">{{ 'case.attr.description' | trans}}</th>
+                        </tr>
+                    </thead>
+                    <tbody id="case-table-body" >
+                        <tr class="item-row muted empty-row">
+                            <td colspan="32" class="text-muted {{ form.vars.label_size }}">
+                                {{ 'form.list.empty' | trans }}
+                            </td>
+                        </tr>
+                        {% if form.vars.nullable %}
+                        <tr class="item-row muted" id="case-empty">
+                            <td colspan="32" class="text-muted text-center {{ form.vars.label_size }}">
+                                <input type="radio" id="{{ form.item.vars.id }}_0" name="{{ form.item.vars.full_name }}" value="0" checked="checked">
+                                {{ form.vars.nullable_label | trans }}
+                            </td>
+                        </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+            <div class="d-flex justify-content-between align-items-center mt-2 px-1">
+                <small class="text-muted" id="case-table-summary">
+                    {{ 'form.list.summary' | trans({'%current%' : '0', '%total%': 'all'}) }}
+                </small>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const AssignCase = (function(){
+            const searchSelector = "#{{ form.selector.vars.id }}";
+            const limitSelector = "#{{ form.limit.vars.id }}";
+            const tableSelector = "#case-table";
+            const tbodySelector = "#case-table-body";
+            const emptySelector = "#case-empty";
+            const summarySelector = "#case-table-summary";
+
+            const summary = '{{ 'form.list.summary' | trans({'%current%' : '__current__', '%total%': '__total__'}) }}';
+            const route = '{{ path('detail_case', {'id': 'XXX'}) }}';
+            const api_url = '{{ path('add_asset_query_cases') }}';
+
+            const size = '{{ form.vars.label_size }}';
+
+            let prevRequest = null;
+
+            const selectItem = function(e){
+                const tag = e.target.tagName.toLowerCase();
+                if (tag == "input" || tag == "label" || tag == "a" || tag == "s") {
+                    return;
+                }                
+
+                $(this).find('input').prop('checked', true);
+                $(`${tableSelector} .item-row`).removeClass('item-active');
+                $(this).addClass('item-active');
+            }
+
+            const createRow = function(item){
+                const row = $($.parseHTML(
+                    `<tr class="item-row content-row">
+                        <td class="${size}">
+                            <div class="form-group">
+                                <div class="radio">
+                                    <label>
+                                        <input type="radio" name="{{ form.item.vars.full_name }}">
+                                    </label>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="${size} text-truncate">
+                            <a href="" target="_blank">
+                            </a>
+                        </td>
+                    </tr>`
+                ));
+                const tds = row.children();
+                $(tds[0]).find('input').attr('value', item.caseId).attr('id', `{{ form.item.vars.id }}_${item.caseId}`);
+                $(tds[0]).find('label').attr('for', `{{ form.item.vars.id }}_${item.caseId}`).append(item.caseId);
+                $(tds[1]).find('a').attr('href', route.replace('XXX', item.caseId)).text(item.description);
+                $(tbodySelector).append(row);
+
+                // add handler
+                $(row).on('click', selectItem);
+            }
+
+            const updateTable = function(data) {
+                $(tbodySelector).find('.content-row').remove();
+                data.data.forEach(createRow);
+
+                $(summarySelector).text(summary
+                    .replace('__current__', data.data.length)
+                    .replace('__total__', data.total)
+                );
+            }
+
+            const runQuery = function() {
+                const data = $(searchSelector).val();
+                const limit = $(limitSelector).val();
+                    
+                // improve performance by canceling old requests
+                if (prevRequest != null) {
+                    prevRequest.abort();
+                }
+                    
+                prevRequest = $.ajax({
+                    url : api_url,
+                    data: {
+                        query: data,
+                        limit: limit
+                    },
+                    success: function(response) {
+                        if(!response.update) {
+                            return;
+                        }
+
+                        updateTable(response);
+                    }
+                });
+            };
+
+            return {
+                init: function(){
+                    $(emptySelector).on("click", selectItem);
+                    // change to "change" for rate limitting
+                    $(searchSelector).on("input", runQuery);
+                    $(limitSelector).on("change", runQuery);
+
+                    if($(searchSelector).val()) {
+                        runQuery();
+                    }
+                }
+            }
+        })();
+
+        $(function() {
+            AssignCase.init();
+        });
+    </script>
+
+{% endblock %}

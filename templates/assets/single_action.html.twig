@@ -1,0 +1,107 @@
+{#
+   // AM-System
+   // Copyright (C) 2019 Robert Krasowski
+   // This program was created during an internship at DigiTrace GmbH
+   // Read LIZENZ.txt for full notice
+
+   // This program is free software: you can redistribute it and/or modify
+   // it under the terms of the GNU General Public License as published by
+   // the Free Software Foundation, either version 3 of the License, or
+   // (at your option) any later version.
+
+   // This program is distributed in the hope that it will be useful,
+   // but WITHOUT ANY WARRANTY; without even the implied warranty of
+   // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   // GNU General Public License for more details.
+
+   // You should have received a copy of the GNU General Public License
+   // along with this program.  If not, see <http://www.gnu.org/licenses/>.
+   
+#}
+
+{% extends 'base2.html.twig' %}
+{% form_theme form 'bootstrap_3_layout.html.twig' %} 
+
+{% block content1 %}
+    {# <div class="wrapper">
+        <div class="container" > #}
+            <h2>{{ action.name | trans}}</h2>
+
+            {{ include('messages.html.twig') }}
+
+            {# {{ dump(form) }} #}
+            {{ form_start(form) }}
+
+            <div class="row">
+                <div class="col-lg-6 col-xs-12">
+                    <div class="well">
+                        {{ 'asset.action.transition' | trans }}:
+                        <span class="label label-default">
+                            {{ asset.state | trans }}    
+                        </span>
+                        <span class="glyphicon glyphicon-arrow-right" style="margin: 0px 10px;" aria-hidden="true"></span>
+                        <span class="label label-primary">
+                            {{ action.newState | trans }}    
+                        </span>
+                    </div>
+                </div>
+                <div class="col-lg-6 col-xs-12">
+                    {{ form_row(form.lastUpdatePerformedOn) }}
+                </div>
+            </div>
+
+            {% if constant('class', action) == form.vars.edit_action_class  %}
+            <div class="row">
+                <div class="col-lg-6 col-xs-12">
+                    {{ form_row(form.name) }}
+                </div>
+                <div class="col-lg-6 col-xs-12">
+                    {{ form_row(form.note) }}
+                </div>
+            </div>
+            {% endif %}
+
+            <div class="row">
+                <div class="col-xs-12">
+                    {{ form_row(form.usage) }}
+                </div>
+            </div>
+
+
+            {%  if form.drive is defined %}
+            <div class="divider">{{ 'asset.edit.drive' | trans}}</div>
+            {{ form_row(form.drive) }}
+            {%  endif %}
+
+            {% if form.location is defined %}
+                {{ form_row(form.location) }}
+            {% endif %}
+
+            {% if form.case is defined %}
+                {{ form_row(form.case) }}
+            {% endif %}
+
+            {% if form.image_source is defined %}
+                {{ form_row(form.image_source) }}
+            {% endif %}
+
+            {% if form.image_target is defined %}
+                {{ form_row(form.image_target) }}
+            {% endif %}
+            
+            <div class="form-footer">
+                {{ form_widget(form.save) }}
+            </div>
+
+            {% if form._token is defined %}
+            {{ form_widget(form._token) }}
+            {% endif %}
+            {{ form_end(form, {'render_rest': false}) }}
+    {# </div>
+    </div> #}
+{% endblock %}
+{% block stylesheets %}
+{% endblock %}
+
+{% block javascripts %}
+{% endblock %}

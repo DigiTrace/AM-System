@@ -8,7 +8,6 @@ use App\Entity\Drive;
 use App\Entity\Nutzer;
 use App\Enum\AssetCategory;
 use App\Enum\AssetState;
-use Doctrine\ORM\Query;
 use Doctrine\ORM\Query\Expr\Andx;
 use Doctrine\ORM\Query\Expr\Comparison;
 use Doctrine\ORM\Query\Expr\Func;
@@ -37,27 +36,31 @@ class ExtendedAssetSearch extends ExtendedSearch
     /**
      * Return simple text based search on selected columns.
      * @param string $query
-     * @return Query
+     * @return QueryBuilder
      */
-    protected function simpleSearchQuery(string $query): Query
+    protected function simpleSearchQuery(string $query): QueryBuilder
     {
-        $assetClass = Asset::class;
-        $historyClass = AssetHistory::class;
-        $driveClass = Drive::class;
-        $dql = <<<DQL
-        SELECT asset FROM {$assetClass} asset 
-            LEFT JOIN {$historyClass} ha 
-                ON asset.barcode = ha.asset 
-            LEFT JOIN {$driveClass} d 
-                ON asset.barcode = d.barcode 
-        WHERE asset.name like :searchword 
-            OR asset.usage like :searchword 
-            OR asset.note like :searchword 
-            OR asset.barcode like :searchword 
-            OR d.serialNumber like :searchword 
-        DQL;
+        /**
+         * @var \App\Repository\AssetRepository
+         */
+        $repo = $this->entityManager->getRepository(Asset::class);
+        $builder = $repo->createQueryBuilder('asset')
+            ->leftjoin(AssetHistory::class, "h_asset", "ON", "h_asset.asset = asset.barcode")
+            ->leftjoin(Drive::class, "drive", "ON", "drive.barcode = asset.barcode")
+            ->where(
+            <<<DQL
+            (
+                asset.name            LIKE :search 
+                OR asset.usage        LIKE :search 
+                OR asset.note         LIKE :search 
+                OR asset.barcode      LIKE :search 
+                OR drive.serialNumber LIKE :search 
+            )
+            DQL)
+            ->setParameter(':search',  "%{$query}%")
+        ;
 
-        return $this->entityManager->createQuery($dql)->setParameter(':searchword', "%$query%");
+        return $builder;
     }
     
     protected function matchQueryKey(string $key, array $data): Andx|Comparison|Func|Orx|string|null
@@ -99,7 +102,7 @@ class ExtendedAssetSearch extends ExtendedSearch
 
         // join requiered tables
         if ($this->historyJoin)
-            $builder->leftjoin(AssetHistory::class, "h_asset", "ON", "h_asset.barcode = asset.barcode");
+            $builder->leftjoin(AssetHistory::class, "h_asset", "ON", "h_asset.asset = asset.barcode");
         if ($this->driveJoin)
             $builder->leftjoin(Drive::class, "drive", "ON", "drive.barcode = asset.barcode");
         if ($this->userJoin)

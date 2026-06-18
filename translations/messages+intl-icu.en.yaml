@@ -20,7 +20,12 @@ form:
   reset: &FORM_RESET 'Reset'
   save: &FORM_SAVE 'Save'
   search: &FORM_SEARCH 'Search'
+  add: &FORM_ADD 'Add'
+  remove: &FORM_REMOVE 'Remove'
   entries_found: 'entries found'
+  list:
+    summary: 'Show {current} of {total} total entries'
+    empty: 'No entries found for query'
   picture:
     upload: 'Upload picture'
     is_public: 'Is picture public (can be reused by others)?'
@@ -189,6 +194,10 @@ asset:
       save_and_keep: 'Save asset and add similar'
       success: 'Asset successfully added'
 
+  select:
+    edit_selected: 'Alter all {count} selected elements'
+    all: 'Select all'
+
   search:
     header: 'Asset overview'
     reserved_by: 'Reserved by {user}' 
@@ -247,6 +256,7 @@ asset:
         asset_search: 'Select asset'
         case_search: 'Select case to assign'
         location_search: 'Select available storage location'
+      action: 'Select action'
 
     neutralize:
       not_hdd: 'Asset is not a HDD'
@@ -274,6 +284,18 @@ asset:
       save_image_prepare: 'Choose image source'
       not_applicable: 'Add image action is not applicable'
       success: 'Succesfully added an image to a drive'
+
+  multi_action:
+    header: 'Alter multiple assets'
+    remove_item: *FORM_REMOVE
+    add_item: *FORM_ADD
+    storage: 'Select storage location'
+    case: 'Select case to assign'
+    items: 'Select assets to alter'
+    selected: 'Selected assets'
+    violations: 'Violations'
+    success: 'Succesfully updated assets'
+
 
   upload_pic:
     header: 'Assign picture to asset {asset}'
@@ -305,10 +327,10 @@ asset:
     unreserve: 'Revoke reservation'
     store: 'Store asset in container'
     move: 'Move asset to different container'
-    remove_container: 'Remove asset form container'
+    remove_container: 'Remove asset from container'
     assign_case: 'Assign asset to case'
     unassign_case: 'Unassign asset from case'
-    edit: 'Edit asset propeties'
+    edit: 'Edit asset properties'
     upload_picture: 'Upload picture'
 
 drive:

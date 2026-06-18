@@ -1,5 +1,11 @@
 twig:
     file_name_pattern: '*.twig'
+    form_themes:
+        - 'bootstrap_3_layout.html.twig'
+        - 'form/entity_search_type.html.twig'
+        - 'form/drive_type.html.twig'
+        - 'form/asset_list_type.html.twig'
+        - 'form/assign_case_type.html.twig'
 
 when@test:
     twig:

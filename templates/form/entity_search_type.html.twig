@@ -1,0 +1,11 @@
+{# templates/form/entity_search_type.html.twig #}
+{% block entity_search_row %}
+    <div class="navbar-form navbar-right">
+        {% for child in form.children|filter(child => not child.rendered) %}
+            <div class="form-group">
+                {{ form_widget(child) }}
+            </div>
+        {% endfor %}
+    </div>
+
+{% endblock %}

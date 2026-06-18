@@ -5,7 +5,7 @@ namespace App\Controller;
 use App\Entity\Asset;
 use App\Entity\CaseFile;
 use App\Form\CaseType;
-use App\Form\SimpleCaseSearchType;
+use App\Form\Type\EntitySearchType;
 use App\Service\EmailNotification;
 use App\Service\ExtendedCaseSearch;
 use Doctrine\ORM\EntityManagerInterface;
@@ -42,11 +42,7 @@ class CaseController extends BaseController
         $search = null;
         $query = null;
 
-        $form = $this->createForm(SimpleCaseSearchType::class, null, [
-            'method' => 'GET',
-            'csrf_protection' => false,
-            'attr' => ['class' => 'navbar-form navbar-right', 'id' => 'search_form'],
-            'search_action' => $this->generateURL('search_case'),
+        $form = $this->createForm(EntitySearchType::class, null, [
             'limit' => $session->get('limit'),
         ]);
         $form->handleRequest($request);

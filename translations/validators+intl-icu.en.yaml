@@ -3,3 +3,16 @@ asset:
     form:
       error:
         duplicate: 'Asset with barcode already exists'
+  state:
+    cleaned:
+      not_hdd: 'Asset is not a drive'
+    uneditable: 'Asset is not editable'
+    same_state: 'Asset is already in this state'
+    removed_from_case:
+      not_assigned: 'Asset is not assigned to a case'
+    stored_in_container:
+      still_stored: 'TODO asset.state.stored_in_container.still_stored'
+    added_to_case:
+      still_assigned: 'Asset is still assigned to a case'
+  location:
+    cyclic_reference: 'Cyclic reference, asset already stores target container'
