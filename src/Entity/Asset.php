@@ -5,7 +5,6 @@ namespace App\Entity;
 use App\Enum\AssetCategory as Category;
 use App\Enum\AssetState as State;
 use App\Repository\AssetRepository;
-use App\Validator as AppConstraints;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
@@ -35,8 +34,8 @@ class Asset
     // #[AppConstraints\AssetState(groups: ['AssetState'])]
     private State $state;
 
-    #[ORM\Column(nullable: true, name: 'systemaktion')]
-    private ?bool $systemAction = false;
+    #[ORM\Column(nullable: false, name: 'systemaktion')]
+    private bool $systemAction = false;
 
     #[ORM\Column(type: Types::TEXT, nullable: true, name: 'verwendung')]
     private ?string $usage = null;
@@ -83,8 +82,8 @@ class Asset
     #[ORM\InverseJoinColumn(name: 'hdd', referencedColumnName: 'barcode_id')]
     private Collection $hdds;
 
-    #[ORM\OneToOne(mappedBy: 'asset', cascade: ['persist', 'remove'], fetch: 'EXTRA_LAZY')]
-    private ?AssetBlob $assetBlob = null;
+    #[ORM\OneToMany(targetEntity: AssetBlob::class, mappedBy: 'asset', cascade: ['persist', 'remove'], fetch: 'EXTRA_LAZY')]
+    private Collection $assetBlob;
 
     #[ORM\OneToMany(mappedBy: 'asset', targetEntity: AssetHistory::class)]
     private Collection $histories;
@@ -95,8 +94,8 @@ class Asset
     #[ORM\ManyToMany(targetEntity: AssetHistory::class, mappedBy: 'images')]
     private Collection $imageHistory;
 
-    #[ORM\OneToOne(mappedBy: 'barcode', cascade: ['persist', 'remove'])]
-    private ?Drive $drive = null;
+    #[ORM\OneToMany(targetEntity: Drive::class, mappedBy: 'asset', cascade: ['persist', 'remove'], fetch: 'LAZY')]
+    private Collection $drive;
 
     /**
      * Determines whether asset is allowed to be used as storage.
@@ -132,7 +131,6 @@ class Asset
      */
     public function isRemovableFromCase(): bool
     {
-                
         return Category::Record !== $this->category;
     }
 
@@ -163,11 +161,11 @@ class Asset
      */
     public function setPicture(?string $streamId): static
     {
-        if (null === $this->assetBlob) {
-            $this->assetBlob = new AssetBlob($this);
+        if ($this->assetBlob->isEmpty()) {
+            $this->assetBlob->add(new AssetBlob($this));
         }
 
-        $this->assetBlob->setPicture($streamId);
+        $this->assetBlob->get(0)->setPicture($streamId);
 
         return $this;
     }
@@ -179,7 +177,7 @@ class Asset
      */
     public function getPicture(): ?string
     {
-        return $this->assetBlob?->getPicture();
+        return $this->assetBlob->get(0)?->getPicture();
     }
 
     /**
@@ -187,29 +185,25 @@ class Asset
      */
     public function setPicturePath(?string $path): static
     {
-        if (null === $this->assetBlob) {
-            $this->assetBlob = new AssetBlob($this);
+        if ($this->assetBlob->isEmpty()) {
+            $this->assetBlob->add(new AssetBlob($this));
         }
 
-        $this->assetBlob->setPath($path);
+        $this->assetBlob->get(0)->setPath($path);
 
         return $this;
     }
 
     /**
      * Get picture path.
-     *
-     * @return string|null
      */
     public function getPicturePath(): ?string
     {
-        return $this->assetBlob?->getPath();
+        return $this->assetBlob->get(0)?->getPath();
     }
 
     /**
      * Returns `getBarcode()`.
-     *
-     * @return string
      */
     public function __toString(): string
     {
@@ -228,6 +222,8 @@ class Asset
         $this->histories = new ArrayCollection();
         $this->storageHistories = new ArrayCollection();
         $this->imageHistory = new ArrayCollection();
+        $this->drive = new ArrayCollection();
+        $this->assetBlob = new ArrayCollection();
     }
 
     public function getBarcode(): ?string
@@ -507,12 +503,17 @@ class Asset
 
     public function getBlob(): ?AssetBlob
     {
-        return $this->assetBlob;
+        return $this->assetBlob->get(0);
     }
 
     public function setBlob(?AssetBlob $assetBlob): static
     {
-        $this->assetBlob = $assetBlob;
+        if (null === $assetBlob) {
+            $this->assetBlob->clear();
+        } else {
+            $assetBlob->setAsset($this);
+            $this->assetBlob->set(0, $assetBlob);
+        }
 
         return $this;
     }
@@ -606,17 +607,17 @@ class Asset
 
     public function getDrive(): ?Drive
     {
-        return $this->drive;
+        return $this->drive->get(0);
     }
 
     public function setDrive(?Drive $drive): static
     {
-        // set the owning side of the relation if necessary
-        if ($drive !== null && $drive->getBarcode() !== $this) {
-            $drive->setBarcode($this);
+        if (null === $drive) {
+            $this->drive->clear();
+        } else {
+            $drive->setAsset($this);
+            $this->drive->set(0, $drive);
         }
-
-        $this->drive = $drive;
 
         return $this;
     }

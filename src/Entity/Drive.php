@@ -11,13 +11,13 @@ use Doctrine\ORM\Mapping as ORM;
  * @author Ben Brooksnieder
  */
 #[ORM\Entity(repositoryClass: DriveRepository::class)]
-#[ORM\Table(name: "ams_Datentraeger")]
+#[ORM\Table(name: 'ams_Datentraeger')]
 class Drive
 {
-    #[ORM\OneToOne(inversedBy: 'drive', cascade: ['persist', 'remove'])]
+    #[ORM\ManyToOne(inversedBy: 'drive', cascade: ['persist', 'remove'])]
     #[ORM\Id]
-    #[ORM\JoinColumn(name: 'barcode_id', referencedColumnName: 'barcode_id')]
-    private ?Asset $barcode = null;
+    #[ORM\JoinColumn(name: 'barcode_id', nullable: false, referencedColumnName: 'barcode_id')]
+    private Asset $asset;
 
     #[ORM\Column(type: Types::TEXT, nullable: true, name: 'formfaktor')]
     private ?string $formFactor = null;
@@ -43,31 +43,14 @@ class Drive
     #[ORM\Column(type: Types::TEXT, nullable: true, name: 'anschluss')]
     private ?string $connector = null;
 
-
-    public function __construct(array $data = []) {
-        if (!$data) {
-            return;
-        }
-
-        $this->setBarcode($data['barcode']);
-        $this->setFormFactor($data['formFactor']);
-        $this->setType($data['type']);
-        $this->setSize($data['size']);
-        $this->setManufacturer($data['manufacturer']);
-        $this->setModel($data['model']);
-        $this->setSerialNumber($data['serial_number']);
-        $this->setProductNumber($data['product_number']);
-        $this->setConnector($data['connector']);
+    public function getAsset(): Asset
+    {
+        return $this->asset;
     }
 
-    public function getBarcode(): ?Asset
+    public function setAsset(Asset $asset): static
     {
-        return $this->barcode;
-    }
-
-    public function setBarcode(Asset $barcode): static
-    {
-        $this->barcode = $barcode;
+        $this->asset = $asset;
 
         return $this;
     }

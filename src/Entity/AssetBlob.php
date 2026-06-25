@@ -10,12 +10,12 @@ use Symfony\Component\Validator\Constraints as Assert;
  * @author Ben Brooksnieder
  */
 #[ORM\Entity]
-#[ORM\Table(name: "ams_ObjektBlob")]
+#[ORM\Table(name: 'ams_ObjektBlob')]
 class AssetBlob
 {
-    #[ORM\OneToOne(inversedBy: 'assetBlob', cascade: ['persist', 'remove'])]
+    #[ORM\ManyToOne(inversedBy: 'assetBlob', cascade: ['persist', 'remove'])]
     #[ORM\Id]
-    #[ORM\JoinColumn(name: 'barcode_id', referencedColumnName: 'barcode_id')]
+    #[ORM\JoinColumn(name: 'barcode_id', nullable: false, referencedColumnName: 'barcode_id')]
     private Asset $asset;
 
     #[ORM\Column(type: 'text', nullable: true, name: 'bild')]
@@ -31,7 +31,7 @@ class AssetBlob
         $this->asset = $asset;
     }
 
-    public function getAsset(): ?Asset
+    public function getAsset(): Asset
     {
         return $this->asset;
     }
@@ -54,9 +54,9 @@ class AssetBlob
     }
 
     /**
-     * Set picture
+     * Set picture.
+     *
      * @param mixed $streamId
-     * @return AssetBlob
      */
     public function setPicture(?string $streamId): AssetBlob
     {
@@ -72,8 +72,6 @@ class AssetBlob
 
     /**
      * Get Pic as Resource.
-     *
-     * @return string
      */
     public function getPicture(): ?string
     {
