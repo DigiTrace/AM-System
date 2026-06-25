@@ -73,7 +73,7 @@ final class AssetFactory extends PersistentProxyObjectFactory
      */
     public function generateBarcode(AssetCategory $category): string
     {
-        return $category->getDtBarcodePrefix().str_pad(self::faker()->randomNumber(5), 4, '0', STR_PAD_LEFT);
+        return $category->getDtBarcodePrefix().str_pad(self::faker()->randomNumber(5), 5, '0', STR_PAD_LEFT);
     }
 
     /**
@@ -84,6 +84,7 @@ final class AssetFactory extends PersistentProxyObjectFactory
         $defaults = [
             'name' => self::faker()->text(10),
             'note' => self::faker()->text(20),
+            'usage' => self::faker()->text(20),
             'category' => self::faker()->randomElement(AssetCategory::cases()),
             'state' => AssetState::Added, // for simplicity, only support newly added assets
             'modifiedBy' => LazyValue::memoize([NutzerFactory::class, 'createOne']),
@@ -114,7 +115,7 @@ final class AssetFactory extends PersistentProxyObjectFactory
                 // if asset is storage device, add entry for that with given barcode
                 if ($asset->isDrive()) {
                     $drive = DriveFactory::new()->create([
-                        'barcode' => $asset,
+                        'asset' => $asset,
                     ]);
                     $asset->setDrive($drive->_real());
                 }

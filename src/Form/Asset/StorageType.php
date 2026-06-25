@@ -82,7 +82,7 @@ class StorageType extends AbstractType implements DataTransformerInterface
         ->andWhere('a.barcode = :barcode')
         ->setParameter('barcode', $data['item']);
 
-        $asset = $builder->getQuery()->getSingleResult();
+        $asset = $builder->getQuery()->getOneOrNullResult();
 
         if (null === $asset) {
             // causes a validation error

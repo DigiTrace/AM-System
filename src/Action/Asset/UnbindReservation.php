@@ -14,7 +14,7 @@ class UnbindReservation extends AssetAction
     protected bool $isSystemAction = false;
     protected bool $confirmationRequired = false;
     protected bool $usageRequired = false;
-    protected State $newState = State::UnbindReservation;
+    protected ?State $newState = State::UnbindReservation;
 
     protected function action(Asset $asset, $data): array
     {

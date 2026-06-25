@@ -19,7 +19,7 @@ abstract class AssetAction
     protected bool $isSystemAction;
     protected bool $confirmationRequired;
     protected bool $usageRequired;
-    protected State $newState;
+    protected ?State $newState;
     protected array $messages = [];
     protected ?array $selector = null;
 
@@ -40,7 +40,7 @@ abstract class AssetAction
         return $this->usageRequired;
     }
 
-    public function getNewState(): State
+    public function getNewState(): ?State
     {
         return $this->newState;
     }

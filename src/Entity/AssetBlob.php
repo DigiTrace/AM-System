@@ -15,7 +15,7 @@ class AssetBlob
 {
     #[ORM\ManyToOne(inversedBy: 'assetBlob', cascade: ['persist', 'remove'])]
     #[ORM\Id]
-    #[ORM\JoinColumn(name: 'barcode_id', nullable: false, referencedColumnName: 'barcode_id')]
+    #[ORM\JoinColumn(name: 'barcode_id', referencedColumnName: 'barcode_id')]
     private Asset $asset;
 
     #[ORM\Column(type: 'text', nullable: true, name: 'bild')]

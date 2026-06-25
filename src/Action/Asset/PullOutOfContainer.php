@@ -14,7 +14,7 @@ class PullOutOfContainer extends AssetAction
     protected bool $isSystemAction = false;
     protected bool $confirmationRequired = false;
     protected bool $usageRequired = true;
-    protected State $newState = State::PulledOutOfContainer;
+    protected ?State $newState = State::PulledOutOfContainer;
     protected array $messages = [
         ['info', 'asset.action.remove_container.info'],
     ];

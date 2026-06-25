@@ -17,7 +17,7 @@ class AssignCase extends AssetAction
     protected bool $isSystemAction = false;
     protected bool $confirmationRequired = false;
     protected bool $usageRequired = true;
-    protected State $newState = State::AssignedCase;
+    protected ?State $newState = State::AssignedCase;
 
     protected function action(Asset $asset, $data): array
     {

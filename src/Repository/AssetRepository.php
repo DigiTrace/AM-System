@@ -257,10 +257,12 @@ class AssetRepository extends ServiceEntityRepository
      */
     public function isEditableQuery(string $alias) {
         $builder = $this->getEntityManager()->getExpressionBuilder();
-        $allowedStates = array_map(fn ($c) => $c->value, AssetState::getEditableStates());
+        $disallowedStates = \array_map(fn ($c) => $c->value, 
+            \array_filter(AssetState::cases(), fn($c) => !$c->isEditable())
+        );
 
         // check that state is not in list
-        $query = $builder->in("$alias.state", $allowedStates);
+        $query = $builder->notIn("$alias.state", $disallowedStates);
         return "($query)";
     }
 
@@ -271,10 +273,12 @@ class AssetRepository extends ServiceEntityRepository
      */
     public function isNotEditableQuery(string $alias) {
         $builder = $this->getEntityManager()->getExpressionBuilder();
-        $allowedStates = array_map(fn ($c) => $c->value, AssetState::getEditableStates());
+        $disallowedStates = \array_map(fn ($c) => $c->value, 
+            \array_filter(AssetState::cases(), fn($c) => !$c->isEditable())
+        );
 
         // check that state is not in list
-        $query = $builder->notIn("$alias.state", $allowedStates);
+        $query = $builder->in("$alias.state", $disallowedStates);
         return "($query)";
     }
 }

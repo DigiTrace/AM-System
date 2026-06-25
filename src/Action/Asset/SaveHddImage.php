@@ -19,7 +19,7 @@ class SaveHddImage extends AssetAction
     protected bool $isSystemAction = false;
     protected bool $confirmationRequired = false;
     protected bool $usageRequired = true;
-    protected State $newState = State::SavedImage;
+    protected ?State $newState = State::SavedImage;
 
     protected function action(Asset $asset, $data): array
     {

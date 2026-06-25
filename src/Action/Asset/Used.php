@@ -12,5 +12,5 @@ class Used extends AssetAction {
     protected bool $isSystemAction = false;
     protected bool $confirmationRequired = false;
     protected bool $usageRequired = true;
-    protected State $newState = State::Used;
+    protected ?State $newState = State::Used;
 }

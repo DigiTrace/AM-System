@@ -544,117 +544,118 @@ class AssetController extends BaseController
         if ($asset->isHddImageSource()) {
             return $this->action($request, $manager, $id, new Actions\SaveHddImage());
         }
-        if ($asset->isHddImageTarget()) {
-            return $this->action($request, $manager, $id, new Actions\AddHddImage());
+        if (!$asset->isHddImageTarget()) {
+            $this->addFlash('danger', 'asset.action.add_image.not_applicable');
+            return $this->redirectToRoute('details_asset', ['id' => $id]);
         }
-        
-        $this->addFlash('danger', 'asset.action.add_image.not_applicable');
-        return $this->redirectToRoute('details_asset', ['id' => $id]);
+            
+        # TODO blöd, not working as a regular action
+        return $this->action($request, $manager, $id, new Actions\AddHddImage());
 
 
-        // $repo = $this->entityManager->getRepository(Asset::class);
-        // $asset = $repo->find($id);
+        $repo = $this->entityManager->getRepository(Asset::class);
+        $asset = $repo->find($id);
 
-        // if (null == $asset) {
-        //     $this->addFlash('danger', 'asset.error.not_found');
+        if (null == $asset) {
+            $this->addFlash('danger', 'asset.error.not_found');
 
-        //     return $this->redirectToRoute('search_assets');
-        // }
+            return $this->redirectToRoute('search_assets');
+        }
 
-        // if (!$asset->isHddImageSource() && !$asset->isHddImageTarget()) {
-        //     $this->addFlash('danger', 'asset.action.add_image.not_applicable');
+        if (!$asset->isHddImageSource() && !$asset->isHddImageTarget()) {
+            $this->addFlash('danger', 'asset.action.add_image.not_applicable');
 
-        //     return $this->redirectToRoute('details_asset', ['id' => $id]);
-        // }
+            return $this->redirectToRoute('details_asset', ['id' => $id]);
+        }
 
-        // $isSource = $asset->isHddImageSource();
-        // $source = $isSource ? $asset : null;
-        // $target = $isSource ? null : $asset;
+        $isSource = $asset->isHddImageSource();
+        $source = $isSource ? $asset : null;
+        $target = $isSource ? null : $asset;
 
-        // $api_url = $isSource ? 'asset_action_query_image_sources' : 'asset_action_query_image_targets';
+        $api_url = $isSource ? 'asset_action_query_image_sources' : 'asset_action_query_image_targets';
 
-        // // create history entry, but don't persist yet
-        // $history = $isSource ? AssetHistory::fromAsset($source) : null;
+        // create history entry, but don't persist yet
+        $history = $isSource ? AssetHistory::fromAsset($source) : null;
 
-        // $options = [
-        //     'confirm' => false,
-        //     'usage_required' => true,
-        //     'not_before' => $isSource ? $source->getLastUpdatePerformedOn() : null,
-        //     'selector' => [
-        //         'name' => 'asset',
-        //         'mapped' => false,
-        //         'class' => Asset::class,
-        //         'label' => fn (Asset $asset) => $asset->getBarcode().' | '.$asset->getName(),
-        //     ],
-        // ];
+        $options = [
+            'confirm' => false,
+            'usage_required' => true,
+            'not_before' => $isSource ? $source->getLastUpdatePerformedOn() : null,
+            'selector' => [
+                'name' => 'asset',
+                'mapped' => false,
+                'class' => Asset::class,
+                'label' => fn (Asset $asset) => $asset->getBarcode().' | '.$asset->getName(),
+            ],
+        ];
 
-        // if ($isSource) {
-        //     $options['selector']['choices'] = $repo->findAllHddImageTargetAssets($source, null, 10);
-        //     $options['selector']['model'] = fn ($query, $limit) => $repo->findAllHddImageTargetAssets($source, $query, $limit);
-        // } else {
-        //     $options['selector']['choices'] = $repo->findAllHddImageSourceAssets($target, null, 10);
-        //     $options['selector']['model'] = fn ($query, $limit) => $repo->findAllHddImageSourceAssets($target, $query, $limit);
-        // }
+        if ($isSource) {
+            $options['selector']['choices'] = $repo->findAllHddImageTargetAssets($source, null, 10);
+            $options['selector']['model'] = fn ($query, $limit) => $repo->findAllHddImageTargetAssets($source, $query, $limit);
+        } else {
+            $options['selector']['choices'] = $repo->findAllHddImageSourceAssets($target, null, 10);
+            $options['selector']['model'] = fn ($query, $limit) => $repo->findAllHddImageSourceAssets($target, $query, $limit);
+        }
 
-        // if ($isSource) {
-        //     $source->setState(State::SavedImage);
-        // }
+        if ($isSource) {
+            $source->setState(State::SavedImage);
+        }
 
-        // $form = $this->createForm(SingleActionType::class, $source, $options);
-        // $form->handleRequest($request);
+        $form = $this->createForm(SingleActionType::class, $source, $options);
+        $form->handleRequest($request);
 
-        // if ($form->isSubmitted() && $form->isValid()) {
-        //     if ($isSource) {
-        //         $target = $form->get('asset')->getData();
-        //         if (!$target->isHddImageTarget()) {
-        //             // todo throw error
-        //         }
-        //     } else {
-        //         // apply form values to source
-        //         $source = $form->get('asset')->getData();
-        //         $history = AssetHistory::fromAsset($source);
+        if ($form->isSubmitted() && $form->isValid()) {
+            if ($isSource) {
+                $target = $form->get('asset')->getData();
+                if (!$target->isHddImageTarget()) {
+                    // todo throw error
+                }
+            } else {
+                // apply form values to source
+                $source = $form->get('asset')->getData();
+                $history = AssetHistory::fromAsset($source);
 
-        //         $usage = $form->get('usage')->getData();
-        //         $lastUpdatePerformedOn = $form->get('lastUpdatePerformedOn')->getData();
-        //         $source->setState(State::SavedImage);
-        //         $source->setUsage($usage);
-        //         $source->setLastUpdatePerformedOn($lastUpdatePerformedOn);
-        //         if (!$source->isHddImageSource()) {
-        //             // todo throw error
-        //         }
-        //     }
+                $usage = $form->get('usage')->getData();
+                $lastUpdatePerformedOn = $form->get('lastUpdatePerformedOn')->getData();
+                $source->setState(State::SavedImage);
+                $source->setUsage($usage);
+                $source->setLastUpdatePerformedOn($lastUpdatePerformedOn);
+                if (!$source->isHddImageSource()) {
+                    // todo throw error
+                }
+            }
 
-        //     // update source
-        //     $source->setSystemAction(false);
-        //     $source->setModifiedBy($this->getUser());
-        //     $source->setLastUpdatedOn(new \DateTime());
+            // update source
+            $source->setSystemAction(false);
+            $source->setModifiedBy($this->getUser());
+            $source->setLastUpdatedOn(new \DateTime());
 
-        //     // add image entry
-        //     $source->addHdd($target);
+            // add image entry
+            $source->addHdd($target);
 
-        //     $this->entityManager->persist($source);
-        //     $this->entityManager->persist($history);
+            $this->entityManager->persist($source);
+            $this->entityManager->persist($history);
 
-        //     $this->entityManager->flush();
-        //     $this->addFlash('success', 'asset.action.add_image.success');
+            $this->entityManager->flush();
+            $this->addFlash('success', 'asset.action.add_image.success');
 
-        //     return $this->redirectToRoute('details_asset', ['id' => $source->getBarcode()]);
-        // }
-        // // print errors
-        // foreach ($form->getErrors() as $error) {
-        //     $this->addFlash('danger', $error->getMessage());
-        // }
+            return $this->redirectToRoute('details_asset', ['id' => $source->getBarcode()]);
+        }
+        // print errors
+        foreach ($form->getErrors() as $error) {
+            $this->addFlash('danger', $error->getMessage());
+        }
 
-        // return $this->render('assets/action.html.twig', [
-        //     'asset' => $asset,
-        //     'options' => [
-        //         'form' => $options,
-        //         'api_url' => $api_url,
-        //     ],
-        //     'cur_state' => $isSource ? $source->getState() : 'asset.action.add_image.save_image_prepare',
-        //     'new_state' => State::SavedImage,
-        //     'form' => $form->createView(),
-        // ]);
+        return $this->render('assets/action.html.twig', [
+            'asset' => $asset,
+            'options' => [
+                'form' => $options,
+                'api_url' => $api_url,
+            ],
+            'cur_state' => $isSource ? $source->getState() : 'asset.action.add_image.save_image_prepare',
+            'new_state' => State::SavedImage,
+            'form' => $form->createView(),
+        ]);
     }
 
     /**
@@ -772,6 +773,7 @@ class AssetController extends BaseController
 
     /**
      * Displays FAQ and help page for extended asset search.
+     * @codeCoverageIgnore
      */
     #[Route('/objekte/faq', name: 'eas_faq')]
     public function searchFaq()
@@ -801,7 +803,7 @@ class AssetController extends BaseController
             $search = '';
         }
 
-        $limit = match ($limit) {
+        $limit = match (\intval($limit)) {
             10 => 10,
             25 => 25,
             50 => 50,
@@ -810,6 +812,7 @@ class AssetController extends BaseController
 
         $builder = $extendedSearch->generateSearchQuery($search);
         $builder->andWhere('caseFile.active = 1');
+        $builder->orderBy('caseFile.openedOn', 'DESC');
 
         $query = $builder->getQuery();
         $total = $builder
@@ -850,10 +853,10 @@ class AssetController extends BaseController
         ExtendedAssetSearch $extendedSearch,
         TranslatorInterface $translator,
     ): JsonResponse {
-        $search = $request->query->get('query', '%%');
+        $search = $request->query->get('query', '');
         $limit = $request->query->get('limit', 10);
 
-        $limit = match ($limit) {
+        $limit = match (\intval($limit)) {
             10 => 10,
             25 => 25,
             50 => 50,
@@ -871,6 +874,7 @@ class AssetController extends BaseController
         $repo = $this->entityManager->getRepository(Asset::class);
         $builder->andWhere($repo->isEditableQuery('asset'));
         $builder->andWhere($repo->isStorageQuery('asset'));
+        $builder->orderBy('asset.lastUpdatedOn', 'DESC');
 
         $query = $builder->getQuery();
         $total = $builder
@@ -911,7 +915,7 @@ class AssetController extends BaseController
     ): JsonResponse {
         $search = $request->query->get('query', '');
         $limit = $request->query->get('limit', 10);
-        $limit = match (\intval($limit)) {
+         $limit = match (\intval($limit)) {
             10 => 10,
             25 => 25,
             50 => 50,
@@ -965,10 +969,10 @@ class AssetController extends BaseController
         ExtendedAssetSearch $extendedSearch,
         TranslatorInterface $translator,
     ): JsonResponse {
-        $search = $request->query->get('query', '%%');
+        $search = $request->query->get('query', '');
         $limit = $request->query->get('limit', 10);
 
-        $limit = match ($limit) {
+        $limit = match (\intval($limit)) {
             10 => 10,
             25 => 25,
             50 => 50,
@@ -1027,10 +1031,10 @@ class AssetController extends BaseController
         ExtendedAssetSearch $extendedSearch,
         TranslatorInterface $translator,
     ): JsonResponse {
-        $search = $request->query->get('query', '%%');
+        $search = $request->query->get('query', '');
         $limit = $request->query->get('limit', 10);
 
-        $limit = match ($limit) {
+         $limit = match (\intval($limit)) {
             10 => 10,
             25 => 25,
             50 => 50,

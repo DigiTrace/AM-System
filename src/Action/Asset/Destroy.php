@@ -13,7 +13,7 @@ class Destroy extends AssetAction
     protected bool $isSystemAction = false;
     protected bool $confirmationRequired = true;
     protected bool $usageRequired = true;
-    protected State $newState = State::Destroyed;
+    protected ?State $newState = State::Destroyed;
     protected array $messages = [
         ['warning', 'asset.action.destroy.warning'],
     ];

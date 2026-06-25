@@ -19,7 +19,7 @@ class AddHddImage extends AssetAction
     protected bool $isSystemAction = false;
     protected bool $confirmationRequired = false;
     protected bool $usageRequired = true;
-    protected State $newState = State::SavedImage;
+    protected ?State $newState = null; // don't change state
 
     protected function action(Asset $asset, $data): array
     {

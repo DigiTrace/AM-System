@@ -15,7 +15,7 @@ class Neutralize extends AssetAction
     protected bool $isSystemAction = true;
     protected bool $confirmationRequired = false;
     protected bool $usageRequired = true;
-    protected State $newState = State::Cleaned;
+    protected ?State $newState = State::Cleaned;
     protected array $messages = [
         ['info', 'asset.action.neutralize.info'],
     ];

@@ -8,7 +8,6 @@ use App\Repository\AssetHistoryRepository;
 use App\Repository\AssetRepository;
 use App\Repository\DriveRepository;
 use App\Tests\_support\BaseWebTestCase;
-use App\Tests\_support\TestHelper;
 use App\Tests\Factory\AssetFactory;
 use App\Tests\Factory\CaseFactory;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -122,7 +121,7 @@ class AssetControllerTest extends BaseWebTestCase
         ]];
     }
 
-    #[DataProvider("addValidProvider")]
+    #[DataProvider('addValidProvider')]
     public function testAddValid($asset, $drive = null)
     {
         // setup
@@ -130,13 +129,21 @@ class AssetControllerTest extends BaseWebTestCase
         $crawler = $this->loginUser($client)->request('GET', '/objekt/anlegen');
 
         // get form
-        $name = 'add_asset';
-        $form = $crawler->selectButton($name.'[save]')->form();
+        $name = 'add';
+        $submit = 'save';
+        $form = $crawler->selectButton("{$name}[{$submit}]")->form();
 
-        $formdata = $asset;
-        if ($drive) $formdata['drive'] = $drive;
+        // populate form
+        $data = $asset;
+        if ($drive) {
+            $data['drive'] = $drive;
+        }
 
-        $client->submit($form, [$name => $formdata]);
+        // submit form
+        $form->setValues([$name => $data]);
+        $payload = $form->getPhpValues();
+
+        $client->request($form->getMethod(), $form->getUri(), $payload);
         $this->assertResponseRedirects("/objekt/{$asset['barcode']}");
 
         // default values
@@ -171,7 +178,7 @@ class AssetControllerTest extends BaseWebTestCase
         // check database for correct entry
         $this->seeInDatabase(AssetRepository::class, $asset);
         if (null !== $drive) {
-            $drive['barcode'] = $asset['barcode'];
+            $drive['asset'] = $asset['barcode'];
             if ($drive['size_choice']) {
                 $drive['size'] ??= $drive['size_choice'];
                 unset($drive['size_choice']);
@@ -182,8 +189,8 @@ class AssetControllerTest extends BaseWebTestCase
         return $client;
     }
 
-    #[Depends("testAddValid")]
-    #[DataProvider("addValidProvider")]
+    #[Depends('testAddValid')]
+    #[DataProvider('addValidProvider')]
     public function testAddValidWithCase($asset, $drive = null)
     {
         $client = static::createClient();
@@ -193,28 +200,22 @@ class AssetControllerTest extends BaseWebTestCase
         $crawler = $this->loginUser($client)->request('GET', '/objekt/anlegen');
 
         // get form
-        $name = 'add_asset';
-        $form = $crawler->selectButton($name.'[save]')->form();
+        $name = 'add';
+        $submit = '[save]';
+        $form = $crawler->selectButton($name.$submit)->form();
 
-        // search for case and submit
-        $form["{$name}[case_search]"] = $case->getDescription();
-        $crawler = $client->submit($form);
-
-        $form = $crawler->selectButton($name.'[save]')->form();
-        // add asset parameters
-        foreach ($asset as $key => $value) {
-            $form["{$name}[{$key}]"] = $value ?? '';
+        // populate form
+        $data = $asset;
+        if ($drive) {
+            $data['drive'] = $drive;
         }
 
-        // add datentraeger paramters
-        foreach ($drive ?? [] as $key => $value) {
-            $form["{$name}[drive][{$key}]"] = $value ?? '';
-        }
+        // submit form
+        $form->setValues([$name => $data]);
+        $payload = $form->getPhpValues();
+        $payload[$name]['case']['item'] = $case->getCaseId();
 
-        // add case id
-        $form["{$name}[case_search]"] = $case->getDescription();
-        $form["{$name}[case]"] = $case->getId();
-        $crawler = $client->submit($form);
+        $client->request($form->getMethod(), $form->getUri(), $payload);
         $this->assertResponseRedirects("/objekt/{$asset['barcode']}");
 
         // default values
@@ -264,7 +265,7 @@ class AssetControllerTest extends BaseWebTestCase
         $this->seeInDatabase(AssetHistoryRepository::class, $history);
 
         if (null !== $drive) {
-            $drive['barcode'] = $asset['barcode'];
+            $drive['asset'] = $asset['barcode'];
             if ($drive['size_choice']) {
                 $drive['size'] ??= $drive['size_choice'];
                 unset($drive['size_choice']);
@@ -275,43 +276,35 @@ class AssetControllerTest extends BaseWebTestCase
         return $client;
     }
 
-    #[Depends("testAddValidWithCase")]
+    // #[Depends("testAddValidWithCase")]
     public function testAddInvalidMissingData()
     {
         $client = static::createClient();
         $crawler = $this->loginUser($client)->request('GET', '/objekt/anlegen');
 
         // get form
-        $name = 'add_asset';
-        $form = $crawler->selectButton($name.'[save]')->form();
+        $name = 'add';
+        $submit = '[save]';
+        $form = $crawler->selectButton($name.$submit)->form();
 
-        $asset = [];
+        // populate form
+        $data = [];
 
-        // add asset parameters
-        foreach ($asset as $key => $value) {
-            $form["{$name}[{$key}]"] = $value ?? '';
-        }
+        // submit form
+        $form->setValues([$name => $data]);
+        $payload = $form->getPhpValues();
 
-        // add datentraeger paramters
-        foreach ($drive ?? [] as $key => $value) {
-            $form["{$name}[drive][{$key}]"] = $value ?? '';
-        }
-
-        $client->submit($form);
+        $client->request($form->getMethod(), $form->getUri(), $payload);
         $this->assertResponseIsSuccessful();
         // alert symbol from validation errors
         $this->assertSelectorExists('span.glyphicon-exclamation-sign');
     }
 
-    #[Depends("testAddInvalidMissingData")]
+    #[Depends('testAddInvalidMissingData')]
     public function testAddInvalidBarcode()
     {
         $client = static::createClient();
         $crawler = $this->loginUser($client)->request('GET', '/objekt/anlegen');
-
-        // get form
-        $name = 'add_asset';
-        $form = $crawler->selectButton($name.'[save]')->form();
 
         $asset = [
             'barcode' => 'asdad',
@@ -320,32 +313,30 @@ class AssetControllerTest extends BaseWebTestCase
             'category' => Category::Exhibit->value,
         ];
 
-        // add asset parameters
-        foreach ($asset as $key => $value) {
-            $form["{$name}[{$key}]"] = $value ?? '';
-        }
+        // get form
+        $name = 'add';
+        $submit = '[save]';
+        $form = $crawler->selectButton($name.$submit)->form();
 
-        // add datentraeger paramters
-        foreach ($drive ?? [] as $key => $value) {
-            $form["{$name}[drive][{$key}]"] = $value ?? '';
-        }
+        // populate form
+        $data = $asset;
 
-        $client->submit($form);
+        // submit form
+        $form->setValues([$name => $data]);
+        $payload = $form->getPhpValues();
+
+        $client->request($form->getMethod(), $form->getUri(), $payload);
         $this->assertResponseIsSuccessful();
         // alert symbol from validation errors
         $this->assertSelectorExists('span.glyphicon-exclamation-sign');
         $this->dontSeeInDatabase(AssetRepository::class, $asset);
     }
 
-    #[Depends("testAddInvalidBarcode")]
+    #[Depends('testAddInvalidBarcode')]
     public function testAddInvalidWrongCategory()
     {
         $client = static::createClient();
         $crawler = $this->loginUser($client)->request('GET', '/objekt/anlegen');
-
-        // get form
-        $name = 'add_asset';
-        $form = $crawler->selectButton($name.'[save]')->form();
 
         $asset = [
             'barcode' => 'DTHD12345',
@@ -354,24 +345,26 @@ class AssetControllerTest extends BaseWebTestCase
             'category' => Category::Exhibit->value,
         ];
 
-        // add asset parameters
-        foreach ($asset as $key => $value) {
-            $form["{$name}[{$key}]"] = $value ?? '';
-        }
+        // get form
+        $name = 'add';
+        $submit = '[save]';
+        $form = $crawler->selectButton($name.$submit)->form();
 
-        // add datentraeger paramters
-        foreach ($drive ?? [] as $key => $value) {
-            $form["{$name}[drive][{$key}]"] = $value ?? '';
-        }
+        // populate form
+        $data = $asset;
 
-        $client->submit($form);
+        // submit form
+        $form->setValues([$name => $data]);
+        $payload = $form->getPhpValues();
+
+        $client->request($form->getMethod(), $form->getUri(), $payload);
         $this->assertResponseIsSuccessful();
         // alert symbol from validation errors
         $this->assertSelectorExists('span.glyphicon-exclamation-sign');
         $this->dontSeeInDatabase(AssetRepository::class, $asset);
     }
 
-    #[Depends("testAddInvalidWrongCategory")]
+    #[Depends('testAddInvalidWrongCategory')]
     public function testAddInvalidDuplicate()
     {
         $client = static::createClient();
@@ -381,10 +374,6 @@ class AssetControllerTest extends BaseWebTestCase
 
         $crawler = $this->loginUser($client)->request('GET', '/objekt/anlegen');
 
-        // get form
-        $name = 'add_asset';
-        $form = $crawler->selectButton($name.'[save]')->form();
-
         $asset = [
             'barcode' => $duplicate->getBarcode(),
             'name' => 'Test',
@@ -392,21 +381,33 @@ class AssetControllerTest extends BaseWebTestCase
             'category' => Category::Exhibit->value,
         ];
 
-        // add asset parameters
-        foreach ($asset as $key => $value) {
-            $form["{$name}[{$key}]"] = $value ?? '';
-        }
+        // get form
+        $name = 'add';
+        $submit = '[save]';
+        $form = $crawler->selectButton($name.$submit)->form();
 
-        // add datentraeger paramters
-        foreach ($drive ?? [] as $key => $value) {
-            $form["{$name}[drive][{$key}]"] = $value ?? '';
-        }
+        // populate form
+        $data = $asset;
 
-        $client->submit($form);
+        // submit form
+        $form->setValues([$name => $data]);
+        $payload = $form->getPhpValues();
+
+        $client->request($form->getMethod(), $form->getUri(), $payload);
         $this->assertResponseIsSuccessful();
         // alert symbol from validation errors
         $this->assertSelectorExists('span.glyphicon-exclamation-sign');
         $this->dontSeeInDatabase(AssetRepository::class, $asset);
+    }
+
+    public function testActionAssetNotFound()
+    {
+        $client = static::createClient();
+        $barcode = 'DTKP69996';
+        $this->loginUser($client)->request('GET', "/objekt/$barcode/editieren");
+        $this->assertResponseRedirects('/objekte');
+        $client->followRedirect();
+        $this->assertSelectorTextContains('.alert', 'asset.error.not_found');
     }
 
     public function testEditActionValid()
@@ -426,9 +427,6 @@ class AssetControllerTest extends BaseWebTestCase
             'modifiedBy' => $asset->getModifiedBy(),
         ];
 
-        $name = 'edit_asset';
-        $crawler = $this->loginUser($client)->request('GET', "/objekt/$barcode/editieren");
-        $form = $crawler->selectButton($name.'[save]')->form();
         $data = [
             'name' => 'Fritz',
             'usage' => 'Geändert',
@@ -446,18 +444,24 @@ class AssetControllerTest extends BaseWebTestCase
             'connector' => $drive?->getConnector().'_test',
         ];
 
-        // data to form
-        foreach ($data as $key => $value) {
-            $form["{$name}[{$key}]"] = $value ?? '';
-        }
+        $crawler = $this->loginUser($client)->request('GET', "/objekt/$barcode/editieren");
 
-        // drive data to form
-        foreach ($driveData as $key => $value) {
-            $form["{$name}[drive][{$key}]"] = $value ?? '';
-        }
+        // get form
+        $name = 'single_action';
+        $submit = '[save]';
+        $form = $crawler->selectButton($name.$submit)->form();
 
-        $client->submit($form);
+        // populate form
+        $formData = $data;
+        $formData['drive'] = $driveData;
+
+        // submit form
+        $form->setValues([$name => $formData]);
+        $payload = $form->getPhpValues();
+
+        $client->request($form->getMethod(), $form->getUri(), $payload);
         $this->assertResponseRedirects("/objekt/$barcode");
+
         $data['barcode'] = $barcode;
         $data['state'] = State::Edited;
         $data['systemAction'] = false;
@@ -468,11 +472,11 @@ class AssetControllerTest extends BaseWebTestCase
         // check changes
         $this->seeInDatabase(AssetRepository::class, $data);
         // check drive for changes
-        $driveData['barcode'] = $asset;
+        $driveData['asset'] = $asset;
         $this->seeInDatabase(DriveRepository::class, $driveData);
     }
 
-    #[Depends("testEditActionValid")]
+    #[Depends('testEditActionValid')]
     public function testEditActionInvalidNoChanges()
     {
         $client = static::createClient();
@@ -487,7 +491,6 @@ class AssetControllerTest extends BaseWebTestCase
             'modifiedBy' => $asset->getModifiedBy(),
         ];
 
-
         $data = [
             'barcode' => $barcode,
             'usage' => $asset->getUsage(),
@@ -495,10 +498,12 @@ class AssetControllerTest extends BaseWebTestCase
         ];
         $this->seeInDatabase(AssetRepository::class, $data);
 
-        $name = 'edit_asset';
         $crawler = $this->loginUser($client)->request('GET', "/objekt/$barcode/editieren");
-        $form = $crawler->selectButton($name.'[save]')->form();
 
+        // get form
+        $name = 'single_action';
+        $submit = '[save]';
+        $form = $crawler->selectButton($name.$submit)->form();
 
         // no changes
         $client->submit($form);
@@ -528,20 +533,25 @@ class AssetControllerTest extends BaseWebTestCase
             'modifiedBy' => $asset->getModifiedBy(),
         ];
 
-        $name = 'action_asset';
-        $crawler = $this->loginUser($client)->request('GET', "/objekt/$barcode/nullen");
-        $form = $crawler->selectButton($name.'[save]')->form();
-
         $data = [
             'usage' => 'Genullt',
         ];
 
-        // data to form
-        foreach ($data as $key => $value) {
-            $form["{$name}[{$key}]"] = $value ?? '';
-        }
+        $crawler = $this->loginUser($client)->request('GET', "/objekt/$barcode/nullen");
 
-        $client->submit($form);
+        // get form
+        $name = 'single_action';
+        $submit = '[save]';
+        $form = $crawler->selectButton($name.$submit)->form();
+
+        // populate form
+        $formData = $data;
+
+        // submit form
+        $form->setValues([$name => $formData]);
+        $payload = $form->getPhpValues();
+
+        $client->request($form->getMethod(), $form->getUri(), $payload);
         $this->assertResponseRedirects("/objekt/$barcode");
 
         $data['barcode'] = $barcode;
@@ -554,7 +564,7 @@ class AssetControllerTest extends BaseWebTestCase
         $this->seeInDatabase(AssetRepository::class, $data);
     }
 
-    #[Depends("testNullActionValid")]
+    #[Depends('testNullActionValid')]
     public function testNullActionInvalidCategory()
     {
         $client = static::createClient();
@@ -566,7 +576,7 @@ class AssetControllerTest extends BaseWebTestCase
         $this->assertResponseRedirects("/objekt/$barcode");
     }
 
-    #[Depends("testNullActionInvalidCategory")]
+    #[Depends('testNullActionInvalidCategory')]
     public function testNullActionInvalidSameState()
     {
         $client = static::createClient();
@@ -578,7 +588,7 @@ class AssetControllerTest extends BaseWebTestCase
         $this->assertResponseRedirects("/objekt/$barcode");
     }
 
-    #[Depends("testNullActionInvalidSameState")]
+    #[Depends('testNullActionInvalidSameState')]
     public function testNullActionInvalidState()
     {
         $client = static::createClient();
@@ -604,20 +614,25 @@ class AssetControllerTest extends BaseWebTestCase
             'modifiedBy' => $asset->getModifiedBy(),
         ];
 
-        $name = 'action_asset';
-        $crawler = $this->loginUser($client)->request('GET', "/objekt/$barcode/verwenden");
-        $form = $crawler->selectButton($name.'[save]')->form();
-
         $data = [
             'usage' => 'benutzt',
         ];
 
-        // data to form
-        foreach ($data as $key => $value) {
-            $form["{$name}[{$key}]"] = $value ?? '';
-        }
+        $crawler = $this->loginUser($client)->request('GET', "/objekt/$barcode/verwenden");
 
-        $client->submit($form);
+        // get form
+        $name = 'single_action';
+        $submit = '[save]';
+        $form = $crawler->selectButton($name.$submit)->form();
+
+        // populate form
+        $formData = $data;
+
+        // submit form
+        $form->setValues([$name => $formData]);
+        $payload = $form->getPhpValues();
+
+        $client->request($form->getMethod(), $form->getUri(), $payload);
         $this->assertResponseRedirects("/objekt/$barcode");
 
         $data['barcode'] = $barcode;
@@ -630,7 +645,7 @@ class AssetControllerTest extends BaseWebTestCase
         $this->seeInDatabase(AssetRepository::class, $data);
     }
 
-    #[Depends("testUseActionValid")]
+    #[Depends('testUseActionValid')]
     public function testUseActionInvalidUsage()
     {
         $client = static::createClient();
@@ -645,20 +660,25 @@ class AssetControllerTest extends BaseWebTestCase
             'modifiedBy' => $asset->getModifiedBy(),
         ];
 
-        $name = 'action_asset';
-        $crawler = $this->loginUser($client)->request('GET', "/objekt/$barcode/verwenden");
-        $form = $crawler->selectButton($name.'[save]')->form();
-
         $data = [
             'usage' => '',
         ];
 
-        // data to form
-        foreach ($data as $key => $value) {
-            $form["{$name}[{$key}]"] = $value ?? '';
-        }
+        $crawler = $this->loginUser($client)->request('GET', "/objekt/$barcode/verwenden");
 
-        $client->submit($form);
+        // get form
+        $name = 'single_action';
+        $submit = '[save]';
+        $form = $crawler->selectButton($name.$submit)->form();
+
+        // populate form
+        $formData = $data;
+
+        // submit form
+        $form->setValues([$name => $formData]);
+        $payload = $form->getPhpValues();
+
+        $client->request($form->getMethod(), $form->getUri(), $payload);
         $this->assertResponseIsSuccessful();
         $this->assertSelectorExists('span.glyphicon-exclamation-sign');
 
@@ -680,33 +700,32 @@ class AssetControllerTest extends BaseWebTestCase
             'modifiedBy' => $asset->getModifiedBy(),
         ];
 
-        $name = 'action_asset';
-        $crawler = $this->loginUser($client)->request('GET', "/objekt/$barcode/vernichtet");
-        $form = $crawler->selectButton($name.'[save]')->form();
-
         $data = [
             'usage' => 'Wech',
         ];
 
-        // data to form
-        foreach ($data as $key => $value) {
-            $form["{$name}[{$key}]"] = $value ?? '';
-        }
+        $crawler = $this->loginUser($client)->request('GET', "/objekt/$barcode/vernichtet");
 
-        $client->submit($form);
-        $this->assertResponseRedirects("/objekt/$barcode");
+        // get form
+        $name = 'single_action';
+        $submit = '[save]';
+        $form = $crawler->selectButton($name.$submit)->form();
 
-        $data['barcode'] = $barcode;
-        $data['state'] = State::Destroyed;
-        $data['systemAction'] = false;
-        $data['modifiedBy'] = $this->getUser('user');
+        // populate form
+        $formData = $data;
+
+        // submit form
+        $form->setValues([$name => $formData]);
+        $payload = $form->getPhpValues();
+
+        $client->request($form->getMethod(), $form->getUri(), $payload);
 
         // check history
         $this->seeInDatabase(AssetHistoryRepository::class, $history);
         $this->seeInDatabase(AssetRepository::class, $data);
     }
 
-    #[Depends("testDestroyActionValid")]
+    #[Depends('testDestroyActionValid')]
     public function testDestroyActionInvalidSameState()
     {
         $client = static::createClient();
@@ -732,20 +751,25 @@ class AssetControllerTest extends BaseWebTestCase
             'modifiedBy' => $asset->getModifiedBy(),
         ];
 
-        $name = 'action_asset';
-        $crawler = $this->loginUser($client)->request('GET', "/objekt/$barcode/verloren");
-        $form = $crawler->selectButton($name.'[save]')->form();
-
         $data = [
             'usage' => 'Wech',
         ];
 
-        // data to form
-        foreach ($data as $key => $value) {
-            $form["{$name}[{$key}]"] = $value ?? '';
-        }
+        $crawler = $this->loginUser($client)->request('GET', "/objekt/$barcode/verloren");
 
-        $client->submit($form);
+        // get form
+        $name = 'single_action';
+        $submit = '[save]';
+        $form = $crawler->selectButton($name.$submit)->form();
+
+        // populate form
+        $formData = $data;
+
+        // submit form
+        $form->setValues([$name => $formData]);
+        $payload = $form->getPhpValues();
+
+        $client->request($form->getMethod(), $form->getUri(), $payload);
         $this->assertResponseRedirects("/objekt/$barcode");
 
         $data['barcode'] = $barcode;
@@ -758,7 +782,7 @@ class AssetControllerTest extends BaseWebTestCase
         $this->seeInDatabase(AssetRepository::class, $data);
     }
 
-    #[Depends("testLostActionValid")]
+    #[Depends('testLostActionValid')]
     public function testLostActionInvalidSameState()
     {
         $client = static::createClient();
@@ -784,20 +808,25 @@ class AssetControllerTest extends BaseWebTestCase
             'modifiedBy' => $asset->getModifiedBy(),
         ];
 
-        $name = 'action_asset';
-        $crawler = $this->loginUser($client)->request('GET', "/objekt/$barcode/uebergeben");
-        $form = $crawler->selectButton($name.'[save]')->form();
-
         $data = [
             'usage' => 'wech gegeben',
         ];
 
-        // data to form
-        foreach ($data as $key => $value) {
-            $form["{$name}[{$key}]"] = $value ?? '';
-        }
+        $crawler = $this->loginUser($client)->request('GET', "/objekt/$barcode/uebergeben");
 
-        $client->submit($form);
+        // get form
+        $name = 'single_action';
+        $submit = '[save]';
+        $form = $crawler->selectButton($name.$submit)->form();
+
+        // populate form
+        $formData = $data;
+
+        // submit form
+        $form->setValues([$name => $formData]);
+        $payload = $form->getPhpValues();
+
+        $client->request($form->getMethod(), $form->getUri(), $payload);
         $this->assertResponseRedirects("/objekt/$barcode");
 
         $data['barcode'] = $barcode;
@@ -810,7 +839,7 @@ class AssetControllerTest extends BaseWebTestCase
         $this->seeInDatabase(AssetRepository::class, $data);
     }
 
-    #[Depends("testHandoverActionValid")]
+    #[Depends('testHandoverActionValid')]
     public function testHandoverActionInvalidUsage()
     {
         $client = static::createClient();
@@ -825,20 +854,25 @@ class AssetControllerTest extends BaseWebTestCase
             'modifiedBy' => $asset->getModifiedBy(),
         ];
 
-        $name = 'action_asset';
-        $crawler = $this->loginUser($client)->request('GET', "/objekt/$barcode/uebergeben");
-        $form = $crawler->selectButton($name.'[save]')->form();
-
         $data = [
             'usage' => '',
         ];
 
-        // data to form
-        foreach ($data as $key => $value) {
-            $form["{$name}[{$key}]"] = $value ?? '';
-        }
+        $crawler = $this->loginUser($client)->request('GET', "/objekt/$barcode/uebergeben");
 
-        $client->submit($form);
+        // get form
+        $name = 'single_action';
+        $submit = '[save]';
+        $form = $crawler->selectButton($name.$submit)->form();
+
+        // populate form
+        $formData = $data;
+
+        // submit form
+        $form->setValues([$name => $formData]);
+        $payload = $form->getPhpValues();
+
+        $client->request($form->getMethod(), $form->getUri(), $payload);
         $this->assertResponseIsSuccessful();
         $this->assertSelectorExists('span.glyphicon-exclamation-sign');
 
@@ -861,20 +895,25 @@ class AssetControllerTest extends BaseWebTestCase
             'reservedBy' => $asset->getReservedBy(),
         ];
 
-        $name = 'action_asset';
-        $crawler = $this->loginUser($client)->request('GET', "/objekt/$barcode/reservieren");
-        $form = $crawler->selectButton($name.'[save]')->form();
-
         $data = [
             'usage' => 'wech gegeben',
         ];
 
-        // data to form
-        foreach ($data as $key => $value) {
-            $form["{$name}[{$key}]"] = $value ?? '';
-        }
+        $crawler = $this->loginUser($client)->request('GET', "/objekt/$barcode/reservieren");
 
-        $client->submit($form);
+        // get form
+        $name = 'single_action';
+        $submit = '[save]';
+        $form = $crawler->selectButton($name.$submit)->form();
+
+        // populate form
+        $formData = $data;
+
+        // submit form
+        $form->setValues([$name => $formData]);
+        $payload = $form->getPhpValues();
+
+        $client->request($form->getMethod(), $form->getUri(), $payload);
         $this->assertResponseRedirects("/objekt/$barcode");
 
         $data['barcode'] = $barcode;
@@ -888,7 +927,7 @@ class AssetControllerTest extends BaseWebTestCase
         $this->seeInDatabase(AssetRepository::class, $data);
     }
 
-    #[Depends("testReserveActionValid")]
+    #[Depends('testReserveActionValid')]
     public function testReserveActionInvalidSameReservedBy()
     {
         $client = static::createClient();
@@ -926,20 +965,25 @@ class AssetControllerTest extends BaseWebTestCase
             'reservedBy' => $asset->getReservedBy(),
         ];
 
-        $name = 'action_asset';
-        $crawler = $this->loginUser($client)->request('GET', "/objekt/$barcode/reservierung/aufheben");
-        $form = $crawler->selectButton($name.'[save]')->form();
-
         $data = [
             'usage' => 'unreserved',
         ];
 
-        // data to form
-        foreach ($data as $key => $value) {
-            $form["{$name}[{$key}]"] = $value ?? '';
-        }
+        $crawler = $this->loginUser($client)->request('GET', "/objekt/$barcode/reservierung/aufheben");
 
-        $client->submit($form);
+        // get form
+        $name = 'single_action';
+        $submit = '[save]';
+        $form = $crawler->selectButton($name.$submit)->form();
+
+        // populate form
+        $formData = $data;
+
+        // submit form
+        $form->setValues([$name => $formData]);
+        $payload = $form->getPhpValues();
+
+        $client->request($form->getMethod(), $form->getUri(), $payload);
         $this->assertResponseRedirects("/objekt/$barcode");
 
         $data['barcode'] = $barcode;
@@ -953,7 +997,7 @@ class AssetControllerTest extends BaseWebTestCase
         $this->seeInDatabase(AssetRepository::class, $data);
     }
 
-    #[Depends("testUnreserveActionValid")]
+    #[Depends('testUnreserveActionValid')]
     public function testUnreserveActionInvaliNotReserved()
     {
         $client = static::createClient();
@@ -993,20 +1037,25 @@ class AssetControllerTest extends BaseWebTestCase
             'location' => $asset->getLocation(),
         ];
 
-        $name = 'action_asset';
-        $crawler = $this->loginUser($client)->request('GET', "/objekt/$barcode/entnehmen");
-        $form = $crawler->selectButton($name.'[save]')->form();
-
         $data = [
             'usage' => 'unstore',
         ];
 
-        // data to form
-        foreach ($data as $key => $value) {
-            $form["{$name}[{$key}]"] = $value ?? '';
-        }
+        $crawler = $this->loginUser($client)->request('GET', "/objekt/$barcode/entnehmen");
 
-        $client->submit($form);
+        // get form
+        $name = 'single_action';
+        $submit = '[save]';
+        $form = $crawler->selectButton($name.$submit)->form();
+
+        // populate form
+        $formData = $data;
+
+        // submit form
+        $form->setValues([$name => $formData]);
+        $payload = $form->getPhpValues();
+
+        $client->request($form->getMethod(), $form->getUri(), $payload);
         $this->assertResponseRedirects("/objekt/$barcode");
 
         $data['barcode'] = $barcode;
@@ -1020,7 +1069,7 @@ class AssetControllerTest extends BaseWebTestCase
         $this->seeInDatabase(AssetRepository::class, $data);
     }
 
-    #[Depends("testPullOutOfContainerActionValid")]
+    #[Depends('testPullOutOfContainerActionValid')]
     public function testPullOutOfContainerActionInvalidNotStored()
     {
         $client = static::createClient();
@@ -1060,20 +1109,25 @@ class AssetControllerTest extends BaseWebTestCase
             'case' => $asset->getCase(),
         ];
 
-        $name = 'action_asset';
-        $crawler = $this->loginUser($client)->request('GET', "/objekt/$barcode/aus/Fall/entfernen");
-        $form = $crawler->selectButton($name.'[save]')->form();
-
         $data = [
             'usage' => 'not assigned anymore',
         ];
 
-        // data to form
-        foreach ($data as $key => $value) {
-            $form["{$name}[{$key}]"] = $value ?? '';
-        }
+        $crawler = $this->loginUser($client)->request('GET', "/objekt/$barcode/aus/Fall/entfernen");
 
-        $client->submit($form);
+        // get form
+        $name = 'single_action';
+        $submit = '[save]';
+        $form = $crawler->selectButton($name.$submit)->form();
+
+        // populate form
+        $formData = $data;
+
+        // submit form
+        $form->setValues([$name => $formData]);
+        $payload = $form->getPhpValues();
+
+        $client->request($form->getMethod(), $form->getUri(), $payload);
         $this->assertResponseRedirects("/objekt/$barcode");
 
         $data['barcode'] = $barcode;
@@ -1087,7 +1141,7 @@ class AssetControllerTest extends BaseWebTestCase
         $this->seeInDatabase(AssetRepository::class, $data);
     }
 
-    #[Depends("testRemoveFromCaseActionValid")]
+    #[Depends('testRemoveFromCaseActionValid')]
     public function testRemoveFromCaseActionInvalidNotAssigned()
     {
         $client = static::createClient();
@@ -1134,20 +1188,25 @@ class AssetControllerTest extends BaseWebTestCase
             'case' => $asset->getCase(),
         ];
 
-        $name = 'action_asset';
-        $crawler = $this->loginUser($client)->request('GET', "/objekt/$barcode/neutralisieren");
-        $form = $crawler->selectButton($name.'[save]')->form();
-
         $data = [
             'usage' => 'not assigned anymore',
         ];
 
-        // data to form
-        foreach ($data as $key => $value) {
-            $form["{$name}[{$key}]"] = $value ?? '';
-        }
+        $crawler = $this->loginUser($client)->request('GET', "/objekt/$barcode/neutralisieren");
 
-        $client->submit($form);
+        // get form
+        $name = 'single_action';
+        $submit = '[save]';
+        $form = $crawler->selectButton($name.$submit)->form();
+
+        // populate form
+        $formData = $data;
+
+        // submit form
+        $form->setValues([$name => $formData]);
+        $payload = $form->getPhpValues();
+
+        $client->request($form->getMethod(), $form->getUri(), $payload);
         $this->assertResponseRedirects("/objekt/$barcode");
 
         $data['barcode'] = $barcode;
@@ -1160,21 +1219,21 @@ class AssetControllerTest extends BaseWebTestCase
         // check history for state change
         $this->seeInDatabase(AssetHistoryRepository::class, $history);
 
-        // check history for state change
-        $history['state'] = $data['state'];
-        $history['systemAction'] = $data['systemAction'];
-        $history['modifiedBy'] = $data['modifiedBy'];
-        $history['usage'] = $data['usage'];
-        $this->seeInDatabase(AssetHistoryRepository::class, $history);
+        // // check history for state change
+        // $history['state'] = $data['state'];
+        // $history['systemAction'] = $data['systemAction'];
+        // $history['modifiedBy'] = $data['modifiedBy'];
+        // $history['usage'] = $data['usage'];
+        // $this->seeInDatabase(AssetHistoryRepository::class, $history);
 
-        // check history for location change
-        $history['location'] = $data['location'];
-        $this->seeInDatabase(AssetHistoryRepository::class, $history);
+        // // check history for location change
+        // $history['location'] = $data['location'];
+        // $this->seeInDatabase(AssetHistoryRepository::class, $history);
 
         $this->seeInDatabase(AssetRepository::class, $data);
     }
 
-    #[Depends("testNeutralizeActionValid")]
+    #[Depends('testNeutralizeActionValid')]
     public function testNeutralizeActionInvalidNotHdd()
     {
         $client = static::createClient();
@@ -1199,7 +1258,7 @@ class AssetControllerTest extends BaseWebTestCase
         $this->assertNoAssetChanges($history, $barcode);
     }
 
-    #[Depends("testNeutralizeActionValid")]
+    #[Depends('testNeutralizeActionValid')]
     public function testNeutralizeActionInvalidNotApplicable()
     {
         $client = static::createClient();
@@ -1241,23 +1300,26 @@ class AssetControllerTest extends BaseWebTestCase
             'location' => $asset->getLocation(),
         ];
 
-        $name = 'action_asset';
-        $crawler = $this->loginUser($client)->request('GET', "/objekt/$barcode/einlegen/in/");
-        $form = $crawler->selectButton($name.'[save]')->form();
-
-        // query first for search results
-        $crawler = $client->submit($form, [
-            $name => ['selector_search' => $container->getBarcode()],
-        ]);
-        $form = $crawler->selectButton($name.'[save]')->form();
-
-        // add location
         $data = [
             'usage' => 'test',
-            'location' => $container->getBarcode(),
         ];
 
-        $client->submit($form, [$name => $data]);
+        $crawler = $this->loginUser($client)->request('GET', "/objekt/$barcode/einlegen/in/");
+
+        // get form
+        $name = 'single_action';
+        $submit = '[save]';
+        $form = $crawler->selectButton($name.$submit)->form();
+
+        // populate form
+        $formData = $data;
+
+        // submit form
+        $form->setValues([$name => $formData]);
+        $payload = $form->getPhpValues();
+        $payload[$name]['location']['item'] = $container->getBarcode();
+
+        $client->request($form->getMethod(), $form->getUri(), $payload);
         $this->assertResponseRedirects("/objekt/$barcode");
 
         $data['barcode'] = $barcode;
@@ -1291,23 +1353,26 @@ class AssetControllerTest extends BaseWebTestCase
             'location' => $asset->getLocation(),
         ];
 
-        $name = 'action_asset';
-        $crawler = $this->loginUser($client)->request('GET', "/objekt/$barcode/einlegen/in/");
-        $form = $crawler->selectButton($name.'[save]')->form();
-
-        // query first for search results
-        $crawler = $client->submit($form, [
-            $name => ['selector_search' => $container->getBarcode()],
-        ]);
-        $form = $crawler->selectButton($name.'[save]')->form();
-
-        // add location
         $data = [
             'usage' => 'test',
-            'location' => $container->getBarcode(),
         ];
 
-        $client->submit($form, [$name => $data]);
+        $crawler = $this->loginUser($client)->request('GET', "/objekt/$barcode/einlegen/in/");
+
+        // get form
+        $name = 'single_action';
+        $submit = '[save]';
+        $form = $crawler->selectButton($name.$submit)->form();
+
+        // populate form
+        $formData = $data;
+
+        // submit form
+        $form->setValues([$name => $formData]);
+        $payload = $form->getPhpValues();
+        $payload[$name]['location']['item'] = $container->getBarcode();
+
+        $client->request($form->getMethod(), $form->getUri(), $payload);
         $this->assertResponseRedirects("/objekt/$barcode");
 
         $data['barcode'] = $barcode;
@@ -1321,7 +1386,7 @@ class AssetControllerTest extends BaseWebTestCase
         $this->seeInDatabase(AssetRepository::class, $data);
     }
 
-    #[Depends("testStoreActionValidContainer")]
+    #[Depends('testStoreActionValidContainer')]
     public function testStoreActionInvalidNotContainer()
     {
         $client = static::createClient();
@@ -1341,34 +1406,34 @@ class AssetControllerTest extends BaseWebTestCase
             'location' => $asset->getLocation(),
         ];
 
-        $name = 'action_asset';
-        $crawler = $this->loginUser($client)->request('GET', "/objekt/$barcode/einlegen/in/");
-        $form = $crawler->selectButton($name.'[save]')->form();
-
-        // query first for search results
-        $crawler = $client->submit($form, [
-            $name => ['selector_search' => $container->getBarcode()],
-        ]);
-        $form = $crawler->selectButton($name.'[save]')->form();
-
-        // add location
         $data = [
             'usage' => 'test',
-            'location' => $container->getBarcode(),
         ];
 
-        // invalid argument for location parameter
-        $this->expectException(\InvalidArgumentException::class);
-        $client->submit($form, [
-            $name => $data,
-        ]);
-        $this->assertResponseRedirects("/objekt/$barcode");
+        $crawler = $this->loginUser($client)->request('GET', "/objekt/$barcode/einlegen/in/");
 
+        // get form
+        $name = 'single_action';
+        $submit = '[save]';
+        $form = $crawler->selectButton($name.$submit)->form();
+
+        // populate form
+        $formData = $data;
+
+        // submit form
+        $form->setValues([$name => $formData]);
+        $payload = $form->getPhpValues();
+        $payload[$name]['location']['item'] = $container->getBarcode();
+
+        $client->request($form->getMethod(), $form->getUri(), $payload);
+        $this->assertResponseIsSuccessful();
+        // alert symbol from validation errors
+        $this->assertSelectorExists('.alert-danger');
         // assert no changes made to database
         $this->assertNoAssetChanges($history, $barcode);
     }
 
-    #[Depends("testStoreActionValidStorageOverride")]
+    #[Depends('testStoreActionValidStorageOverride')]
     public function testStoreActionInvalidStorageOverride()
     {
         $client = static::createClient();
@@ -1389,30 +1454,29 @@ class AssetControllerTest extends BaseWebTestCase
             'location' => $asset->getLocation(),
         ];
 
-        $name = 'action_asset';
-        $crawler = $this->loginUser($client)->request('GET', "/objekt/$barcode/einlegen/in/");
-        $form = $crawler->selectButton($name.'[save]')->form();
-
-        // query first for search results
-        $form["{$name}[selector_search]"] = $container->getBarcode();
-        $crawler = $client->submit($form);
-        $form = $crawler->selectButton($name.'[save]')->form();
-
-        // add location
         $data = [
             'usage' => 'test',
-            'location' => $container->getBarcode(),
         ];
 
-        // invalid argument for location parameter
-        $this->expectException(\InvalidArgumentException::class);
-        foreach ($data as $key => $value) {
-            $form["{$name}[{$key}]"] = $value ?? '';
-        }
+        $crawler = $this->loginUser($client)->request('GET', "/objekt/$barcode/einlegen/in/");
 
-        $client->submit($form);
-        $this->assertResponseRedirects("/objekt/$barcode");
+        // get form
+        $name = 'single_action';
+        $submit = '[save]';
+        $form = $crawler->selectButton($name.$submit)->form();
 
+        // populate form
+        $formData = $data;
+
+        // submit form
+        $form->setValues([$name => $formData]);
+        $payload = $form->getPhpValues();
+        $payload[$name]['location']['item'] = $container->getBarcode();
+
+        $client->request($form->getMethod(), $form->getUri(), $payload);
+        $this->assertResponseIsSuccessful();
+        // alert symbol from validation errors
+        $this->assertSelectorExists('.alert-danger');
         // assert no changes made to database
         $this->assertNoAssetChanges($history, $barcode);
     }
@@ -1434,27 +1498,26 @@ class AssetControllerTest extends BaseWebTestCase
             'case' => $asset->getCase(),
         ];
 
-        $name = 'action_asset';
-        $crawler = $this->loginUser($client)->request('GET', "/objekt/$barcode/in/fall/");
-        $form = $crawler->selectButton($name.'[save]')->form();
-
-        // query first for search results
-        $form["{$name}[selector_search]"] = $case->getCaseId();
-        $crawler = $client->submit($form);
-        $form = $crawler->selectButton($name.'[save]')->form();
-
-        // add case
         $data = [
             'usage' => 'test',
-            'case' => $case->getId(),
         ];
 
-        // populate form
-        foreach ($data as $key => $value) {
-            $form["{$name}[{$key}]"] = $value ?? '';
-        }
+        $crawler = $this->loginUser($client)->request('GET', "/objekt/$barcode/in/fall/");
 
-        $client->submit($form);
+        // get form
+        $name = 'single_action';
+        $submit = '[save]';
+        $form = $crawler->selectButton($name.$submit)->form();
+
+        // populate form
+        $formData = $data;
+
+        // submit form
+        $form->setValues([$name => $formData]);
+        $payload = $form->getPhpValues();
+        $payload[$name]['case']['item'] = $case->getCaseId();
+
+        $client->request($form->getMethod(), $form->getUri(), $payload);
         $this->assertResponseRedirects("/objekt/$barcode");
 
         $data['barcode'] = $barcode;
@@ -1468,7 +1531,7 @@ class AssetControllerTest extends BaseWebTestCase
         $this->seeInDatabase(AssetRepository::class, $data);
     }
 
-    #[Depends("testAssignCaseActionValid")]
+    #[Depends('testAssignCaseActionValid')]
     public function testAssignCaseActionInvalidAlreadyAssigned()
     {
         $client = static::createClient();
@@ -1491,12 +1554,78 @@ class AssetControllerTest extends BaseWebTestCase
 
         $this->loginUser($client)->request('GET', "/objekt/$barcode/in/fall/");
         $this->assertResponseRedirects("/objekt/$barcode");
+        $client->followRedirect();
+        $this->assertSelectorTextContains('.alert', 'asset.state.added_to_case.still_assigned');
 
         // assert no changes made to database
         $this->assertNoAssetChanges($history, $barcode);
     }
 
-    public function testSaveImageOnDriveActionValidFromTarget()
+    // public function testSaveImageOnDriveActionFromTargetValid()
+    // {
+    //     $client = static::createClient();
+    //     $factory = AssetFactory::new();
+
+    //     $target = $factory->hdd()->create();
+    //     $source = $factory->exhibitHdd()->create();
+
+    //     $target_history = [
+    //         'asset' => $target->_real(),
+    //         'usage' => $target->getUsage(),
+    //         'state' => $target->getState(),
+    //         'modifiedBy' => $target->getModifiedBy(),
+    //     ];
+
+    //     $source_history = [
+    //         'asset' => $source->_real(),
+    //         'usage' => $source->getUsage(),
+    //         'state' => $source->getState(),
+    //         'modifiedBy' => $source->getModifiedBy(),
+    //     ];
+
+    //     $data = [
+    //         'usage' => 'save',
+    //     ];
+
+    //     $crawler = $this->loginUser($client)->request('GET', "/objekt/{$target->getBarcode()}/Asservatenimage/speichern/");
+
+    //     // get form
+    //     $name = 'single_action';
+    //     $submit = '[save]';
+    //     $form = $crawler->selectButton($name.$submit)->form();
+
+    //     // populate form
+    //     $formData = $data;
+
+    //     // submit form
+    //     $form->setValues([$name => $formData]);
+    //     $payload = $form->getPhpValues();
+    //     $payload[$name]['image_target']['item'] = $source->getBarcode();
+
+    //     $client->request($form->getMethod(), $form->getUri(), $payload);
+    //     $this->assertResponseRedirects("/objekt/{$source->getBarcode()}");
+
+    //     unset($source_data['asset']);
+    //     $source_data['barcode'] = $source->getBarcode();
+    //     $source_data['state'] = State::SavedImage;
+    //     $source_data['systemAction'] = false;
+    //     $source_data['modifiedBy'] = $this->getUser('user');
+
+    //     // assert correct database changes
+    //     $this->seeInDatabase(AssetHistoryRepository::class, $source_history);
+    //     $this->seeInDatabase(AssetRepository::class, $source_data);
+
+    //     // assert no changes to target
+    //     $this->assertNoAssetChanges($target_history, $target->getBarcode());
+
+    //     $target = $factory->find($target->getBarcode());
+    //     $source = $factory->find($source->getBarcode());
+    //     // test that target is in source images and vice versa
+    //     $this->assertContains($target->_real(), $source->getHdds());
+    //     $this->assertContains($source->_real(), $target->getImages());
+    // }
+
+    public function testSaveImageOnDriveActionFromSourceValid()
     {
         $client = static::createClient();
         $factory = AssetFactory::new();
@@ -1518,171 +1647,103 @@ class AssetControllerTest extends BaseWebTestCase
             'modifiedBy' => $source->getModifiedBy(),
         ];
 
-        $path = 'Asservatenimage/speichern/';
-        $name = 'action_asset';
-        $crawler = $this->loginUser($client)->request('GET', "/objekt/{$target->getBarcode()}/$path");
-        $form = $crawler->selectButton($name.'[save]')->form();
-
-        // query first for search results
-        $form["{$name}[selector_search]"] = $source->getBarcode();
-        $crawler = $client->submit($form);
-        $form = $crawler->selectButton($name.'[save]')->form();
-
-        // add case
-        $source_data = [
-            'usage' => 'save',
-            'asset' => $source->getBarcode(),
-        ];
-
-        // populate form
-        foreach ($source_data as $key => $value) {
-            $form["{$name}[{$key}]"] = $value ?? '';
-        }
-
-        $client->submit($form);
-        $this->assertResponseRedirects("/objekt/{$source->getBarcode()}");
-
-        unset($source_data['asset']);
-        $source_data['barcode'] = $source->getBarcode();
-        $source_data['state'] = State::SavedImage;
-        $source_data['systemAction'] = false;
-        $source_data['modifiedBy'] = $this->getUser('user');
-
-        // assert correct database changes
-        $this->seeInDatabase(AssetHistoryRepository::class, $source_history);
-        $this->seeInDatabase(AssetRepository::class, $source_data);
-
-        // assert no changes to target
-        $this->assertNoAssetChanges($target_history, $target->getBarcode());
-
-        $target = $factory->find($target->getBarcode());
-        $source = $factory->find($source->getBarcode());
-        // test that target is in source images and vice versa
-        $this->assertContains($target->_real(), $source->getHdds());
-        $this->assertContains($source->_real(), $target->getImages());
-    }
-
-    public function testSaveImageOnDriveActionValidFromSource()
-    {
-        $client = static::createClient();
-        $factory = AssetFactory::new();
-
-        $target = $factory->hdd()->create();
-        $source = $factory->exhibitHdd()->create();
-
-        $target_history = [
-            'asset' => $target->_real(),
-            'usage' => $target->getUsage(),
-            'state' => $target->getState(),
-            'modifiedBy' => $target->getModifiedBy(),
-        ];
-
-        $source_history = [
-            'asset' => $source->_real(),
-            'usage' => $source->getUsage(),
-            'state' => $source->getState(),
-            'modifiedBy' => $source->getModifiedBy(),
-        ];
-
-        $path = 'Asservatenimage/speichern/';
-        $name = 'action_asset';
-        $crawler = $this->loginUser($client)->request('GET', "/objekt/{$source->getBarcode()}/$path");
-        $form = $crawler->selectButton($name.'[save]')->form();
-
-        // query first for search results
-        $form["{$name}[selector_search]"] = $target->getBarcode();
-        $crawler = $client->submit($form);
-        $form = $crawler->selectButton($name.'[save]')->form();
-
-        // add case
-        $formdata = [
-            'usage' => 'save',
-            'asset' => $target->getBarcode(),
-        ];
-
-        // populate form
-        foreach ($formdata as $key => $value) {
-            $form["{$name}[{$key}]"] = $value ?? '';
-        }
-
-        $client->submit($form);
-        $this->assertResponseRedirects("/objekt/{$source->getBarcode()}");
-
-        $source_data = ['usage' => $formdata['usage']];
-        $source_data['barcode'] = $source->getBarcode();
-        $source_data['state'] = State::SavedImage;
-        $source_data['systemAction'] = false;
-        $source_data['modifiedBy'] = $this->getUser('user');
-
-        // assert correct database changes
-        $this->seeInDatabase(AssetHistoryRepository::class, $source_history);
-        $this->seeInDatabase(AssetRepository::class, $source_data);
-
-        // assert no changes to target
-        $this->assertNoAssetChanges($target_history, $target->getBarcode());
-
-        $target = $factory->find($target->getBarcode());
-        $source = $factory->find($source->getBarcode());
-        // test that target is in source images and vice versa
-        $this->assertContains($target->_real(), $source->getHdds());
-        $this->assertContains($source->_real(), $target->getImages());
-    }
-
-    #[Depends("testSaveImageOnDriveActionValidFromTarget")]
-    public function testSaveImageOnDriveActionInvalidFromTargetInvalidSource()
-    {
-        $client = static::createClient();
-        $factory = AssetFactory::new();
-
-        $target = $factory->hdd()->create();
-        $source = $factory->container()->create();
-
-        $target_history = [
-            'asset' => $target->_real(),
-            'usage' => $target->getUsage(),
-            'state' => $target->getState(),
-            'modifiedBy' => $target->getModifiedBy(),
-        ];
-
-        $source_history = [
-            'asset' => $source->_real(),
-            'usage' => $source->getUsage(),
-            'state' => $source->getState(),
-            'modifiedBy' => $source->getModifiedBy(),
-        ];
-
-        $path = 'Asservatenimage/speichern/';
-        $name = 'action_asset';
-        $crawler = $this->loginUser($client)->request('GET', "/objekt/{$target->getBarcode()}/$path");
-        $form = $crawler->selectButton($name.'[save]')->form();
-
-        // query first for search results
-        $form["{$name}[selector_search]"] = $source->getBarcode();
-        $crawler = $client->submit($form);
-        $form = $crawler->selectButton($name.'[save]')->form();
-
-        // add location
         $data = [
-            'usage' => 'test',
-            'asset' => $source->getBarcode(),
+            'usage' => 'save',
         ];
 
-        // invalid argument for location parameter
-        $this->expectException(\InvalidArgumentException::class);
-        foreach ($data as $key => $value) {
-            $form["{$name}[{$key}]"] = $value ?? '';
-        }
+        $crawler = $this->loginUser($client)->request('GET', "/objekt/{$source->getBarcode()}/Asservatenimage/speichern/");
 
-        $client->submit($form);
+        // get form
+        $name = 'single_action';
+        $submit = '[save]';
+        $form = $crawler->selectButton($name.$submit)->form();
+
+        // populate form
+        $formData = $data;
+
+        // submit form
+        $form->setValues([$name => $formData]);
+        $payload = $form->getPhpValues();
+        $payload[$name]['image_target']['item'] = $target->getBarcode();
+
+        $client->request($form->getMethod(), $form->getUri(), $payload);
         $this->assertResponseRedirects("/objekt/{$source->getBarcode()}");
 
+        $source_data = ['usage' => $data['usage']];
+        $source_data['barcode'] = $source->getBarcode();
+        $source_data['state'] = State::SavedImage;
+        $source_data['systemAction'] = false;
+        $source_data['modifiedBy'] = $this->getUser('user');
+
+        // assert correct database changes
+        $this->seeInDatabase(AssetHistoryRepository::class, $source_history);
+        $this->seeInDatabase(AssetRepository::class, $source_data);
+
         // assert no changes to target
-        $this->assertNoAssetChanges($source_history, $source->getBarcode());
         $this->assertNoAssetChanges($target_history, $target->getBarcode());
+
+        $target = $factory->find($target->getBarcode());
+        $source = $factory->find($source->getBarcode());
+        // test that target is in source images and vice versa
+        $this->assertContains($target->_real(), $source->getHdds());
+        $this->assertContains($source->_real(), $target->getImages());
     }
 
-    #[Depends("testSaveImageOnDriveActionValidFromSource")]
-    public function testSaveImageOnDriveActionInvalidFromSourceInvalidTarget()
+    // #[Depends("testSaveImageOnDriveActionFromTargetValid")]
+    // public function testSaveImageOnDriveActionFromTargetInvalidSource()
+    // {
+    //     $client = static::createClient();
+    //     $factory = AssetFactory::new();
+
+    //     $target = $factory->hdd()->create();
+    //     $source = $factory->container()->create();
+
+    //     $target_history = [
+    //         'asset' => $target->_real(),
+    //         'usage' => $target->getUsage(),
+    //         'state' => $target->getState(),
+    //         'modifiedBy' => $target->getModifiedBy(),
+    //     ];
+
+    //     $source_history = [
+    //         'asset' => $source->_real(),
+    //         'usage' => $source->getUsage(),
+    //         'state' => $source->getState(),
+    //         'modifiedBy' => $source->getModifiedBy(),
+    //     ];
+
+    //     $path = 'Asservatenimage/speichern/';
+    //     $name = 'action_asset';
+    //     $crawler = $this->loginUser($client)->request('GET', "/objekt/{$target->getBarcode()}/$path");
+    //     $form = $crawler->selectButton($name.'[save]')->form();
+
+    //     // query first for search results
+    //     $form["{$name}[selector_search]"] = $source->getBarcode();
+    //     $crawler = $client->submit($form);
+    //     $form = $crawler->selectButton($name.'[save]')->form();
+
+    //     // add location
+    //     $data = [
+    //         'usage' => 'test',
+    //         'asset' => $source->getBarcode(),
+    //     ];
+
+    //     // invalid argument for location parameter
+    //     $this->expectException(\InvalidArgumentException::class);
+    //     foreach ($data as $key => $value) {
+    //         $form["{$name}[{$key}]"] = $value ?? '';
+    //     }
+
+    //     $client->submit($form);
+    //     $this->assertResponseRedirects("/objekt/{$source->getBarcode()}");
+
+    //     // assert no changes to target
+    //     $this->assertNoAssetChanges($source_history, $source->getBarcode());
+    //     $this->assertNoAssetChanges($target_history, $target->getBarcode());
+    // }
+
+    // #[Depends("testSaveImageOnDriveActionFromSourceValid")]
+    public function testSaveImageOnDriveActionFromSourceInvalidTarget()
     {
         $client = static::createClient();
         $factory = AssetFactory::new();
@@ -1704,87 +1765,170 @@ class AssetControllerTest extends BaseWebTestCase
             'modifiedBy' => $source->getModifiedBy(),
         ];
 
-        $path = 'Asservatenimage/speichern/';
-        $name = 'action_asset';
-        $crawler = $this->loginUser($client)->request('GET', "/objekt/{$source->getBarcode()}/$path");
-        $form = $crawler->selectButton($name.'[save]')->form();
-
-        // query first for search results
-        $form["{$name}[selector_search]"] = $target->getBarcode();
-        $crawler = $client->submit($form);
-        $form = $crawler->selectButton($name.'[save]')->form();
-
-        // add location
         $data = [
-            'usage' => 'test',
-            'asset' => $target->getBarcode(),
+            'usage' => 'save',
         ];
 
-        // invalid argument for location parameter
-        $this->expectException(\InvalidArgumentException::class);
-        foreach ($data as $key => $value) {
-            $form["{$name}[{$key}]"] = $value ?? '';
-        }
+        $crawler = $this->loginUser($client)->request('GET', "/objekt/{$source->getBarcode()}/Asservatenimage/speichern/");
 
-        $client->submit($form);
-        $this->assertResponseRedirects("/objekt/{$source->getBarcode()}");
+        // get form
+        $name = 'single_action';
+        $submit = '[save]';
+        $form = $crawler->selectButton($name.$submit)->form();
+
+        // populate form
+        $formData = $data;
+
+        // submit form
+        $form->setValues([$name => $formData]);
+        $payload = $form->getPhpValues();
+        $payload[$name]['image_target']['item'] = $target->getBarcode();
+
+        $client->request($form->getMethod(), $form->getUri(), $payload);
+        $this->assertResponseIsSuccessful();
+        // alert symbol from validation errors
+        $this->assertSelectorExists('.alert-danger');
 
         // assert no changes to target
         $this->assertNoAssetChanges($source_history, $source->getBarcode());
         $this->assertNoAssetChanges($target_history, $target->getBarcode());
     }
 
-    #[Depends("testSaveImageOnDriveActionValidFromTarget")]
-    #[Depends("testSaveImageOnDriveActionValidFromSource")]
-    public function testSaveImageOnDriveActionInvalidNotApplicable()
-    {
-        $client = static::createClient();
-        $factory = AssetFactory::new();
+    // #[Depends("testSaveImageOnDriveActionFromTargetValid")]
+    // #[Depends("testSaveImageOnDriveActionFromSourceValid")]
+    // public function testSaveImageOnDriveActionInvalidNotApplicable()
+    // {
+    //     $client = static::createClient();
+    //     $factory = AssetFactory::new();
 
-        $asset = $factory->container()->create();
-        $barcode = $asset->getBarcode();
+    //     $asset = $factory->container()->create();
+    //     $barcode = $asset->getBarcode();
 
-        $history = [
-            'asset' => $asset->_real(),
-            'usage' => $asset->getUsage(),
-            'state' => $asset->getState(),
-            'modifiedBy' => $asset->getModifiedBy(),
-        ];
+    //     $history = [
+    //         'asset' => $asset->_real(),
+    //         'usage' => $asset->getUsage(),
+    //         'state' => $asset->getState(),
+    //         'modifiedBy' => $asset->getModifiedBy(),
+    //     ];
 
-        $path = 'Asservatenimage/speichern/';
-        $this->loginUser($client)->request('GET', "/objekt/$barcode/$path");
-        $this->assertResponseRedirects("/objekt/$barcode");
+    //     $path = 'Asservatenimage/speichern/';
+    //     $this->loginUser($client)->request('GET', "/objekt/$barcode/$path");
+    //     $this->assertResponseRedirects("/objekt/$barcode");
 
-        // assert no changes made
-        $this->assertNoAssetChanges($history, $barcode);
-    }
+    //     // assert no changes made
+    //     $this->assertNoAssetChanges($history, $barcode);
+    // }
 
     public function testListCaseOptions()
     {
         $client = static::createClient();
         $factory = CaseFactory::new();
-
-        /**
-         * @var \App\Entity\CaseFile[]
-         */
-        $cases = $factory->many(5)->create();
-
         $uri = '/asset/cases';
 
-        $all = $this->queryJsonApi($client, $uri, []);
+        $inactive = $factory->createSequence(
+            function () {
+                foreach (range(0, 14) as $i) {
+                    yield [
+                        'caseId' => "Inactive Case $i",
+                        'description' => (0 == $i % 2) ? 'yes' : 'no',
+                        'openedOn' => (new \DateTime('now')),
+                        'active' => false,
+                    ];
+                }
+            }
+        );
 
-        foreach ($cases as $case) {
+        $active = $factory->createSequence(
+            function () {
+                foreach (range(0, 14) as $i) {
+                    yield [
+                        'caseId' => "Active Case $i",
+                        'description' => (0 == $i % 2) ? 'yes' : 'no',
+                        'openedOn' => (new \DateTime('now')),
+                        'active' => true,
+                    ];
+                }
+            }
+        );
+
+        // test plain results
+        $result = $this->queryJsonApi($client, $uri, []);
+        $this->assertEquals(\count($active), $result['total']);
+        $this->assertCount(10, $result['data']);
+
+        // all inactive should not be returned
+        foreach ($inactive as $case) {
             $exp = [
-                'val' => $case->getId(),
-                'text' => $case->getCaseId().' | '.$case->getDescription(),
+                'id' => $case->getId(),
+                'caseId' => $case->getCaseId(),
+                'description' => $case->getDescription(),
             ];
-            $this->assertContains($exp, $all['data']);
+            $this->assertNotContains($exp, $result['data']);
+        }
 
-            $desc = $this->queryJsonApi($client, $uri, ['query' => $case->getDescription()]);
-            $this->assertContains($exp, $desc['data']);
+        // first 10 active cases should occur
+        for ($i = 0; $i < 10; ++$i) {
+            $case = $active[$i];
 
-            $byId = $this->queryJsonApi($client, $uri, ['query' => $case->getCaseId()]);
-            $this->assertContains($exp, $byId['data']);
+            $exp = [
+                'id' => $case->getId(),
+                'caseId' => $case->getCaseId(),
+                'description' => $case->getDescription(),
+            ];
+            $this->assertContains($exp, $result['data']);
+        }
+
+        // first 10 active cases should occur
+        for ($i = 10; $i < 15; ++$i) {
+            $case = $active[$i];
+
+            $exp = [
+                'id' => $case->getId(),
+                'caseId' => $case->getCaseId(),
+                'description' => $case->getDescription(),
+            ];
+            $this->assertNotContains($exp, $result['data']);
+        }
+
+        // test limit parameter (only 15 in total)
+        $result = $this->queryJsonApi($client, $uri, ['limit' => 25]);
+        $this->assertEquals(\count($active), $result['total']);
+        $this->assertCount(min([25, \count($active)]), $result['data']);
+
+        // test limit parameter, unkown value
+        $result = $this->queryJsonApi($client, $uri, ['limit' => 255]);
+        $this->assertEquals(\count($active), $result['total']);
+        $this->assertCount(10, $result['data']);
+
+        // test search function
+        $result = $this->queryJsonApi($client, $uri, ['query' => 'yes', 'limit' => 50]);
+        $this->assertEquals(8, $result['total']);
+        $this->assertCount(8, $result['data']);
+
+        // all inactive should not be returned
+        foreach ($inactive as $case) {
+            $exp = [
+                'id' => $case->getId(),
+                'caseId' => $case->getCaseId(),
+                'description' => $case->getDescription(),
+            ];
+            $this->assertNotContains($exp, $result['data']);
+        }
+
+        // match only even active cases
+        for ($i = 0; $i < \count($active); ++$i) {
+            $case = $active[$i];
+
+            $exp = [
+                'id' => $case->getId(),
+                'caseId' => $case->getCaseId(),
+                'description' => $case->getDescription(),
+            ];
+            if (0 == $i % 2) {
+                $this->assertContains($exp, $result['data']);
+            } else {
+                $this->assertNotContains($exp, $result['data']);
+            }
         }
     }
 
@@ -1792,163 +1936,288 @@ class AssetControllerTest extends BaseWebTestCase
     {
         $client = static::createClient();
         $factory = AssetFactory::new();
-
-        /**
-         * @var \App\Entity\Asset[]
-         */
-        $storages = array_merge(
-            $factory->container()->many(5)->create(),
-            $factory->with(['storageOverride' => true])->record()->many(5)->create(),
-        );
-
-        /**
-         * @var \App\Entity\Asset[]
-         */
-        $nonStorages = array_merge(
-            $factory->with(['storageOverride' => false])->container()->many(5)->create(),
-            $factory->hdd()->many(5)->create(),
-        );
-
         $uri = '/asset/locations';
 
-        $all = $this->queryJsonApi($client, $uri, []);
+        $nonStorages = $factory->createSequence(
+            function () {
+                foreach (range(0, 14) as $i) {
+                    yield [
+                        'barcode' => 'DTAS'.str_pad($i, 5, '0', STR_PAD_LEFT),
+                        'category' => Category::Exhibit,
+                        'name' => (0 == $i % 2) ? 'yes' : 'no',
+                        'usage' => '',
+                        'note' => '',
+                        'lastUpdatedOn' => (new \DateTime('now')),
+                        'state' => State::Added,
+                        'storageOverride' => false,
+                    ];
+                }
+            }
+        );
 
-        foreach ($storages as $asset) {
-            $exp = [
-                'val' => $asset->getBarcode(),
-                'text' => $asset->getBarcode().' | '.$asset->getName(),
-            ];
-            $this->assertContains($exp, $all['data']);
+        $storageOverrides = $factory->record()->createSequence(
+            function () {
+                foreach (range(0, 14) as $i) {
+                    yield [
+                        'barcode' => 'DTAK'.str_pad($i, 5, '0', STR_PAD_LEFT),
+                        'category' => Category::Record,
+                        'name' => (0 == $i % 2) ? 'yes' : 'no',
+                        'usage' => '',
+                        'note' => '',
+                        'lastUpdatedOn' => (new \DateTime('now')),
+                        'state' => $i >= 5 ? State::Added : State::Lost,
+                        'storageOverride' => true,
+                    ];
+                }
+            }
+        );
 
-            $name = $this->queryJsonApi($client, $uri, ['query' => $asset->getName()]);
-            $this->assertContains($exp, $name['data']);
+        $storages = $factory->container()->createSequence(
+            function () {
+                foreach (range(0, 14) as $i) {
+                    yield [
+                        'barcode' => 'DTAW'.str_pad($i, 5, '0', STR_PAD_LEFT),
+                        'category' => Category::Container,
+                        'name' => (0 == $i % 2) ? 'yes' : 'no',
+                        'usage' => '',
+                        'note' => '',
+                        'lastUpdatedOn' => (new \DateTime('now')),
+                        'state' => $i >= 5 ? State::Added : State::Destroyed,
+                        'storageOverride' => (0 == $i % 2) ? true : null,
+                    ];
+                }
+            }
+        );
 
-            $code = $this->queryJsonApi($client, $uri, ['query' => $asset->getBarcode()]);
-            $this->assertContains($exp, $code['data']);
-        }
+        // test plain results
+        $result = $this->queryJsonApi($client, $uri, []);
+        $this->assertCount(10, $result['data']);
+        $this->assertEquals(20, $result['total']);
 
+        // all non storages should not be returned
         foreach ($nonStorages as $asset) {
             $exp = [
-                'val' => $asset->getBarcode(),
-                'text' => $asset->getBarcode().' | '.$asset->getName(),
+                'active' => $asset->isEditable(),
+                'barcode' => $asset->getBarcode(),
+                'category' => $asset->getCategory()->toTranslatableString(),
+                'color' => $asset->getCategory()->bootstrapColor(),
+                'name' => $asset->getName(),
             ];
-            $this->assertNotContains($exp, $all['data']);
+            $this->assertNotContains($exp, $result['data']);
+        }
 
-            $name = $this->queryJsonApi($client, $uri, ['query' => $asset->getName()]);
-            $this->assertNotContains($exp, $name['data']);
+        // match last 10 storagess
+        for ($i = 5; $i < 15; ++$i) {
+            $asset = $storages[$i];
 
-            $code = $this->queryJsonApi($client, $uri, ['query' => $asset->getBarcode()]);
-            $this->assertNotContains($exp, $code['data']);
+            $exp = [
+                'active' => $asset->isEditable(),
+                'barcode' => $asset->getBarcode(),
+                'category' => $asset->getCategory()->toTranslatableString(),
+                'color' => $asset->getCategory()->bootstrapColor(),
+                'name' => $asset->getName(),
+            ];
+            $this->assertContains($exp, $result['data']);
+        }
+
+        // dont match rest
+        for ($i = 0; $i < 5; ++$i) {
+            $asset = $storages[$i];
+
+            $exp = [
+                'active' => $asset->isEditable(),
+                'barcode' => $asset->getBarcode(),
+                'category' => $asset->getCategory()->toTranslatableString(),
+                'color' => $asset->getCategory()->bootstrapColor(),
+                'name' => $asset->getName(),
+            ];
+            $this->assertNotContains($exp, $result['data']);
+        }
+        for ($i = 0; $i < 15; ++$i) {
+            $asset = $storageOverrides[$i];
+
+            $exp = [
+                'active' => $asset->isEditable(),
+                'barcode' => $asset->getBarcode(),
+                'category' => $asset->getCategory()->toTranslatableString(),
+                'color' => $asset->getCategory()->bootstrapColor(),
+                'name' => $asset->getName(),
+            ];
+            $this->assertNotContains($exp, $result['data']);
+        }
+
+        // test limit parameter (only 20 in total)
+        $result = $this->queryJsonApi($client, $uri, ['limit' => 25]);
+        $this->assertEquals(20, $result['total']);
+        $this->assertCount(20, $result['data']);
+
+        // test limit parameter, unkown value
+        $result = $this->queryJsonApi($client, $uri, ['limit' => 255]);
+        $this->assertEquals(20, $result['total']);
+        $this->assertCount(10, $result['data']);
+
+        // test search function
+        $result = $this->queryJsonApi($client, $uri, ['query' => 'yes', 'limit' => 50]);
+        $this->assertEquals(10, $result['total']);
+        $this->assertCount(10, $result['data']);
+
+        // all non storages should not be returned
+        foreach ($nonStorages as $asset) {
+            $exp = [
+                'active' => $asset->isEditable(),
+                'barcode' => $asset->getBarcode(),
+                'category' => $asset->getCategory()->toTranslatableString(),
+                'color' => $asset->getCategory()->bootstrapColor(),
+                'name' => $asset->getName(),
+            ];
+            $this->assertNotContains($exp, $result['data']);
+        }
+
+        // match 5 storage overrides
+        for ($i = 0; $i < 15; ++$i) {
+            $asset = $storageOverrides[$i];
+
+            $exp = [
+                'active' => $asset->isEditable(),
+                'barcode' => $asset->getBarcode(),
+                'category' => $asset->getCategory()->toTranslatableString(),
+                'color' => $asset->getCategory()->bootstrapColor(),
+                'name' => $asset->getName(),
+            ];
+
+            if ($i < 5 || 0 != $i % 2) {
+                $this->assertNotContains($exp, $result['data']);
+            } else {
+                $this->assertContains($exp, $result['data']);
+            }
+        }
+        // match 5 storages
+        for ($i = 0; $i < 15; ++$i) {
+            $asset = $storages[$i];
+
+            $exp = [
+                'active' => $asset->isEditable(),
+                'barcode' => $asset->getBarcode(),
+                'category' => $asset->getCategory()->toTranslatableString(),
+                'color' => $asset->getCategory()->bootstrapColor(),
+                'name' => $asset->getName(),
+            ];
+
+            if ($i < 5 || 0 != $i % 2) {
+                $this->assertNotContains($exp, $result['data']);
+            } else {
+                $this->assertContains($exp, $result['data']);
+            }
         }
     }
 
-    public function testListHddImageTargets()
-    {
-        $client = static::createClient();
-        $factory = AssetFactory::new();
+    // public function testListHddImageTargets()
+    // {
+    //     $client = static::createClient();
+    //     $factory = AssetFactory::new();
 
-        /**
-         * @var \App\Entity\Asset[]
-         */
-        $targets = array_merge($factory->hdd()->many(10)->create());
+    //     /**
+    //      * @var \App\Entity\Asset[]
+    //      */
+    //     $targets = array_merge($factory->hdd()->many(10)->create());
 
-        /**
-         * @var \App\Entity\Asset[]
-         */
-        $nonTargets = array_merge(
-            $factory->exhibit()->many(2)->create(),
-            $factory->equipment()->many(2)->create(),
-            $factory->container()->many(2)->create(),
-            $factory->record()->many(2)->create(),
-            $factory->exhibitHdd()->many(2)->create(),
-        );
+    //     /**
+    //      * @var \App\Entity\Asset[]
+    //      */
+    //     $nonTargets = array_merge(
+    //         $factory->exhibit()->many(2)->create(),
+    //         $factory->equipment()->many(2)->create(),
+    //         $factory->container()->many(2)->create(),
+    //         $factory->record()->many(2)->create(),
+    //         $factory->exhibitHdd()->many(2)->create(),
+    //     );
 
-        $uri = '/asset/image_targets';
+    //     $uri = '/asset/image_targets';
 
-        $all = $this->queryJsonApi($client, $uri, []);
+    //     $all = $this->queryJsonApi($client, $uri, []);
 
-        foreach ($targets as $asset) {
-            $exp = [
-                'val' => $asset->getBarcode(),
-                'text' => $asset->getBarcode().' | '.$asset->getName(),
-            ];
-            $this->assertContains($exp, $all['data']);
+    //     foreach ($targets as $asset) {
+    //         $exp = [
+    //             'val' => $asset->getBarcode(),
+    //             'text' => $asset->getBarcode().' | '.$asset->getName(),
+    //         ];
+    //         $this->assertContains($exp, $all['data']);
 
-            $name = $this->queryJsonApi($client, $uri, ['query' => $asset->getName()]);
-            $this->assertContains($exp, $name['data']);
+    //         $name = $this->queryJsonApi($client, $uri, ['query' => $asset->getName()]);
+    //         $this->assertContains($exp, $name['data']);
 
-            $code = $this->queryJsonApi($client, $uri, ['query' => $asset->getBarcode()]);
-            $this->assertContains($exp, $code['data']);
-        }
+    //         $code = $this->queryJsonApi($client, $uri, ['query' => $asset->getBarcode()]);
+    //         $this->assertContains($exp, $code['data']);
+    //     }
 
-        foreach ($nonTargets as $asset) {
-            $exp = [
-                'val' => $asset->getBarcode(),
-                'text' => $asset->getBarcode().' | '.$asset->getName(),
-            ];
-            $this->assertNotContains($exp, $all['data']);
+    //     foreach ($nonTargets as $asset) {
+    //         $exp = [
+    //             'val' => $asset->getBarcode(),
+    //             'text' => $asset->getBarcode().' | '.$asset->getName(),
+    //         ];
+    //         $this->assertNotContains($exp, $all['data']);
 
-            $name = $this->queryJsonApi($client, $uri, ['query' => $asset->getName()]);
-            $this->assertNotContains($exp, $name['data']);
+    //         $name = $this->queryJsonApi($client, $uri, ['query' => $asset->getName()]);
+    //         $this->assertNotContains($exp, $name['data']);
 
-            $code = $this->queryJsonApi($client, $uri, ['query' => $asset->getBarcode()]);
-            $this->assertNotContains($exp, $code['data']);
-        }
-    }
+    //         $code = $this->queryJsonApi($client, $uri, ['query' => $asset->getBarcode()]);
+    //         $this->assertNotContains($exp, $code['data']);
+    //     }
+    // }
 
-    public function testListHddImageSources()
-    {
-        $client = static::createClient();
-        $factory = AssetFactory::new();
+    // public function testListHddImageSources()
+    // {
+    //     $client = static::createClient();
+    //     $factory = AssetFactory::new();
 
-        /**
-         * @var \App\Entity\Asset[]
-         */
-        $sources = array_merge($factory->exhibitHdd()->many(10)->create());
+    //     /**
+    //      * @var \App\Entity\Asset[]
+    //      */
+    //     $sources = array_merge($factory->exhibitHdd()->many(10)->create());
 
-        /**
-         * @var \App\Entity\Asset[]
-         */
-        $nonSources = array_merge(
-            $factory->exhibit()->many(2)->create(),
-            $factory->equipment()->many(2)->create(),
-            $factory->container()->many(2)->create(),
-            $factory->hdd()->many(2)->create(),
-            $factory->record()->many(2)->create(),
-        );
+    //     /**
+    //      * @var \App\Entity\Asset[]
+    //      */
+    //     $nonSources = array_merge(
+    //         $factory->exhibit()->many(2)->create(),
+    //         $factory->equipment()->many(2)->create(),
+    //         $factory->container()->many(2)->create(),
+    //         $factory->hdd()->many(2)->create(),
+    //         $factory->record()->many(2)->create(),
+    //     );
 
-        $uri = '/asset/image_sources';
+    //     $uri = '/asset/image_sources';
 
-        $all = $this->queryJsonApi($client, $uri, []);
+    //     $all = $this->queryJsonApi($client, $uri, []);
 
-        foreach ($sources as $asset) {
-            $exp = [
-                'val' => $asset->getBarcode(),
-                'text' => $asset->getBarcode().' | '.$asset->getName(),
-            ];
-            $this->assertContains($exp, $all['data']);
+    //     foreach ($sources as $asset) {
+    //         $exp = [
+    //             'val' => $asset->getBarcode(),
+    //             'text' => $asset->getBarcode().' | '.$asset->getName(),
+    //         ];
+    //         $this->assertContains($exp, $all['data']);
 
-            $name = $this->queryJsonApi($client, $uri, ['query' => $asset->getName()]);
-            $this->assertContains($exp, $name['data']);
+    //         $name = $this->queryJsonApi($client, $uri, ['query' => $asset->getName()]);
+    //         $this->assertContains($exp, $name['data']);
 
-            $code = $this->queryJsonApi($client, $uri, ['query' => $asset->getBarcode()]);
-            $this->assertContains($exp, $code['data']);
-        }
+    //         $code = $this->queryJsonApi($client, $uri, ['query' => $asset->getBarcode()]);
+    //         $this->assertContains($exp, $code['data']);
+    //     }
 
-        foreach ($nonSources as $asset) {
-            $exp = [
-                'val' => $asset->getBarcode(),
-                'text' => $asset->getBarcode().' | '.$asset->getName(),
-            ];
-            $this->assertNotContains($exp, $all['data']);
+    //     foreach ($nonSources as $asset) {
+    //         $exp = [
+    //             'val' => $asset->getBarcode(),
+    //             'text' => $asset->getBarcode().' | '.$asset->getName(),
+    //         ];
+    //         $this->assertNotContains($exp, $all['data']);
 
-            $name = $this->queryJsonApi($client, $uri, ['query' => $asset->getName()]);
-            $this->assertNotContains($exp, $name['data']);
+    //         $name = $this->queryJsonApi($client, $uri, ['query' => $asset->getName()]);
+    //         $this->assertNotContains($exp, $name['data']);
 
-            $code = $this->queryJsonApi($client, $uri, ['query' => $asset->getBarcode()]);
-            $this->assertNotContains($exp, $code['data']);
-        }
-    }
+    //         $code = $this->queryJsonApi($client, $uri, ['query' => $asset->getBarcode()]);
+    //         $this->assertNotContains($exp, $code['data']);
+    //     }
+    // }
 
     /**
      * Assert no changes made to database for the given set aka

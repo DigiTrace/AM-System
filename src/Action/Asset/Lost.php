@@ -13,7 +13,7 @@ class Lost extends AssetAction
     protected bool $isSystemAction = false;
     protected bool $confirmationRequired = true;
     protected bool $usageRequired = false;
-    protected State $newState = State::Lost;
+    protected ?State $newState = State::Lost;
     protected array $messages = [
         ['info', 'asset.action.lost.info'],
         ['warning', 'asset.action.lost.warning'],

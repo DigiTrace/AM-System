@@ -13,7 +13,7 @@ class Handover extends AssetAction
     protected bool $isSystemAction = false;
     protected bool $confirmationRequired = false;
     protected bool $usageRequired = true;
-    protected State $newState = State::HandoverPerson;
+    protected ?State $newState = State::HandoverPerson;
     protected array $messages = [
         ['info', 'asset.action.handover.info'],
     ];

@@ -45,6 +45,11 @@ class StateValidator extends ConstraintValidator
             return;
         }
 
+        // if no state change is wished, return
+        if ($state === null) {
+            return;
+        }
+
         // second check if state has change (with exceptions)
         if (!\in_array($state, AssetState::getAllowedOverrideStates())) {
             if ($asset->getState() == $state) {

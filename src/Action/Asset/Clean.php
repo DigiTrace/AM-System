@@ -14,7 +14,7 @@ class Clean extends AssetAction
     protected bool $isSystemAction = false;
     protected bool $confirmationRequired = false;
     protected bool $usageRequired = false;
-    protected State $newState = State::Cleaned;
+    protected ?State $newState = State::Cleaned;
 
     protected function action(Asset $asset, $data): array
     {

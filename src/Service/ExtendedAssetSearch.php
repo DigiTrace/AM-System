@@ -45,7 +45,6 @@ class ExtendedAssetSearch extends ExtendedSearch
          */
         $repo = $this->entityManager->getRepository(Asset::class);
         $builder = $repo->createQueryBuilder('asset')
-            ->leftjoin(AssetHistory::class, "h_asset", "ON", "h_asset.asset = asset.barcode")
             ->leftjoin(Drive::class, "drive", "ON", "drive.asset = asset.barcode")
             ->where(
             <<<DQL

@@ -17,7 +17,7 @@ class Store extends AssetAction
     protected bool $isSystemAction = false;
     protected bool $confirmationRequired = false;
     protected bool $usageRequired = true;
-    protected State $newState = State::StoredInContainer;
+    protected ?State $newState = State::StoredInContainer;
 
     protected function action(Asset $asset, $data): array
     {

@@ -90,7 +90,8 @@ class ExtendedAssetSearchTest extends KernelTestCase
      */
     private function testQuery(ExtendedAssetSearch $search, array $queries, array $expected, string $method){
         foreach ($queries as $q) {
-            $query = $search->generateSearchQuery($q);
+            $builder = $search->generateSearchQuery($q);
+            $query = $builder->getQuery();
             $res = $query->execute();
 
             if(empty($expected)){
@@ -633,10 +634,10 @@ class ExtendedAssetSearchTest extends KernelTestCase
         ];
 
         $drives = [
-            $driveFactory->create(['barcode' => $samples[0]->_real(), 'type' => 'intern']),
-            $driveFactory->create(['barcode' => $samples[1]->_real(), 'type' => 'intern']),
-            $driveFactory->create(['barcode' => $samples[2]->_real(), 'type' => 'extern']),
-            $driveFactory->create(['barcode' => $samples[3]->_real(), 'type' => 'extern']),
+            $driveFactory->create(['asset' => $samples[0]->_real(), 'type' => 'intern']),
+            $driveFactory->create(['asset' => $samples[1]->_real(), 'type' => 'intern']),
+            $driveFactory->create(['asset' => $samples[2]->_real(), 'type' => 'extern']),
+            $driveFactory->create(['asset' => $samples[3]->_real(), 'type' => 'extern']),
         ];
 
         $factory->enableAutomaticDriveGeneration();
@@ -677,10 +678,10 @@ class ExtendedAssetSearchTest extends KernelTestCase
         ];
 
         $drives = [
-            $driveFactory->create(['barcode' => $samples[0]->_real(), 'formFactor' => '2,5']),
-            $driveFactory->create(['barcode' => $samples[1]->_real(), 'formFactor' => '2,5']),
-            $driveFactory->create(['barcode' => $samples[2]->_real(), 'formFactor' => '3,5']),
-            $driveFactory->create(['barcode' => $samples[3]->_real(), 'formFactor' => '3,5']),
+            $driveFactory->create(['asset' => $samples[0]->_real(), 'formFactor' => '2,5']),
+            $driveFactory->create(['asset' => $samples[1]->_real(), 'formFactor' => '2,5']),
+            $driveFactory->create(['asset' => $samples[2]->_real(), 'formFactor' => '3,5']),
+            $driveFactory->create(['asset' => $samples[3]->_real(), 'formFactor' => '3,5']),
         ];
 
         $factory->enableAutomaticDriveGeneration();
@@ -721,10 +722,10 @@ class ExtendedAssetSearchTest extends KernelTestCase
         ];
 
         $drives = [
-            $driveFactory->create(['barcode' => $samples[0]->_real(), 'size' => '100']),
-            $driveFactory->create(['barcode' => $samples[1]->_real(), 'size' => '150']),
-            $driveFactory->create(['barcode' => $samples[2]->_real(), 'size' => '200']),
-            $driveFactory->create(['barcode' => $samples[3]->_real(), 'size' => '250']),
+            $driveFactory->create(['asset' => $samples[0]->_real(), 'size' => '100']),
+            $driveFactory->create(['asset' => $samples[1]->_real(), 'size' => '150']),
+            $driveFactory->create(['asset' => $samples[2]->_real(), 'size' => '200']),
+            $driveFactory->create(['asset' => $samples[3]->_real(), 'size' => '250']),
         ];
 
         $factory->enableAutomaticDriveGeneration();
@@ -770,10 +771,10 @@ class ExtendedAssetSearchTest extends KernelTestCase
         ];
 
         $drives = [
-            $driveFactory->create(['barcode' => $samples[0]->_real(), 'manufacturer' => 'albert']),
-            $driveFactory->create(['barcode' => $samples[1]->_real(), 'manufacturer' => 'ügürü']),
-            $driveFactory->create(['barcode' => $samples[2]->_real(), 'manufacturer' => 'übürü']),
-            $driveFactory->create(['barcode' => $samples[3]->_real(), 'manufacturer' => 'niemand']),
+            $driveFactory->create(['asset' => $samples[0]->_real(), 'manufacturer' => 'albert']),
+            $driveFactory->create(['asset' => $samples[1]->_real(), 'manufacturer' => 'ügürü']),
+            $driveFactory->create(['asset' => $samples[2]->_real(), 'manufacturer' => 'übürü']),
+            $driveFactory->create(['asset' => $samples[3]->_real(), 'manufacturer' => 'niemand']),
         ];
 
         $factory->enableAutomaticDriveGeneration();
@@ -820,10 +821,10 @@ class ExtendedAssetSearchTest extends KernelTestCase
         ];
 
         $drives = [
-            $driveFactory->create(['barcode' => $samples[0]->_real(), 'model' => 'A']),
-            $driveFactory->create(['barcode' => $samples[1]->_real(), 'model' => 'A']),
-            $driveFactory->create(['barcode' => $samples[2]->_real(), 'model' => 'B']),
-            $driveFactory->create(['barcode' => $samples[3]->_real(), 'model' => 'C']),
+            $driveFactory->create(['asset' => $samples[0]->_real(), 'model' => 'A']),
+            $driveFactory->create(['asset' => $samples[1]->_real(), 'model' => 'A']),
+            $driveFactory->create(['asset' => $samples[2]->_real(), 'model' => 'B']),
+            $driveFactory->create(['asset' => $samples[3]->_real(), 'model' => 'C']),
         ];
 
         $factory->enableAutomaticDriveGeneration();
@@ -866,10 +867,10 @@ class ExtendedAssetSearchTest extends KernelTestCase
         ];
 
         $drives = [
-            $driveFactory->create(['barcode' => $samples[0]->_real(), 'productNumber' => '10']),
-            $driveFactory->create(['barcode' => $samples[1]->_real(), 'productNumber' => '20']),
-            $driveFactory->create(['barcode' => $samples[2]->_real(), 'productNumber' => '33']),
-            $driveFactory->create(['barcode' => $samples[3]->_real(), 'productNumber' => '44']),
+            $driveFactory->create(['asset' => $samples[0]->_real(), 'productNumber' => '10']),
+            $driveFactory->create(['asset' => $samples[1]->_real(), 'productNumber' => '20']),
+            $driveFactory->create(['asset' => $samples[2]->_real(), 'productNumber' => '33']),
+            $driveFactory->create(['asset' => $samples[3]->_real(), 'productNumber' => '44']),
         ];
 
         $factory->enableAutomaticDriveGeneration();
@@ -910,10 +911,10 @@ class ExtendedAssetSearchTest extends KernelTestCase
         ];
 
         $drives = [
-            $driveFactory->create(['barcode' => $samples[0]->_real(), 'serialNumber' => '10']),
-            $driveFactory->create(['barcode' => $samples[1]->_real(), 'serialNumber' => '20']),
-            $driveFactory->create(['barcode' => $samples[2]->_real(), 'serialNumber' => '33']),
-            $driveFactory->create(['barcode' => $samples[3]->_real(), 'serialNumber' => '44']),
+            $driveFactory->create(['asset' => $samples[0]->_real(), 'serialNumber' => '10']),
+            $driveFactory->create(['asset' => $samples[1]->_real(), 'serialNumber' => '20']),
+            $driveFactory->create(['asset' => $samples[2]->_real(), 'serialNumber' => '33']),
+            $driveFactory->create(['asset' => $samples[3]->_real(), 'serialNumber' => '44']),
         ];
 
         $factory->enableAutomaticDriveGeneration();
@@ -954,10 +955,10 @@ class ExtendedAssetSearchTest extends KernelTestCase
         ];
 
         $drives = [
-            $driveFactory->create(['barcode' => $samples[0]->_real(), 'connector' => 'A']),
-            $driveFactory->create(['barcode' => $samples[1]->_real(), 'connector' => 'A']),
-            $driveFactory->create(['barcode' => $samples[2]->_real(), 'connector' => 'B']),
-            $driveFactory->create(['barcode' => $samples[3]->_real(), 'connector' => 'C']),
+            $driveFactory->create(['asset' => $samples[0]->_real(), 'connector' => 'A']),
+            $driveFactory->create(['asset' => $samples[1]->_real(), 'connector' => 'A']),
+            $driveFactory->create(['asset' => $samples[2]->_real(), 'connector' => 'B']),
+            $driveFactory->create(['asset' => $samples[3]->_real(), 'connector' => 'C']),
         ];
 
         $factory->enableAutomaticDriveGeneration();

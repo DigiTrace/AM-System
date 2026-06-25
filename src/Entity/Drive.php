@@ -16,7 +16,7 @@ class Drive
 {
     #[ORM\ManyToOne(inversedBy: 'drive', cascade: ['persist', 'remove'])]
     #[ORM\Id]
-    #[ORM\JoinColumn(name: 'barcode_id', nullable: false, referencedColumnName: 'barcode_id')]
+    #[ORM\JoinColumn(name: 'barcode_id', referencedColumnName: 'barcode_id')]
     private Asset $asset;
 
     #[ORM\Column(type: Types::TEXT, nullable: true, name: 'formfaktor')]
@@ -42,6 +42,25 @@ class Drive
 
     #[ORM\Column(type: Types::TEXT, nullable: true, name: 'anschluss')]
     private ?string $connector = null;
+
+
+    /**
+     * Required for data fixtures
+     */
+    public function __construct(array $data = []) {
+        if (!$data) {
+            return;
+        }
+
+        $this->setFormFactor($data['formFactor']);
+        $this->setType($data['type']);
+        $this->setSize($data['size']);
+        $this->setManufacturer($data['manufacturer']);
+        $this->setModel($data['model']);
+        $this->setSerialNumber($data['serial_number']);
+        $this->setProductNumber($data['product_number']);
+        $this->setConnector($data['connector']);
+    }
 
     public function getAsset(): Asset
     {

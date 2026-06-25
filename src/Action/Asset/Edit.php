@@ -20,7 +20,7 @@ class Edit extends AssetAction
     protected bool $isSystemAction = false;
     protected bool $confirmationRequired = true;
     protected bool $usageRequired = true;
-    protected State $newState = State::Edited;
+    protected ?State $newState = State::Edited;
     protected array $messages = [
         ['info', 'asset.edit.info'], #TODO revise
     ];

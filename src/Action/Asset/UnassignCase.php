@@ -14,7 +14,7 @@ class UnassignCase extends AssetAction
     protected bool $isSystemAction = false;
     protected bool $confirmationRequired = false;
     protected bool $usageRequired = true;
-    protected State $newState = State::RemovedFromCase;
+    protected ?State $newState = State::RemovedFromCase;
     protected array $messages = [
         ['info', 'asset.action.unassing_case.info'],
     ];

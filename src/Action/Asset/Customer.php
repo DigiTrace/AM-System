@@ -13,5 +13,5 @@ class Customer extends AssetAction
     protected bool $isSystemAction = false;
     protected bool $confirmationRequired = false;
     protected bool $usageRequired = true;
-    protected State $newState = State::TakenToCustomer;
+    protected ?State $newState = State::TakenToCustomer;
 }

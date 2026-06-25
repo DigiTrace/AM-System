@@ -41,7 +41,7 @@
                         </span>
                         <span class="glyphicon glyphicon-arrow-right" style="margin: 0px 10px;" aria-hidden="true"></span>
                         <span class="label label-primary">
-                            {{ action.newState | trans }}    
+                            {{ (action.newState ?? asset.state) | trans }}    
                         </span>
                     </div>
                 </div>

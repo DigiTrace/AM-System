@@ -299,6 +299,7 @@ class AssetFixtures extends Fixture implements DependentFixtureInterface
             }
             $entry['hdd']['barcode'] = $asset;
             $hdd = new Drive($entry['hdd']);
+            $hdd->setAsset($asset);
             $manager->persist($hdd);
             $this->addReference(self::DRIVE_REFERENCE.$id, $hdd);
         }
