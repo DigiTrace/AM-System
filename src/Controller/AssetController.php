@@ -796,12 +796,8 @@ class AssetController extends BaseController
     #[Route('/asset/cases', name: 'add_asset_query_cases')]
     public function listCaseOptions(Request $request, ExtendedCaseSearch $extendedSearch): JsonResponse
     {
-        $search = $request->query->get('query', '');
+        $search = \trim($request->query->get('query', ''));
         $limit = $request->query->get('limit', 10);
-
-        if (empty(\trim($search))) {
-            $search = '';
-        }
 
         $limit = match (\intval($limit)) {
             10 => 10,
@@ -853,7 +849,7 @@ class AssetController extends BaseController
         ExtendedAssetSearch $extendedSearch,
         TranslatorInterface $translator,
     ): JsonResponse {
-        $search = $request->query->get('query', '');
+        $search = \trim($request->query->get('query', ''));
         $limit = $request->query->get('limit', 10);
 
         $limit = match (\intval($limit)) {
@@ -862,10 +858,6 @@ class AssetController extends BaseController
             50 => 50,
             default => 10,
         };
-
-        if (empty(\trim($search))) {
-            $search = '';
-        }
 
         $builder = $extendedSearch->generateSearchQuery($search);
         /**
@@ -904,59 +896,6 @@ class AssetController extends BaseController
     }
 
     /**
-     * Search for assets.
-     *
-     * @api
-     */
-    #[Route('/asset/assets', name: 'assets')]
-    public function getAssets(
-        Request $request,
-        ExtendedAssetSearch $extendedSearch,
-    ): JsonResponse {
-        $search = $request->query->get('query', '');
-        $limit = $request->query->get('limit', 10);
-         $limit = match (\intval($limit)) {
-            10 => 10,
-            25 => 25,
-            50 => 50,
-            default => 10,
-        };
-
-        if (empty(\trim($search))) {
-            $search = '';
-        }
-
-        $builder = $extendedSearch->generateSearchQuery($search);
-        $query = $builder->getQuery();
-        $total = $builder
-        ->select('COUNT(asset)')
-        ->getQuery()
-        ->getSingleScalarResult();
-
-        $query->setMaxResults($limit);
-        $assets = $query->execute();
-
-        $data = [];
-        foreach ($assets as $asset) {
-            $data[] = [
-                'active' => $asset->isEditable(),
-                'barcode' => $asset->getBarcode(),
-                'category' => $asset->getCategory()->trans($this->translator),
-                'categoryColor' => $asset->getCategory()->bootstrapColor(),
-                'state' => $asset->getState()->trans($this->translator),
-                'stateColor' => $asset->getState()->bootstrapColor(),
-                'name' => $asset->getName(),
-            ];
-        }
-
-        return new JsonResponse([
-            'update' => true,
-            'data' => $data,
-            'total' => $total,
-        ]);
-    }
-
-    /**
      * Helper function to list available targets for a hdd image.
      *
      * @see saveImageOnDriveAction()
@@ -969,7 +908,7 @@ class AssetController extends BaseController
         ExtendedAssetSearch $extendedSearch,
         TranslatorInterface $translator,
     ): JsonResponse {
-        $search = $request->query->get('query', '');
+        $search = \trim($request->query->get('query', ''));
         $limit = $request->query->get('limit', 10);
 
         $limit = match (\intval($limit)) {
@@ -979,9 +918,6 @@ class AssetController extends BaseController
             default => 10,
         };
 
-        if (empty(\trim($search))) {
-            $search = '';
-        }
 
         $builder = $extendedSearch->generateSearchQuery($search);
         /**
@@ -1031,7 +967,7 @@ class AssetController extends BaseController
         ExtendedAssetSearch $extendedSearch,
         TranslatorInterface $translator,
     ): JsonResponse {
-        $search = $request->query->get('query', '');
+        $search = \trim($request->query->get('query', ''));
         $limit = $request->query->get('limit', 10);
 
          $limit = match (\intval($limit)) {
@@ -1040,10 +976,6 @@ class AssetController extends BaseController
             50 => 50,
             default => 10,
         };
-
-        if (empty(\trim($search))) {
-            $search = '';
-        }
 
         $builder = $extendedSearch->generateSearchQuery($search);
         /**
@@ -1069,6 +1001,56 @@ class AssetController extends BaseController
                 'barcode' => $asset->getBarcode(),
                 'category' => $asset->getCategory()->trans($translator),
                 'color' => $asset->getCategory()->bootstrapColor(),
+                'name' => $asset->getName(),
+            ];
+        }
+
+        return new JsonResponse([
+            'update' => true,
+            'data' => $data,
+            'total' => $total,
+        ]);
+    }
+
+
+    /**
+     * Search for assets.
+     *
+     * @api
+     */
+    #[Route('/asset/assets', name: 'assets')]
+    public function getAssets(
+        Request $request,
+        ExtendedAssetSearch $extendedSearch,
+    ): JsonResponse {
+        $search = \trim($request->query->get('query', ''));
+        $limit = $request->query->get('limit', 10);
+         $limit = match (\intval($limit)) {
+            10 => 10,
+            25 => 25,
+            50 => 50,
+            default => 10,
+        };
+
+        $builder = $extendedSearch->generateSearchQuery($search);
+        $query = $builder->getQuery();
+        $total = $builder
+        ->select('COUNT(asset)')
+        ->getQuery()
+        ->getSingleScalarResult();
+
+        $query->setMaxResults($limit);
+        $assets = $query->execute();
+
+        $data = [];
+        foreach ($assets as $asset) {
+            $data[] = [
+                'active' => $asset->isEditable(),
+                'barcode' => $asset->getBarcode(),
+                'category' => $asset->getCategory()->trans($this->translator),
+                'categoryColor' => $asset->getCategory()->bootstrapColor(),
+                'state' => $asset->getState()->trans($this->translator),
+                'stateColor' => $asset->getState()->bootstrapColor(),
                 'name' => $asset->getName(),
             ];
         }

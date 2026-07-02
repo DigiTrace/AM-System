@@ -1794,6 +1794,42 @@ class AssetControllerTest extends BaseWebTestCase
         $this->assertNoAssetChanges($target_history, $target->getBarcode());
     }
 
+    public function testAssetScannerValid()
+    {
+        $client = static::createClient();
+        $factory = AssetFactory::new();
+
+        $asset = $factory->create();
+
+        $crawler = $this->loginUser($client)->request('GET', '/objekte-scanner');
+
+        // get form
+        $form = $crawler->filter('form')->form();
+        $form->setValues(['form' => ['search' => $asset->getBarcode()]]);
+
+        $client->submit($form);
+        $this->assertResponseRedirects("/objekt/{$asset->getBarcode()}");
+    }
+
+    /**
+     * @depends testAssetScannerValid
+     */
+    public function testAssetScannerInvalid()
+    {
+        $client = static::createClient();
+        $barcode = 'DTHW55678';
+
+        $crawler = $this->loginUser($client)->request('GET', '/objekte-scanner');
+
+        // get form
+        $form = $crawler->filter('form')->form();
+        $form->setValues(['form' => ['search' => $barcode]]);
+
+        $client->submit($form);
+        $this->assertResponseIsSuccessful();
+        $this->assertSelectorTextContains('.alert-danger', 'asset.error.not_found');
+    }
+
     // #[Depends("testSaveImageOnDriveActionFromTargetValid")]
     // #[Depends("testSaveImageOnDriveActionFromSourceValid")]
     // public function testSaveImageOnDriveActionInvalidNotApplicable()
@@ -2111,113 +2147,556 @@ class AssetControllerTest extends BaseWebTestCase
         }
     }
 
-    // public function testListHddImageTargets()
-    // {
-    //     $client = static::createClient();
-    //     $factory = AssetFactory::new();
+    public function testListHddImageTargets()
+    {
+        $client = static::createClient();
+        $factory = AssetFactory::new();
+        $uri = '/asset/image_targets';
 
-    //     /**
-    //      * @var \App\Entity\Asset[]
-    //      */
-    //     $targets = array_merge($factory->hdd()->many(10)->create());
+        $nonTargets = $factory->createSequence(
+            function () {
+                foreach (range(0, 14) as $i) {
+                    yield [
+                        'barcode' => 'DTAS'.str_pad($i, 5, '0', STR_PAD_LEFT),
+                        'category' => Category::Exhibit,
+                        'name' => (0 == $i % 2) ? 'yes' : 'no',
+                        'usage' => '',
+                        'note' => '',
+                        'lastUpdatedOn' => (new \DateTime('now')),
+                        'state' => State::Added,
+                        'storageOverride' => false,
+                    ];
+                }
+            }
+        );
 
-    //     /**
-    //      * @var \App\Entity\Asset[]
-    //      */
-    //     $nonTargets = array_merge(
-    //         $factory->exhibit()->many(2)->create(),
-    //         $factory->equipment()->many(2)->create(),
-    //         $factory->container()->many(2)->create(),
-    //         $factory->record()->many(2)->create(),
-    //         $factory->exhibitHdd()->many(2)->create(),
-    //     );
+        $targets = $factory->container()->createSequence(
+            function () {
+                foreach (range(0, 19) as $i) {
+                    yield [
+                        'barcode' => 'DTHD'.str_pad($i, 5, '0', STR_PAD_LEFT),
+                        'category' => Category::Hdd,
+                        'name' => (0 == $i % 2) ? 'yes' : 'no',
+                        'usage' => '',
+                        'note' => '',
+                        'lastUpdatedOn' => (new \DateTime('now')),
+                        'state' => $i < 10 ? State::Added : State::Destroyed,
+                    ];
+                }
+            }
+        );
 
-    //     $uri = '/asset/image_targets';
+        // test plain results
+        $result = $this->queryJsonApi($client, $uri, []);
+        $this->assertCount(10, $result['data']);
+        $this->assertEquals(10, $result['total']);
 
-    //     $all = $this->queryJsonApi($client, $uri, []);
+        // all non targets should not be returned
+        foreach ($nonTargets as $asset) {
+            $exp = [
+                'active' => $asset->isEditable(),
+                'barcode' => $asset->getBarcode(),
+                'category' => $asset->getCategory()->toTranslatableString(),
+                'color' => $asset->getCategory()->bootstrapColor(),
+                'name' => $asset->getName(),
+            ];
+            $this->assertNotContains($exp, $result['data']);
+        }
 
-    //     foreach ($targets as $asset) {
-    //         $exp = [
-    //             'val' => $asset->getBarcode(),
-    //             'text' => $asset->getBarcode().' | '.$asset->getName(),
-    //         ];
-    //         $this->assertContains($exp, $all['data']);
+        // match last 10 targetss
+        for ($i = 0; $i < 10; ++$i) {
+            $asset = $targets[$i];
 
-    //         $name = $this->queryJsonApi($client, $uri, ['query' => $asset->getName()]);
-    //         $this->assertContains($exp, $name['data']);
+            $exp = [
+                'active' => $asset->isEditable(),
+                'barcode' => $asset->getBarcode(),
+                'category' => $asset->getCategory()->toTranslatableString(),
+                'color' => $asset->getCategory()->bootstrapColor(),
+                'name' => $asset->getName(),
+            ];
+            $this->assertContains($exp, $result['data']);
+        }
 
-    //         $code = $this->queryJsonApi($client, $uri, ['query' => $asset->getBarcode()]);
-    //         $this->assertContains($exp, $code['data']);
-    //     }
+        // dont match rest
+        for ($i = 10; $i < 20; ++$i) {
+            $asset = $targets[$i];
 
-    //     foreach ($nonTargets as $asset) {
-    //         $exp = [
-    //             'val' => $asset->getBarcode(),
-    //             'text' => $asset->getBarcode().' | '.$asset->getName(),
-    //         ];
-    //         $this->assertNotContains($exp, $all['data']);
+            $exp = [
+                'active' => $asset->isEditable(),
+                'barcode' => $asset->getBarcode(),
+                'category' => $asset->getCategory()->toTranslatableString(),
+                'color' => $asset->getCategory()->bootstrapColor(),
+                'name' => $asset->getName(),
+            ];
+            $this->assertNotContains($exp, $result['data']);
+        }
 
-    //         $name = $this->queryJsonApi($client, $uri, ['query' => $asset->getName()]);
-    //         $this->assertNotContains($exp, $name['data']);
+        // test limit parameter (only 20 in total)
+        $result = $this->queryJsonApi($client, $uri, ['limit' => 25]);
+        $this->assertEquals(10, $result['total']);
+        $this->assertCount(10, $result['data']);
 
-    //         $code = $this->queryJsonApi($client, $uri, ['query' => $asset->getBarcode()]);
-    //         $this->assertNotContains($exp, $code['data']);
-    //     }
-    // }
+        // test limit parameter, unkown value
+        $result = $this->queryJsonApi($client, $uri, ['limit' => 255]);
+        $this->assertEquals(10, $result['total']);
+        $this->assertCount(10, $result['data']);
 
-    // public function testListHddImageSources()
-    // {
-    //     $client = static::createClient();
-    //     $factory = AssetFactory::new();
+        // test search function
+        $result = $this->queryJsonApi($client, $uri, ['query' => 'yes', 'limit' => 50]);
+        $this->assertEquals(5, $result['total']);
+        $this->assertCount(5, $result['data']);
 
-    //     /**
-    //      * @var \App\Entity\Asset[]
-    //      */
-    //     $sources = array_merge($factory->exhibitHdd()->many(10)->create());
+        // all non targets should not be returned
+        foreach ($nonTargets as $asset) {
+            $exp = [
+                'active' => $asset->isEditable(),
+                'barcode' => $asset->getBarcode(),
+                'category' => $asset->getCategory()->toTranslatableString(),
+                'color' => $asset->getCategory()->bootstrapColor(),
+                'name' => $asset->getName(),
+            ];
+            $this->assertNotContains($exp, $result['data']);
+        }
 
-    //     /**
-    //      * @var \App\Entity\Asset[]
-    //      */
-    //     $nonSources = array_merge(
-    //         $factory->exhibit()->many(2)->create(),
-    //         $factory->equipment()->many(2)->create(),
-    //         $factory->container()->many(2)->create(),
-    //         $factory->hdd()->many(2)->create(),
-    //         $factory->record()->many(2)->create(),
-    //     );
+        // match 5 targets
+        for ($i = 0; $i < 20; ++$i) {
+            $asset = $targets[$i];
 
-    //     $uri = '/asset/image_sources';
+            $exp = [
+                'active' => $asset->isEditable(),
+                'barcode' => $asset->getBarcode(),
+                'category' => $asset->getCategory()->toTranslatableString(),
+                'color' => $asset->getCategory()->bootstrapColor(),
+                'name' => $asset->getName(),
+            ];
 
-    //     $all = $this->queryJsonApi($client, $uri, []);
+            if ($i < 10 && 0 == $i % 2) {
+                $this->assertContains($exp, $result['data']);
+            } else {
+                $this->assertNotContains($exp, $result['data']);
+            }
+        }
+    }
 
-    //     foreach ($sources as $asset) {
-    //         $exp = [
-    //             'val' => $asset->getBarcode(),
-    //             'text' => $asset->getBarcode().' | '.$asset->getName(),
-    //         ];
-    //         $this->assertContains($exp, $all['data']);
+    public function testListHddImageSources()
+    {
+        $client = static::createClient();
+        $factory = AssetFactory::new();
+        $uri = '/asset/image_sources';
 
-    //         $name = $this->queryJsonApi($client, $uri, ['query' => $asset->getName()]);
-    //         $this->assertContains($exp, $name['data']);
+        $nonSources = $factory->createSequence(
+            function () {
+                foreach (range(0, 14) as $i) {
+                    yield [
+                        'barcode' => 'DTAK'.str_pad($i, 5, '0', STR_PAD_LEFT),
+                        'category' => Category::Record,
+                        'name' => (0 == $i % 2) ? 'yes' : 'no',
+                        'usage' => '',
+                        'note' => '',
+                        'lastUpdatedOn' => (new \DateTime('now')),
+                        'state' => State::Added,
+                        'storageOverride' => false,
+                    ];
+                }
+            }
+        );
 
-    //         $code = $this->queryJsonApi($client, $uri, ['query' => $asset->getBarcode()]);
-    //         $this->assertContains($exp, $code['data']);
-    //     }
+        $sources = $factory->container()->createSequence(
+            function () {
+                foreach (range(0, 19) as $i) {
+                    yield [
+                        'barcode' => 'DTAS'.str_pad($i, 5, '0', STR_PAD_LEFT),
+                        'category' => Category::ExhibitHdd,
+                        'name' => (0 == $i % 2) ? 'yes' : 'no',
+                        'usage' => '',
+                        'note' => '',
+                        'lastUpdatedOn' => (new \DateTime('now')),
+                        'state' => $i < 10 ? State::Added : State::Destroyed,
+                    ];
+                }
+            }
+        );
 
-    //     foreach ($nonSources as $asset) {
-    //         $exp = [
-    //             'val' => $asset->getBarcode(),
-    //             'text' => $asset->getBarcode().' | '.$asset->getName(),
-    //         ];
-    //         $this->assertNotContains($exp, $all['data']);
+        // test plain results
+        $result = $this->queryJsonApi($client, $uri, []);
+        $this->assertCount(10, $result['data']);
+        $this->assertEquals(10, $result['total']);
 
-    //         $name = $this->queryJsonApi($client, $uri, ['query' => $asset->getName()]);
-    //         $this->assertNotContains($exp, $name['data']);
+        // all non sources should not be returned
+        foreach ($nonSources as $asset) {
+            $exp = [
+                'active' => $asset->isEditable(),
+                'barcode' => $asset->getBarcode(),
+                'category' => $asset->getCategory()->toTranslatableString(),
+                'color' => $asset->getCategory()->bootstrapColor(),
+                'name' => $asset->getName(),
+            ];
+            $this->assertNotContains($exp, $result['data']);
+        }
 
-    //         $code = $this->queryJsonApi($client, $uri, ['query' => $asset->getBarcode()]);
-    //         $this->assertNotContains($exp, $code['data']);
-    //     }
-    // }
+        // match last 10 sourcess
+        for ($i = 0; $i < 10; ++$i) {
+            $asset = $sources[$i];
+
+            $exp = [
+                'active' => $asset->isEditable(),
+                'barcode' => $asset->getBarcode(),
+                'category' => $asset->getCategory()->toTranslatableString(),
+                'color' => $asset->getCategory()->bootstrapColor(),
+                'name' => $asset->getName(),
+            ];
+            $this->assertContains($exp, $result['data']);
+        }
+
+        // dont match rest
+        for ($i = 10; $i < 20; ++$i) {
+            $asset = $sources[$i];
+
+            $exp = [
+                'active' => $asset->isEditable(),
+                'barcode' => $asset->getBarcode(),
+                'category' => $asset->getCategory()->toTranslatableString(),
+                'color' => $asset->getCategory()->bootstrapColor(),
+                'name' => $asset->getName(),
+            ];
+            $this->assertNotContains($exp, $result['data']);
+        }
+
+        // test limit parameter (only 20 in total)
+        $result = $this->queryJsonApi($client, $uri, ['limit' => 25]);
+        $this->assertEquals(10, $result['total']);
+        $this->assertCount(10, $result['data']);
+
+        // test limit parameter, unkown value
+        $result = $this->queryJsonApi($client, $uri, ['limit' => 255]);
+        $this->assertEquals(10, $result['total']);
+        $this->assertCount(10, $result['data']);
+
+        // test search function
+        $result = $this->queryJsonApi($client, $uri, ['query' => 'yes', 'limit' => 50]);
+        $this->assertEquals(5, $result['total']);
+        $this->assertCount(5, $result['data']);
+
+        // all non sources should not be returned
+        foreach ($nonSources as $asset) {
+            $exp = [
+                'active' => $asset->isEditable(),
+                'barcode' => $asset->getBarcode(),
+                'category' => $asset->getCategory()->toTranslatableString(),
+                'color' => $asset->getCategory()->bootstrapColor(),
+                'name' => $asset->getName(),
+            ];
+            $this->assertNotContains($exp, $result['data']);
+        }
+
+        // match 5 sources
+        for ($i = 0; $i < 20; ++$i) {
+            $asset = $sources[$i];
+
+            $exp = [
+                'active' => $asset->isEditable(),
+                'barcode' => $asset->getBarcode(),
+                'category' => $asset->getCategory()->toTranslatableString(),
+                'color' => $asset->getCategory()->bootstrapColor(),
+                'name' => $asset->getName(),
+            ];
+
+            if ($i < 10 && 0 == $i % 2) {
+                $this->assertContains($exp, $result['data']);
+            } else {
+                $this->assertNotContains($exp, $result['data']);
+            }
+        }
+    }
+
+    public function testGetAssets()
+    {
+        $client = static::createClient();
+        $factory = AssetFactory::new();
+        $uri = '/asset/assets';
+
+        $assets = $factory->createSequence(
+            function () {
+                foreach (range(0, 19) as $i) {
+                    yield [
+                        'name' => (0 == $i % 2) ? 'yes' : 'no',
+                        'usage' => '',
+                        'note' => '',
+                        'lastUpdatedOn' => (new \DateTime('now')),
+                    ];
+                }
+            }
+        );
+
+        // test plain results
+        $result = $this->queryJsonApi($client, $uri, []);
+        $this->assertEquals(20, $result['total']);
+        $this->assertCount(10, $result['data']);
+
+        // test limit parameter (only 20 in total)
+        $result = $this->queryJsonApi($client, $uri, ['limit' => 25]);
+        $this->assertEquals(20, $result['total']);
+        $this->assertCount(20, $result['data']);
+
+        // test limit parameter, unkown value
+        $result = $this->queryJsonApi($client, $uri, ['limit' => 255]);
+        $this->assertEquals(20, $result['total']);
+        $this->assertCount(10, $result['data']);
+
+        // test search function
+        $result = $this->queryJsonApi($client, $uri, ['query' => 'yes', 'limit' => 50]);
+        $this->assertEquals(10, $result['total']);
+        $this->assertCount(10, $result['data']);
+
+        // match 5 sources
+        for ($i = 0; $i < 20; ++$i) {
+            $asset = $assets[$i];
+
+            $exp = [
+                'active' => $asset->isEditable(),
+                'barcode' => $asset->getBarcode(),
+                'category' => $asset->getCategory()->toTranslatableString(),
+                'categoryColor' => $asset->getCategory()->bootstrapColor(),
+                'state' => $asset->getState()->toTranslatableString(),
+                'stateColor' => $asset->getState()->bootstrapColor(),
+                'name' => $asset->getName(),
+            ];
+
+            if (0 == $i % 2) {
+                $this->assertContains($exp, $result['data']);
+            } else {
+                $this->assertNotContains($exp, $result['data']);
+            }
+        }
+    }
+
+    // first go to asset overview
+    // select 5 then and redirect to action view
+    // select 5 more and perform action
+    public function testMultiActionAllValid() {
+        $client = static::createClient();
+        $factory = AssetFactory::new();
+        $uri = '/asset/assets';
+
+        $assets = $factory->many(10)->applyStateMethod('hdd')->create();
+        $histories = [];
+        foreach($assets as $asset) {
+            $histories[] = [
+                'asset' => $asset->_real(),
+                'usage' => $asset->getUsage(),
+                'state' => $asset->getState(),
+                'modifiedBy' => $asset->getModifiedBy(),
+            ];
+        }
+        
+        $crawler = $this->loginUser($client)->request('GET', "/objekte", ['limit' => 25]);
+        $form = $crawler->selectButton('multi_action[preview]')->form();
+
+        $data = [
+            'action' => 0, // null
+            'assets' => [],
+        ];
+
+        // select first 5 assets
+        for ($i=0; $i < 5; $i++) { 
+            $data['assets'][] = $assets[$i]->getBarcode();
+        }
+
+        $crawler = $client->request($form->getMethod(), $form->getUri(), ['multi_action' => $data]);
+        $this->assertResponseIsSuccessful();
+
+        // check for no violations
+        // $this->assertSelectorNotExists('.glyphicon-exclamation-sign');
+        
+        $form = $crawler->selectButton('multi_action[save]')->form();
+        $data = $form->getPhpValues();
+
+        // check first 5 assets are selected
+        for ($i=0; $i < 5; $i++) { 
+            $this->assertContains($assets[$i]->getBarcode(), $data['multi_action']['assets']);
+        }
+
+        $data['multi_action']['lastUpdatePerformedOn'] = (new \DateTime())->format('Y-m-d H:i:s');
+        $data['multi_action']['usage'] = 'Test usage';
+
+
+        // select all 10 assets
+        for ($i=5; $i < 10; $i++) { 
+            $data['multi_action']['assets'][] = $assets[$i]->getBarcode();
+        }
+
+        $crawler = $client->request($form->getMethod(), $form->getUri(), $data);
+        $this->assertResponseRedirects('/objekte');
+
+        $testdata = [
+            'usage' => $data['multi_action']['usage'],
+        ];
+
+        for ($i=0; $i < 10; $i++) { 
+            $asset = $assets[$i];
+            $testdata['barcode'] = $asset->getBarcode();
+            $testdata['state'] = State::Cleaned;
+            $testdata['systemAction'] = false;
+            $testdata['modifiedBy'] = $this->getUser('user');
+    
+            // check history
+            $this->seeInDatabase(AssetHistoryRepository::class, $histories[$i]);
+            $this->seeInDatabase(AssetRepository::class, $testdata);
+        }
+    }
+
+    /**
+     * first go to asset overview
+     * select 5 then and redirect to action view
+     * select 5 more and perform action
+     * 
+     * @depends testMultiActionAllValid
+     */
+    public function testMultiActionSomeInvalid() {
+        $client = static::createClient();
+        $factory = AssetFactory::new();
+        $uri = '/asset/assets';
+
+        $histories = [];
+        $hdds = $factory->many(5)->applyStateMethod('hdd')->create();
+        foreach($hdds as $asset) {
+            $histories[] = [
+                'asset' => $asset->_real(),
+                'usage' => $asset->getUsage(),
+                'state' => $asset->getState(),
+                'modifiedBy' => $asset->getModifiedBy(),
+            ];
+        }
+
+        $records = $factory->many(5)->applyStateMethod('record')->create();
+        foreach($records as $asset) {
+            $histories[] = [
+                'asset' => $asset->_real(),
+                'usage' => $asset->getUsage(),
+                'state' => $asset->getState(),
+                'modifiedBy' => $asset->getModifiedBy(),
+            ];
+        }
+        
+        
+        $crawler = $this->loginUser($client)->request('GET', "/objekte", ['limit' => 25]);
+        $form = $crawler->selectButton('multi_action[preview]')->form();
+
+        $data = [
+            'action' => 0, // null
+            'assets' => [],
+        ];
+
+        // select one hdd and one non-hdd assets
+        $data['assets'][] = $hdds[0]->getBarcode();
+        $data['assets'][] = $records[0]->getBarcode();
+
+        $crawler = $client->request($form->getMethod(), $form->getUri(), ['multi_action' => $data]);
+        $this->assertResponseIsSuccessful();
+
+        // check for violations
+        $this->assertSelectorExists('.glyphicon-exclamation-sign');
+        
+        $form = $crawler->selectButton('multi_action[save]')->form();
+        $data = $form->getPhpValues();
+
+        // check first 5 assets are selected
+        $this->assertContains($hdds[0]->getBarcode(), $data['multi_action']['assets']);
+        $this->assertContains($records[0]->getBarcode(), $data['multi_action']['assets']);
+
+        $data['multi_action']['lastUpdatePerformedOn'] = (new \DateTime())->format('Y-m-d H:i:s');
+        $data['multi_action']['usage'] = 'Test usage';
+
+        $crawler = $client->request($form->getMethod(), $form->getUri(), $data);
+        $this->assertResponseIsSuccessful();
+        
+        $this->assertNoAssetChanges($histories[0], $hdds[0]->getBarcode());
+        $this->assertNoAssetChanges($histories[5], $records[0]->getBarcode());
+    }
+
+    /**
+     * try to assign case to asset where one asset already has a case 
+     * asssigned but bypasses state validation
+     * 
+     */
+    public function testMultiActionCaseAlreadyAssignedInvalid() {
+        $client = static::createClient();
+        $factory = AssetFactory::new();
+        $caseFactory = CaseFactory::new();
+        $uri = '/asset/assets';
+
+        $ogCase = $caseFactory->create();
+        $ewCase = $caseFactory->create();
+
+        $histories = [];
+
+        // create one asset with case and one without
+        $with = $factory->with([
+            'state' => State::Edited,
+            'case' => $ogCase->_real(),
+        ])->create();
+        $without = $factory->create();
+
+        $with_h = [
+            'asset' => $with->_real(),
+            'usage' => $with->getUsage(),
+            'state' => $with->getState(),
+            'case' => $with->getCase(),
+        ];
+        
+        $without_h = [
+            'asset' => $without->_real(),
+            'usage' => $without->getUsage(),
+            'state' => $without->getState(),
+            'case' => $without->getCase(),
+        ];
+        
+        
+        
+        $crawler = $this->loginUser($client)->request('GET', "/objekte", ['limit' => 25]);
+        $form = $crawler->selectButton('multi_action[preview]')->form();
+
+        $data = [
+            'action' => 8, // assign case
+            'assets' => [],
+        ];
+
+        // select one hdd and one non-hdd assets
+        $data['assets'][] = $with->getBarcode();
+        $data['assets'][] = $without->getBarcode();
+
+        $crawler = $client->request($form->getMethod(), $form->getUri(), ['multi_action' => $data]);
+        $this->assertResponseIsSuccessful();
+
+        
+        $form = $crawler->selectButton('multi_action[save]')->form();
+        $data = $form->getPhpValues();
+
+        // check assets are selected
+        $this->assertContains($with->getBarcode(), $data['multi_action']['assets']);
+        $this->assertContains($without->getBarcode(), $data['multi_action']['assets']);
+
+        $data['multi_action']['lastUpdatePerformedOn'] = (new \DateTime())->format('Y-m-d H:i:s');
+        $data['multi_action']['usage'] = 'Test usage';
+        $data['multi_action']['case']['item'] = $ewCase->getCaseId();
+
+
+        $crawler = $client->request($form->getMethod(), $form->getUri(), $data);
+        $this->assertResponseIsSuccessful();
+
+
+        // check for violations
+        $this->assertSelectorExists('.glyphicon-exclamation-sign');
+        
+        $this->assertNoAssetChanges($with_h, $with->getBarcode());
+        $this->assertNoAssetChanges($without_h, $without->getBarcode());
+
+        // now retry only with "without" asset
+        $data['multi_action']['assets'] = [$without->getBarcode()];
+
+        $crawler = $client->request($form->getMethod(), $form->getUri(), $data);
+        $this->assertResponseRedirects('/objekte');
+    }
 
     /**
      * Assert no changes made to database for the given set aka
