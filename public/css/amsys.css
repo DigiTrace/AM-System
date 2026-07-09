@@ -62,3 +62,55 @@
 .list-table>tbody> :last-child.empty-row {
     display: revert;
 }
+
+/* Extended Search form*/
+#eas-form-segment {
+    display: grid;
+    grid-template-columns: 1fr 250px 4fr 1fr 150px 4fr;
+    grid-template-rows: 120px 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr;
+    gap: 10px;
+}
+
+#ecs-form-segment {
+    display: grid;
+    grid-template-columns: 1fr 250px 4fr 1fr 150px 4fr;
+    grid-template-rows: 2fr 1fr 1fr;
+    gap: 10px;
+}
+
+.es-input-cell {
+    height: 100%;
+}
+
+.es-input form-control {
+    width: 100%;
+}
+
+.es-operator-btn {
+    height: 36px;
+    width: 36px;
+}
+
+.es-divider {
+    font-size: 16px;
+    font-weight: 700;
+    display: flex;
+    place-self: stretch;
+    grid-column: 1 / span 6;
+    align-items: center;
+
+}
+.es-divider::before, .es-divider::after {
+    flex: 1;
+    content: '';
+    padding: 1px;
+    background-color: #c1c1c1;
+    margin: 5px 15px;
+}
+
+.es-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 5px;
+    margin-top: 10px;
+}

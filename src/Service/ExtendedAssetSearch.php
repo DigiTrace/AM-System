@@ -90,7 +90,7 @@ class ExtendedAssetSearch extends ExtendedSearch
             'sn' , 'serial_number','serien_nummer'                          => $this->serialNumberQuery($data['neg'], $data['val']),
             'connection','connector','anschluss'                            => $this->connectorQuery($data['neg'], $data['val']),
             'd', 'ed', 'mdate', 'date'                                      => $this->lastUpdatedOnQuery($data['neg'], $data['val']),
-            default => $this->addError('danger', 'eas.error.tag.unknown', ['tag' => $key]) && false,
+            default => $this->addError('danger', 'es.error.unknown_tag', ['tag' => $key]) && false,
         };
     }
 
@@ -141,7 +141,7 @@ class ExtendedAssetSearch extends ExtendedSearch
         // translate all categories into categorie ids
         foreach ($values as $key => $c) {
             if(is_numeric($c) && ($c < 0 || $c >= \count(AssetCategory::cases()))) {
-                $this->addError('danger', 'eas.error.category.invalid', ['category' => $c]);
+                $this->addError('danger', 'es.asset.error.category.invalid', ['category' => $c]);
                 return null;
             }
             else if(!is_numeric($c)){
@@ -165,7 +165,7 @@ class ExtendedAssetSearch extends ExtendedSearch
         // translate all status into status ids
         foreach ($values as $key => $s) {
             if(is_numeric($s) && ($s < 0 || $s >= \count(AssetState::cases()))) {
-                $this->addError('danger', 'eas.error.invalid.status %status%', ['%status%' => $s]);
+                $this->addError('danger', 'es.asset.error.invalid.status %status%', ['%status%' => $s]);
                 return null;
             }
             else if(!is_numeric($s)){             
@@ -392,7 +392,7 @@ class ExtendedAssetSearch extends ExtendedSearch
             return $this->equalQuery('_case.active', $neg, [$bool]);
         }
 
-        $this->addError('warning', 'eas.error.caseactive.invalid');
+        $this->addError('warning', 'es.asset.error.caseactive.invalid');
         return null;
     }
 

@@ -58,13 +58,13 @@ class AssetController extends BaseController
         $search ??= $request->query->get('search');
 
         // search form
-        $form = $this->createForm(EntitySearchType::class, 
-        [
-            'search' => $search,
-        ], [
-            'limit' => $session->get('limit'),
-            'show_extended_search' => true,
-        ]);
+        $form = $this->createForm(EntitySearchType::class,
+            [
+                'search' => $search,
+            ], [
+                'limit' => $session->get('limit'),
+                'show_extended_search' => true,
+            ]);
         $form->handleRequest($request);
 
         if ($form->isSubmitted()) {
@@ -83,8 +83,6 @@ class AssetController extends BaseController
             $session->set('limit', $limit);
         }
 
-        // no search term provided, default query for listing all objects
-
         // apply extended asset search to create query
         if ($search) {
             $query = $extendedAssetSearch->generateSearchQuery($search);
@@ -98,9 +96,6 @@ class AssetController extends BaseController
             $repo = $this->entityManager->getRepository(Asset::class);
             $builder = $repo->createQueryBuilder('asset');
             $builder->select('PARTIAL asset.{barcode, category, state, name}');
-            // // TODO optimize for doctrine N + 1 querie issues
-            // $builder->innerJoin('asset.drive', 'drive');
-            // $builder->innerJoin('asset.assetBlob', 'blob');
             $query = $builder;
         }
 
@@ -130,8 +125,6 @@ class AssetController extends BaseController
             'eas_categories' => Category::cases(),
             'eas_states' => State::cases(),
             'pagination' => $pagination,
-            'regex_single_match' => $extendedAssetSearch::$regex_single_match,
-            'regex_multiple_match' => $extendedAssetSearch::$regex_multiple_match,
         ]);
     }
 
@@ -529,7 +522,7 @@ class AssetController extends BaseController
 
     /**
      * Show save image on drive action.
-     * 
+     *
      * If asset is a target to store hdd record images, redirect to overview page with filter enabled
      * to select source. Also, store selected target in session such that it is shown when selecting
      * available targets in action view.
@@ -538,12 +531,11 @@ class AssetController extends BaseController
      */
     #[Route('/objekt/{id}/Asservatenimage/speichern/', name: 'save_image_on_drive_asset')]
     public function saveImageOnDriveAction(
-        Request $request, 
-        AssetActionManager $manager, 
+        Request $request,
+        AssetActionManager $manager,
         string $id,
         SessionInterface $session,
-        )
-    {
+    ) {
         $asset = $this->entityManager->getRepository(Asset::class)->find($id);
 
         if (null === $asset) {
@@ -557,22 +549,24 @@ class AssetController extends BaseController
         }
         if (!$asset->isHddImageTarget()) {
             $this->addFlash('danger', 'asset.action.add_image.not_applicable');
+
             return $this->redirectToRoute('details_asset', ['id' => $id]);
         }
-        
+
         // asset is target
-        
+
         // add flash as info text
         $this->addFlash('info', 'asset.action.add_image.select_source');
         // save target in session
         $session->set('asset_image_target', $asset->getBarcode());
+
         // return to asset overview with search query for viable sources
         return $this->redirectToRoute('search_assets', ['search' => 'c:5']);
     }
 
     /**
      * Show upload asset picture form.
-     * 
+     *
      * @codeCoverageIgnore
      */
     #[Route('/objekt/{id}/upload', name: 'upload_picture_asset')]
@@ -685,6 +679,7 @@ class AssetController extends BaseController
 
     /**
      * Displays FAQ and help page for extended asset search.
+     *
      * @codeCoverageIgnore
      */
     #[Route('/objekte/faq', name: 'eas_faq')]
@@ -830,7 +825,6 @@ class AssetController extends BaseController
             default => 10,
         };
 
-
         $builder = $extendedSearch->generateSearchQuery($search);
         /**
          * @var AssetRepository
@@ -882,7 +876,7 @@ class AssetController extends BaseController
         $search = \trim($request->query->get('query', ''));
         $limit = $request->query->get('limit', 10);
 
-         $limit = match (\intval($limit)) {
+        $limit = match (\intval($limit)) {
             10 => 10,
             25 => 25,
             50 => 50,
@@ -924,7 +918,6 @@ class AssetController extends BaseController
         ]);
     }
 
-
     /**
      * Search for assets.
      *
@@ -937,7 +930,7 @@ class AssetController extends BaseController
     ): JsonResponse {
         $search = \trim($request->query->get('query', ''));
         $limit = $request->query->get('limit', 10);
-         $limit = match (\intval($limit)) {
+        $limit = match (\intval($limit)) {
             10 => 10,
             25 => 25,
             50 => 50,

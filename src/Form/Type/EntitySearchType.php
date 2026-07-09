@@ -2,9 +2,12 @@
 
 namespace App\Form\Type;
 
+use App\Service\ExtendedSearch;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type as Field;
 use Symfony\Component\Form\FormBuilderInterface;
+use Symfony\Component\Form\FormInterface;
+use Symfony\Component\Form\FormView;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
 /**
@@ -67,5 +70,11 @@ class EntitySearchType extends AbstractType
                 ],
             ]);
         }
+    }
+
+    public function buildView(FormView $view, FormInterface $form, array $options): void
+    {
+        $view->vars['single_regex'] = ExtendedSearch::$regex_single_match;
+        $view->vars['multi_regex'] = ExtendedSearch::$regex_multiple_match;
     }
 }

@@ -36,13 +36,9 @@
 
     {{ include('messages.html.twig') }}
 
-    {# Include extended search form#}
+    {# Include extended search form #}
     <div id="es_form_container" style="display: none;">
-        {{ include('assets/eas.html.twig', {
-            search_form: 'search_form', 
-            regex_single_match: regex_single_match, 
-            regex_multiple_match: regex_multiple_match
-        }) }}
+        {{ include('assets/extended_search.html.twig', {form: search}) }}
     </div>
 
 

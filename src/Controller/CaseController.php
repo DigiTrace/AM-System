@@ -44,6 +44,7 @@ class CaseController extends BaseController
 
         $form = $this->createForm(EntitySearchType::class, null, [
             'limit' => $session->get('limit'),
+            'show_extended_search' => true,
         ]);
         $form->handleRequest($request);
 

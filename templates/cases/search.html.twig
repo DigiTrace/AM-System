@@ -36,6 +36,11 @@
     
     {{ include('messages.html.twig') }}
 
+    {# Include extended search form #}
+    <div id="es_form_container" style="display: none;">
+        {{ include('cases/extended_search.html.twig', {form: form}) }}
+    </div>
+
     <table class="table">
 
         {% if pagination.getDirection == "desc" %} {% set arrow = '<span class="glyphicon glyphicon-arrow-down"></span>' %}
