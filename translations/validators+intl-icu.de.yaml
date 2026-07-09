@@ -1,0 +1,27 @@
+asset:
+  add:
+    form:
+      error:
+        duplicate: 'Objekt mit Barcode existiert bereits'
+
+  barcode:
+    format: 'Das Barcodeformat muss "DT(AS|HD|HW|AK)XXXXX" lauten'
+
+
+  state:
+    cleaned:
+      not_hdd: 'Objekt ist kein Datenträger'
+    uneditable: 'Objekt ist nicht editierbar'
+    same_state: 'Objekt hat bereits diesen Status'
+    removed_from_case:
+      not_assigned: 'Objekt ist keinem Fall zugewiesen'
+    stored_in_container:
+      still_stored: 'Objekt ist noch in einem (anderen) Behälter gelagert'
+    added_to_case:
+      still_assigned: 'Objekt ist bereits einem Fall zugewiesen'
+  location:
+    cyclic_reference: 'Zyklische referenz, das Objekt lagert bereits den Zielcontainer'
+
+case:
+  error:    
+    duplicate: 'Es existiert bereits ein Fall mit dieser ID'

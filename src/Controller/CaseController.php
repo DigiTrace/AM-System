@@ -225,10 +225,10 @@ class CaseController extends BaseController
         $previousEntrys = $repo->findPreviouslyInvolvedInCase($case);
 
         $templateData = [
-            'case_details' => $translator->trans('case.download_word.details %case%', ['%case%' => $case->getcaseid()]),
+            'case_details' => $translator->trans('case.download_word.details', ['%case%' => $case->getcaseid()]),
             'export.docx.header' => $translator->trans('export.docx.header'),
-            'caseId' => $translator->trans('case.attr.case_id'),
-            'caseId_text' => $case->getCaseId(),
+            'case_id' => $translator->trans('case.attr.case_id'),
+            'case_id_text' => $case->getCaseId(),
             'case_description' => $translator->trans('case.attr.description'),
             'case_description_text' => $case->getDescription(),
             'case_dos' => $translator->trans('case.attr.secrecy'),

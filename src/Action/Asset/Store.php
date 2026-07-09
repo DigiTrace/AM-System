@@ -30,8 +30,6 @@ class Store extends AssetAction
     {
         $builder->add('location', StorageType::class, [
             'validation_groups' => false,
-            'selector_label' => 'asset.action.form.location_search',
-            'selector_help' => 'asset.action.form.help.location_search',
         ]);
     }
 

@@ -30,7 +30,8 @@
             {{ include('messages.html.twig') }}
 
             {# {{ dump(form) }} #}
-            {{ form_start(form) }}
+            {{ form_start(form, {'attr': {'onsubmit': action.isConfirmationRequired ? 'return alertbeforesubmit()' : ''} } ) }}
+
 
             <div class="row">
                 <div class="col-lg-6 col-xs-12">

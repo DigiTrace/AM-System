@@ -20,7 +20,14 @@ form:
   reset: &FORM_RESET 'Zurücksetzen'
   save: &FORM_SAVE 'Speichern'
   search: &FORM_SEARCH 'Suchen'
+  add: &FORM_ADD 'Hinzufügen'
+  remove: &FORM_REMOVE 'Entfernen'
   entries_found: 'Einträge gefunden'
+  list:
+    all: 'allen'
+    summary: 'Zeige {current} von insgesamt {total} Einträgen'
+    empty: 'Keine Einträge gefunden für diese Anfrage'
+    null_element: 'Nichts auswählen'
   picture:
     upload: 'Bild hochladen'
     is_public: 'Bild öffentlich (kann von anderen wiederverwendet werden)?'
@@ -247,11 +254,14 @@ asset:
       asset_search: 'Suche Objekte'
       case_search: 'Suche Fälle'
       location_search: 'Suche Behälter'
+      image_target_search: 'Suche Datenimage Zieldatenträger'
       save: 'Aktion durchführen'
       help:
         asset_search: 'Wähle Datenträger aus.'
         case_search: 'Wähle Fall aus, der dem Objekt zugewiesen werden soll.'
         location_search: 'Wähle Behälter aus, in dem das Objekt gelagert werden soll.'
+        image_target_search: 'Wähle Datenträger aus, auf denen das Datenimage gespeichert werden soll.'
+      action: 'Wähle Aktion'
 
     neutralize:
       not_hdd: 'Objekt ist kein Datenträger'
@@ -260,25 +270,37 @@ asset:
       info: 'During this action, the asset will be zeroed, pulled out of a container and removed from case. Only required actions will be used.'
 
     destroy:
-      warning: 'When an asset has been declared as destroyed or lost, it cant be altered afterwards.'
+      warning: 'Wenn ein Objekt als zerstört oder verloren deklariert ist, kann es anschließend nicht mehr modifiziert werden.'
 
     handover:
-      info: 'Please state, which person or authority recieved the asset'
+      info: 'Bitte notiere, wer das Objekt erhalten history_usage'
 
     lost:
-      info: "This isn't suppose to happen, we are professionals!"
-      warning: 'When an asset has been declared as destroyed or lost, it cant be altered afterwards.'
+      info: "Das sollte nicht passieren, wir sind Profis!"
+      warning: 'Wenn ein Objekt als zerstört oder verloren deklariert ist, kann es anschließend nicht mehr modifiziert werden..'
 
     remove_container:
-      info: 'Please state, why you want to pull the asset out of the container'
+      info: 'Bitte notiere, warum das Objekt aus dem Behälter geholt werden soll'
 
     unassing_case:
-      info: 'Please state, why you want to remove the asset of the Case'
+      info: 'Bitte notiere, warum das Objekt nicht mehr mit dem Fall assoziert werden soll'
 
     add_image:
-      save_image_prepare: 'Choose image source'
-      not_applicable: 'Add image action is not applicable'
-      success: 'Succesfully added an image to a drive'
+      select_source: 'Wähle zuerst mögliche Quellobjekte für das Datenimage aus der Liste. Anschließend wähle "Datenimage erstellen" aus, um ein Datenimage zu erstellen.'
+      not_applicable: 'Datenimage hinzufügen ist nicht anwendbar'
+      success: 'Datenimage erfolgreich erstellt'
+
+
+  multi_action:
+    header: 'Mehrere Objekte ändern'
+    remove_item: *FORM_REMOVE
+    add_item: *FORM_ADD
+    storage: 'Wähle Behälter'
+    case: 'Wähle zugegörigen Fall'
+    items: 'Wähle Objekte zum Ändern'
+    selected: 'Ausgewählte Objekte'
+    violations: 'Fehler'
+    success: 'Objekte erfolgreich aktualisiert'
 
   upload_pic:
     header: 'Wähle Profilbild für Objekt {asset}'
@@ -300,8 +322,9 @@ asset:
     faq: 'Erweitere Objektsuche-FAQ'
     print: 'Details drucken'
     zero: 'Nullen'
+    customer: 'Zum Kunden gebracht'
     neutralize: 'Neutralisieren'
-    add_image: 'Datenimage erstellen'
+    save_hdd_image: 'Datenimage erstellen'
     destroy: 'Vernichten'
     handover: 'Einer Person übergeben'
     lost: 'Als verloren markieren'

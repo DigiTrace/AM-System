@@ -49,6 +49,8 @@ class ImageTargetType extends AbstractType implements DataTransformerInterface
             'api' => 'asset_action_query_image_targets',
             'identifier' => 'imageTarget',
             'validation_groups' => [],
+            'selector_label' => 'asset.action.form.image_target_search',
+            'selector_help' => 'asset.action.form.help.image_target_search',
             'default' => $target,
         ]);
     }

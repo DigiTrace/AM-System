@@ -33,7 +33,7 @@ class Barcode extends Compound
             new Assert\NotBlank(allowNull: false),
             new Assert\Type('string'),
             new Assert\Length(exactly: 9),
-            new Assert\Regex(pattern: '/^DT(AS|HD|HW|AK)\d{5}$/', message: 'Barcode format "DT(AS|HD|HW|AK)XXXXX" required'),
+            new Assert\Regex(pattern: '/^DT(AS|HD|HW|AK)\d{5}$/', message: 'asset.barcode.format'),
             new BarcodeCategory(value: $this->value, propertyPath: $this->propertyPath),
         ];
     }

@@ -70,11 +70,6 @@ class CaseType extends AbstractType
                 'constraints' => new Constraints\GreaterThan($options['closedOn_not_before'])
             ]);
         }
-
-        //     ->add('zeitstempel_beginn')
-
-        //     ->add('zeitstempel_ende')
-        // ;
     }
 
     public function configureOptions(OptionsResolver $resolver): void
@@ -84,7 +79,7 @@ class CaseType extends AbstractType
             'showOpenedOn' => false,
             'closedOn_not_before' => null,
             'constraints' => [
-                new UniqueEntity(fields: ['caseId'], message: 'case.form.error.duplicate'),
+                new UniqueEntity(fields: ['caseId'], message: 'case.error.duplicate'),
             ],
         ]);
 

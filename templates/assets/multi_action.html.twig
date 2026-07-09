@@ -106,7 +106,7 @@
                     </table>
                     <div class="d-flex justify-content-between align-items-center mt-2 px-1">
                         <small class="text-muted" id="asset-table-summary">
-                            {{ 'form.list.summary' | trans({'%current%' : '0', '%total%': 'all'}) }}
+                            {{ 'form.list.summary' | trans({'%current%' : '0', '%total%': 'form.list.all' | trans}) }}
                         </small>
                     </div>
                 </div>
@@ -174,7 +174,7 @@
                                             {% for error in errors %}
                                                 <li>
                                                     <span class="glyphicon glyphicon-exclamation-sign"></span>
-                                                    {{ error.message | trans }}
+                                                    {{ error.message }}
                                                 </li>
                                             {% endfor %}
                                         </ul>

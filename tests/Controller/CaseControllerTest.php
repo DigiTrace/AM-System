@@ -146,7 +146,7 @@ class CaseControllerTest extends BaseWebTestCase
         ]);
 
         $this->assertResponseIsSuccessful();
-        $this->assertSelectorTextContains('span.help-block', 'case.form.error.duplicate');
+        $this->assertSelectorTextContains('span.help-block', 'case.error.duplicate');
 
         $this->seeInDatabase(CaseRepository::class, [
             'caseId' => $params['id'],

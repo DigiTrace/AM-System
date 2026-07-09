@@ -3,6 +3,11 @@ asset:
     form:
       error:
         duplicate: 'Asset with barcode already exists'
+
+  barcode:
+    format: 'Barcode format "DT(AS|HD|HW|AK)XXXXX" required'
+
+
   state:
     cleaned:
       not_hdd: 'Asset is not a drive'
@@ -11,8 +16,12 @@ asset:
     removed_from_case:
       not_assigned: 'Asset is not assigned to a case'
     stored_in_container:
-      still_stored: 'TODO asset.state.stored_in_container.still_stored'
+      still_stored: 'Asset is still stored in a (another) container'
     added_to_case:
       still_assigned: 'Asset is still assigned to a case'
   location:
     cyclic_reference: 'Cyclic reference, asset already stores target container'
+
+case:
+  error:    
+    duplicate: 'Case alreay exists with case ID'

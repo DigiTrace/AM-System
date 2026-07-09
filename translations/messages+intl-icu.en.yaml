@@ -24,8 +24,10 @@ form:
   remove: &FORM_REMOVE 'Remove'
   entries_found: 'entries found'
   list:
+    all: 'all'
     summary: 'Show {current} of {total} total entries'
     empty: 'No entries found for query'
+    null_element: 'Select none'
   picture:
     upload: 'Upload picture'
     is_public: 'Is picture public (can be reused by others)?'
@@ -251,11 +253,13 @@ asset:
       asset_search: 'Search assets'
       case_search: 'Search cases'
       location_search: 'Search storages'
+      image_target_search: 'Search image targets'
       save: 'Change asset'
       help:
         asset_search: 'Select asset'
         case_search: 'Select case to assign'
         location_search: 'Select available storage location'
+        image_target_search: 'Select possible targets to store drive image on'
       action: 'Select action'
 
     neutralize:
@@ -282,7 +286,6 @@ asset:
 
     add_image:
       select_source: 'Choose source for image creation from the listed assets. Then click on add image to create new HDD image.'
-      save_image_prepare: 'Choose image source'
       not_applicable: 'Add image action is not applicable'
       success: 'Succesfully added an image to a drive'
 
@@ -318,8 +321,9 @@ asset:
     faq: 'Extended asset search FAQ'
     print: 'Print details'
     zero: 'Zero asset'
+    customer: 'Take to customer'
     neutralize: 'Neutralize asset'
-    add_image: 'Create drive image'
+    save_hdd_image: 'Create drive image'
     destroy: 'Destroy asset'
     handover: 'Handover asset to person'
     lost: 'Mark asset as lost'
@@ -333,6 +337,7 @@ asset:
     unassign_case: 'Unassign asset from case'
     edit: 'Edit asset properties'
     upload_picture: 'Upload picture'
+    
 
 drive:
   attr:

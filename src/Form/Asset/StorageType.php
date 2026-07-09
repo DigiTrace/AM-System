@@ -40,6 +40,8 @@ class StorageType extends AbstractType implements DataTransformerInterface
             'api' => 'asset_action_query_locations',
             'identifier' => 'location',
             'validation_groups' => [],
+            'selector_label' => 'asset.action.form.location_search',
+            'selector_help' => 'asset.action.form.help.location_search'
         ]);
     }
 
