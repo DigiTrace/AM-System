@@ -61,7 +61,8 @@ class ListType extends AbstractType
             'label_size' => '',
             'api' => null,
             'max_height' => null,
-            'identifier' => 'list'
+            'identifier' => 'list',
+            'default' => null,
         ]);
 
         $resolver->addAllowedTypes('selector_label', ['null', 'string']);
@@ -72,6 +73,7 @@ class ListType extends AbstractType
         $resolver->addAllowedTypes('api', ['string']);
         $resolver->addAllowedTypes('max_height', ['null', 'int']);
         $resolver->addAllowedTypes('identifier', ['string']);
+        $resolver->addAllowedTypes('default', ['null', 'object']);
     }
 
     public function buildView(FormView $view, FormInterface $form, array $options): void
@@ -82,5 +84,6 @@ class ListType extends AbstractType
         $view->vars['api'] = $options['api'];
         $view->vars['max_height'] = $options['max_height'];
         $view->vars['identifier'] = $options['identifier'];
+        $view->vars['default'] = $options['default'];
     }
 }

@@ -19,6 +19,37 @@ use Symfony\Component\HttpFoundation\JsonResponse;
  */
 class AssetControllerTest extends BaseWebTestCase
 {
+    public static function notFoundUrlProvider()
+    {
+        yield 'Details' => [
+            '/objekt/%s',
+        ];
+        yield 'Action' => [
+            '/objekt/%s/editieren',
+        ];
+        yield 'SaveHddImageAction' => [
+            '/objekt/%s/Asservatenimage/speichern/',
+        ];
+        yield 'UploadPicture' => [
+            '/objekt/%s/upload',
+        ];
+    }
+
+    #[DataProvider('notFoundUrlProvider')]
+    public function testAssetNotFound($url)
+    {
+        $client = static::createClient();
+        $barcode = 'DEADBEEF3';
+
+        $crawler = $this->loginUser($client)->request('GET', sprintf($url, $barcode));
+
+        $this->assertResponseRedirects('/objekte');
+        $client->followRedirect();
+
+        // alert symbol from validation errors
+        $this->assertSelectorTextContains('.alert-danger', 'asset.error.not_found');
+    }
+
     public static function addValidProvider()
     {
         yield 'SimpleExhibit' => [[
@@ -276,7 +307,7 @@ class AssetControllerTest extends BaseWebTestCase
         return $client;
     }
 
-    // #[Depends("testAddValidWithCase")]
+    #[Depends("testAddValidWithCase")]
     public function testAddInvalidMissingData()
     {
         $client = static::createClient();
@@ -1561,70 +1592,6 @@ class AssetControllerTest extends BaseWebTestCase
         $this->assertNoAssetChanges($history, $barcode);
     }
 
-    // public function testSaveImageOnDriveActionFromTargetValid()
-    // {
-    //     $client = static::createClient();
-    //     $factory = AssetFactory::new();
-
-    //     $target = $factory->hdd()->create();
-    //     $source = $factory->exhibitHdd()->create();
-
-    //     $target_history = [
-    //         'asset' => $target->_real(),
-    //         'usage' => $target->getUsage(),
-    //         'state' => $target->getState(),
-    //         'modifiedBy' => $target->getModifiedBy(),
-    //     ];
-
-    //     $source_history = [
-    //         'asset' => $source->_real(),
-    //         'usage' => $source->getUsage(),
-    //         'state' => $source->getState(),
-    //         'modifiedBy' => $source->getModifiedBy(),
-    //     ];
-
-    //     $data = [
-    //         'usage' => 'save',
-    //     ];
-
-    //     $crawler = $this->loginUser($client)->request('GET', "/objekt/{$target->getBarcode()}/Asservatenimage/speichern/");
-
-    //     // get form
-    //     $name = 'single_action';
-    //     $submit = '[save]';
-    //     $form = $crawler->selectButton($name.$submit)->form();
-
-    //     // populate form
-    //     $formData = $data;
-
-    //     // submit form
-    //     $form->setValues([$name => $formData]);
-    //     $payload = $form->getPhpValues();
-    //     $payload[$name]['image_target']['item'] = $source->getBarcode();
-
-    //     $client->request($form->getMethod(), $form->getUri(), $payload);
-    //     $this->assertResponseRedirects("/objekt/{$source->getBarcode()}");
-
-    //     unset($source_data['asset']);
-    //     $source_data['barcode'] = $source->getBarcode();
-    //     $source_data['state'] = State::SavedImage;
-    //     $source_data['systemAction'] = false;
-    //     $source_data['modifiedBy'] = $this->getUser('user');
-
-    //     // assert correct database changes
-    //     $this->seeInDatabase(AssetHistoryRepository::class, $source_history);
-    //     $this->seeInDatabase(AssetRepository::class, $source_data);
-
-    //     // assert no changes to target
-    //     $this->assertNoAssetChanges($target_history, $target->getBarcode());
-
-    //     $target = $factory->find($target->getBarcode());
-    //     $source = $factory->find($source->getBarcode());
-    //     // test that target is in source images and vice versa
-    //     $this->assertContains($target->_real(), $source->getHdds());
-    //     $this->assertContains($source->_real(), $target->getImages());
-    // }
-
     public function testSaveImageOnDriveActionFromSourceValid()
     {
         $client = static::createClient();
@@ -1689,60 +1656,80 @@ class AssetControllerTest extends BaseWebTestCase
         $this->assertContains($source->_real(), $target->getImages());
     }
 
-    // #[Depends("testSaveImageOnDriveActionFromTargetValid")]
-    // public function testSaveImageOnDriveActionFromTargetInvalidSource()
-    // {
-    //     $client = static::createClient();
-    //     $factory = AssetFactory::new();
+    #[Depends('testSaveImageOnDriveActionFromSourceValid')]
+    public function testSaveImageOnDriveActionFromTargetValid()
+    {
+        $client = static::createClient();
+        $factory = AssetFactory::new();
 
-    //     $target = $factory->hdd()->create();
-    //     $source = $factory->container()->create();
+        $target = $factory->hdd()->create();
+        $source = $factory->exhibitHdd()->create();
 
-    //     $target_history = [
-    //         'asset' => $target->_real(),
-    //         'usage' => $target->getUsage(),
-    //         'state' => $target->getState(),
-    //         'modifiedBy' => $target->getModifiedBy(),
-    //     ];
+        $target_history = [
+            'asset' => $target->_real(),
+            'usage' => $target->getUsage(),
+            'state' => $target->getState(),
+            'modifiedBy' => $target->getModifiedBy(),
+        ];
 
-    //     $source_history = [
-    //         'asset' => $source->_real(),
-    //         'usage' => $source->getUsage(),
-    //         'state' => $source->getState(),
-    //         'modifiedBy' => $source->getModifiedBy(),
-    //     ];
+        $source_history = [
+            'asset' => $source->_real(),
+            'usage' => $source->getUsage(),
+            'state' => $source->getState(),
+            'modifiedBy' => $source->getModifiedBy(),
+        ];
 
-    //     $path = 'Asservatenimage/speichern/';
-    //     $name = 'action_asset';
-    //     $crawler = $this->loginUser($client)->request('GET', "/objekt/{$target->getBarcode()}/$path");
-    //     $form = $crawler->selectButton($name.'[save]')->form();
+        $data = [
+            'usage' => 'save',
+        ];
 
-    //     // query first for search results
-    //     $form["{$name}[selector_search]"] = $source->getBarcode();
-    //     $crawler = $client->submit($form);
-    //     $form = $crawler->selectButton($name.'[save]')->form();
+        $crawler = $this->loginUser($client)->request('GET', "/objekt/{$target->getBarcode()}/Asservatenimage/speichern/");
 
-    //     // add location
-    //     $data = [
-    //         'usage' => 'test',
-    //         'asset' => $source->getBarcode(),
-    //     ];
+        // assert redirects to overview with search query
+        $this->assertResponseRedirects('/objekte?search=c:5');
 
-    //     // invalid argument for location parameter
-    //     $this->expectException(\InvalidArgumentException::class);
-    //     foreach ($data as $key => $value) {
-    //         $form["{$name}[{$key}]"] = $value ?? '';
-    //     }
+        $client->followRedirect();
 
-    //     $client->submit($form);
-    //     $this->assertResponseRedirects("/objekt/{$source->getBarcode()}");
+        // assert source is listed
+        $this->assertAnySelectorTextContains('.item-row', $source->getName());
 
-    //     // assert no changes to target
-    //     $this->assertNoAssetChanges($source_history, $source->getBarcode());
-    //     $this->assertNoAssetChanges($target_history, $target->getBarcode());
-    // }
+        // go to source action
+        $crawler = $this->loginUser($client)->request('GET', "/objekt/{$source->getBarcode()}/Asservatenimage/speichern/");
 
-    // #[Depends("testSaveImageOnDriveActionFromSourceValid")]
+        // get form
+        $name = 'single_action';
+        $submit = '[save]';
+        $form = $crawler->selectButton($name.$submit)->form();
+
+        // populate form
+        $formData = $data;
+
+        // submit form
+        $form->setValues([$name => $formData]);
+        $client->request($form->getMethod(), $form->getUri(), $form->getPhpValues());
+        $this->assertResponseRedirects("/objekt/{$source->getBarcode()}");
+
+        $source_data = ['usage' => $data['usage']];
+        $source_data['barcode'] = $source->getBarcode();
+        $source_data['state'] = State::SavedImage;
+        $source_data['systemAction'] = false;
+        $source_data['modifiedBy'] = $this->getUser('user');
+
+        // assert correct database changes
+        $this->seeInDatabase(AssetHistoryRepository::class, $source_history);
+        $this->seeInDatabase(AssetRepository::class, $source_data);
+
+        // assert no changes to target
+        $this->assertNoAssetChanges($target_history, $target->getBarcode());
+
+        $target = $factory->find($target->getBarcode());
+        $source = $factory->find($source->getBarcode());
+        // test that target is in source images and vice versa
+        $this->assertContains($target->_real(), $source->getHdds());
+        $this->assertContains($source->_real(), $target->getImages());
+    }
+
+    #[Depends('testSaveImageOnDriveActionFromSourceValid')]
     public function testSaveImageOnDriveActionFromSourceInvalidTarget()
     {
         $client = static::createClient();
@@ -1794,6 +1781,30 @@ class AssetControllerTest extends BaseWebTestCase
         $this->assertNoAssetChanges($target_history, $target->getBarcode());
     }
 
+    #[Depends('testSaveImageOnDriveActionFromSourceValid')]
+    public function testSaveImageOnDriveActionFromTargetInvalidTarget()
+    {
+        $client = static::createClient();
+        $factory = AssetFactory::new();
+
+        $target = $factory->container()->create();
+
+        $target_history = [
+            'asset' => $target->_real(),
+            'usage' => $target->getUsage(),
+            'state' => $target->getState(),
+            'modifiedBy' => $target->getModifiedBy(),
+        ];
+
+        $crawler = $this->loginUser($client)->request('GET', "/objekt/{$target->getBarcode()}/Asservatenimage/speichern/");
+        $this->assertResponseRedirects("/objekt/{$target->getBarcode()}");
+
+        $client->followRedirect();
+        // alert symbol from validation errors
+        $this->assertSelectorExists('.alert-danger');
+        $this->assertNoAssetChanges($target_history, $target->getBarcode());
+    }
+
     public function testAssetScannerValid()
     {
         $client = static::createClient();
@@ -1811,9 +1822,7 @@ class AssetControllerTest extends BaseWebTestCase
         $this->assertResponseRedirects("/objekt/{$asset->getBarcode()}");
     }
 
-    /**
-     * @depends testAssetScannerValid
-     */
+    #[Depends('testAssetScannerValid')]
     public function testAssetScannerInvalid()
     {
         $client = static::createClient();
@@ -2473,14 +2482,15 @@ class AssetControllerTest extends BaseWebTestCase
     // first go to asset overview
     // select 5 then and redirect to action view
     // select 5 more and perform action
-    public function testMultiActionAllValid() {
+    public function testMultiActionAllValid()
+    {
         $client = static::createClient();
         $factory = AssetFactory::new();
         $uri = '/asset/assets';
 
         $assets = $factory->many(10)->applyStateMethod('hdd')->create();
         $histories = [];
-        foreach($assets as $asset) {
+        foreach ($assets as $asset) {
             $histories[] = [
                 'asset' => $asset->_real(),
                 'usage' => $asset->getUsage(),
@@ -2488,8 +2498,8 @@ class AssetControllerTest extends BaseWebTestCase
                 'modifiedBy' => $asset->getModifiedBy(),
             ];
         }
-        
-        $crawler = $this->loginUser($client)->request('GET', "/objekte", ['limit' => 25]);
+
+        $crawler = $this->loginUser($client)->request('GET', '/objekte', ['limit' => 25]);
         $form = $crawler->selectButton('multi_action[preview]')->form();
 
         $data = [
@@ -2498,7 +2508,7 @@ class AssetControllerTest extends BaseWebTestCase
         ];
 
         // select first 5 assets
-        for ($i=0; $i < 5; $i++) { 
+        for ($i = 0; $i < 5; ++$i) {
             $data['assets'][] = $assets[$i]->getBarcode();
         }
 
@@ -2507,21 +2517,20 @@ class AssetControllerTest extends BaseWebTestCase
 
         // check for no violations
         // $this->assertSelectorNotExists('.glyphicon-exclamation-sign');
-        
+
         $form = $crawler->selectButton('multi_action[save]')->form();
         $data = $form->getPhpValues();
 
         // check first 5 assets are selected
-        for ($i=0; $i < 5; $i++) { 
+        for ($i = 0; $i < 5; ++$i) {
             $this->assertContains($assets[$i]->getBarcode(), $data['multi_action']['assets']);
         }
 
         $data['multi_action']['lastUpdatePerformedOn'] = (new \DateTime())->format('Y-m-d H:i:s');
         $data['multi_action']['usage'] = 'Test usage';
 
-
         // select all 10 assets
-        for ($i=5; $i < 10; $i++) { 
+        for ($i = 5; $i < 10; ++$i) {
             $data['multi_action']['assets'][] = $assets[$i]->getBarcode();
         }
 
@@ -2532,13 +2541,13 @@ class AssetControllerTest extends BaseWebTestCase
             'usage' => $data['multi_action']['usage'],
         ];
 
-        for ($i=0; $i < 10; $i++) { 
+        for ($i = 0; $i < 10; ++$i) {
             $asset = $assets[$i];
             $testdata['barcode'] = $asset->getBarcode();
             $testdata['state'] = State::Cleaned;
             $testdata['systemAction'] = false;
             $testdata['modifiedBy'] = $this->getUser('user');
-    
+
             // check history
             $this->seeInDatabase(AssetHistoryRepository::class, $histories[$i]);
             $this->seeInDatabase(AssetRepository::class, $testdata);
@@ -2548,18 +2557,18 @@ class AssetControllerTest extends BaseWebTestCase
     /**
      * first go to asset overview
      * select 5 then and redirect to action view
-     * select 5 more and perform action
-     * 
-     * @depends testMultiActionAllValid
+     * select 5 more and perform action.
      */
-    public function testMultiActionSomeInvalid() {
+    #[Depends('testMultiActionAllValid')]
+    public function testMultiActionSomeInvalid()
+    {
         $client = static::createClient();
         $factory = AssetFactory::new();
         $uri = '/asset/assets';
 
         $histories = [];
         $hdds = $factory->many(5)->applyStateMethod('hdd')->create();
-        foreach($hdds as $asset) {
+        foreach ($hdds as $asset) {
             $histories[] = [
                 'asset' => $asset->_real(),
                 'usage' => $asset->getUsage(),
@@ -2569,7 +2578,7 @@ class AssetControllerTest extends BaseWebTestCase
         }
 
         $records = $factory->many(5)->applyStateMethod('record')->create();
-        foreach($records as $asset) {
+        foreach ($records as $asset) {
             $histories[] = [
                 'asset' => $asset->_real(),
                 'usage' => $asset->getUsage(),
@@ -2577,9 +2586,8 @@ class AssetControllerTest extends BaseWebTestCase
                 'modifiedBy' => $asset->getModifiedBy(),
             ];
         }
-        
-        
-        $crawler = $this->loginUser($client)->request('GET', "/objekte", ['limit' => 25]);
+
+        $crawler = $this->loginUser($client)->request('GET', '/objekte', ['limit' => 25]);
         $form = $crawler->selectButton('multi_action[preview]')->form();
 
         $data = [
@@ -2596,7 +2604,7 @@ class AssetControllerTest extends BaseWebTestCase
 
         // check for violations
         $this->assertSelectorExists('.glyphicon-exclamation-sign');
-        
+
         $form = $crawler->selectButton('multi_action[save]')->form();
         $data = $form->getPhpValues();
 
@@ -2609,17 +2617,17 @@ class AssetControllerTest extends BaseWebTestCase
 
         $crawler = $client->request($form->getMethod(), $form->getUri(), $data);
         $this->assertResponseIsSuccessful();
-        
+
         $this->assertNoAssetChanges($histories[0], $hdds[0]->getBarcode());
         $this->assertNoAssetChanges($histories[5], $records[0]->getBarcode());
     }
 
     /**
-     * try to assign case to asset where one asset already has a case 
-     * asssigned but bypasses state validation
-     * 
+     * try to assign case to asset where one asset already has a case
+     * asssigned but bypasses state validation.
      */
-    public function testMultiActionCaseAlreadyAssignedInvalid() {
+    public function testMultiActionCaseAlreadyAssignedInvalid()
+    {
         $client = static::createClient();
         $factory = AssetFactory::new();
         $caseFactory = CaseFactory::new();
@@ -2643,17 +2651,15 @@ class AssetControllerTest extends BaseWebTestCase
             'state' => $with->getState(),
             'case' => $with->getCase(),
         ];
-        
+
         $without_h = [
             'asset' => $without->_real(),
             'usage' => $without->getUsage(),
             'state' => $without->getState(),
             'case' => $without->getCase(),
         ];
-        
-        
-        
-        $crawler = $this->loginUser($client)->request('GET', "/objekte", ['limit' => 25]);
+
+        $crawler = $this->loginUser($client)->request('GET', '/objekte', ['limit' => 25]);
         $form = $crawler->selectButton('multi_action[preview]')->form();
 
         $data = [
@@ -2668,7 +2674,6 @@ class AssetControllerTest extends BaseWebTestCase
         $crawler = $client->request($form->getMethod(), $form->getUri(), ['multi_action' => $data]);
         $this->assertResponseIsSuccessful();
 
-        
         $form = $crawler->selectButton('multi_action[save]')->form();
         $data = $form->getPhpValues();
 
@@ -2680,14 +2685,12 @@ class AssetControllerTest extends BaseWebTestCase
         $data['multi_action']['usage'] = 'Test usage';
         $data['multi_action']['case']['item'] = $ewCase->getCaseId();
 
-
         $crawler = $client->request($form->getMethod(), $form->getUri(), $data);
         $this->assertResponseIsSuccessful();
 
-
         // check for violations
         $this->assertSelectorExists('.glyphicon-exclamation-sign');
-        
+
         $this->assertNoAssetChanges($with_h, $with->getBarcode());
         $this->assertNoAssetChanges($without_h, $without->getBarcode());
 

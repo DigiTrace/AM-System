@@ -53,11 +53,15 @@ class AssetController extends BaseController
         PaginatorInterface $paginator,
         ExtendedAssetSearch $extendedAssetSearch,
     ) {
-        $search = null;
         $query = null;
+        $search = $request->query->get('suche');
+        $search ??= $request->query->get('search');
 
         // search form
-        $form = $this->createForm(EntitySearchType::class, null, [
+        $form = $this->createForm(EntitySearchType::class, 
+        [
+            'search' => $search,
+        ], [
             'limit' => $session->get('limit'),
             'show_extended_search' => true,
         ]);
@@ -80,8 +84,6 @@ class AssetController extends BaseController
         }
 
         // no search term provided, default query for listing all objects
-        $search ??= $request->attributes->get('suche');
-        $search ??= $request->attributes->get('search');
 
         // apply extended asset search to create query
         if ($search) {
@@ -527,11 +529,20 @@ class AssetController extends BaseController
 
     /**
      * Show save image on drive action.
+     * 
+     * If asset is a target to store hdd record images, redirect to overview page with filter enabled
+     * to select source. Also, store selected target in session such that it is shown when selecting
+     * available targets in action view.
      *
      * @see action()
      */
     #[Route('/objekt/{id}/Asservatenimage/speichern/', name: 'save_image_on_drive_asset')]
-    public function saveImageOnDriveAction(Request $request, AssetActionManager $manager, string $id)
+    public function saveImageOnDriveAction(
+        Request $request, 
+        AssetActionManager $manager, 
+        string $id,
+        SessionInterface $session,
+        )
     {
         $asset = $this->entityManager->getRepository(Asset::class)->find($id);
 
@@ -548,120 +559,21 @@ class AssetController extends BaseController
             $this->addFlash('danger', 'asset.action.add_image.not_applicable');
             return $this->redirectToRoute('details_asset', ['id' => $id]);
         }
-            
-        # TODO blöd, not working as a regular action
-        return $this->action($request, $manager, $id, new Actions\AddHddImage());
-
-
-        $repo = $this->entityManager->getRepository(Asset::class);
-        $asset = $repo->find($id);
-
-        if (null == $asset) {
-            $this->addFlash('danger', 'asset.error.not_found');
-
-            return $this->redirectToRoute('search_assets');
-        }
-
-        if (!$asset->isHddImageSource() && !$asset->isHddImageTarget()) {
-            $this->addFlash('danger', 'asset.action.add_image.not_applicable');
-
-            return $this->redirectToRoute('details_asset', ['id' => $id]);
-        }
-
-        $isSource = $asset->isHddImageSource();
-        $source = $isSource ? $asset : null;
-        $target = $isSource ? null : $asset;
-
-        $api_url = $isSource ? 'asset_action_query_image_sources' : 'asset_action_query_image_targets';
-
-        // create history entry, but don't persist yet
-        $history = $isSource ? AssetHistory::fromAsset($source) : null;
-
-        $options = [
-            'confirm' => false,
-            'usage_required' => true,
-            'not_before' => $isSource ? $source->getLastUpdatePerformedOn() : null,
-            'selector' => [
-                'name' => 'asset',
-                'mapped' => false,
-                'class' => Asset::class,
-                'label' => fn (Asset $asset) => $asset->getBarcode().' | '.$asset->getName(),
-            ],
-        ];
-
-        if ($isSource) {
-            $options['selector']['choices'] = $repo->findAllHddImageTargetAssets($source, null, 10);
-            $options['selector']['model'] = fn ($query, $limit) => $repo->findAllHddImageTargetAssets($source, $query, $limit);
-        } else {
-            $options['selector']['choices'] = $repo->findAllHddImageSourceAssets($target, null, 10);
-            $options['selector']['model'] = fn ($query, $limit) => $repo->findAllHddImageSourceAssets($target, $query, $limit);
-        }
-
-        if ($isSource) {
-            $source->setState(State::SavedImage);
-        }
-
-        $form = $this->createForm(SingleActionType::class, $source, $options);
-        $form->handleRequest($request);
-
-        if ($form->isSubmitted() && $form->isValid()) {
-            if ($isSource) {
-                $target = $form->get('asset')->getData();
-                if (!$target->isHddImageTarget()) {
-                    // todo throw error
-                }
-            } else {
-                // apply form values to source
-                $source = $form->get('asset')->getData();
-                $history = AssetHistory::fromAsset($source);
-
-                $usage = $form->get('usage')->getData();
-                $lastUpdatePerformedOn = $form->get('lastUpdatePerformedOn')->getData();
-                $source->setState(State::SavedImage);
-                $source->setUsage($usage);
-                $source->setLastUpdatePerformedOn($lastUpdatePerformedOn);
-                if (!$source->isHddImageSource()) {
-                    // todo throw error
-                }
-            }
-
-            // update source
-            $source->setSystemAction(false);
-            $source->setModifiedBy($this->getUser());
-            $source->setLastUpdatedOn(new \DateTime());
-
-            // add image entry
-            $source->addHdd($target);
-
-            $this->entityManager->persist($source);
-            $this->entityManager->persist($history);
-
-            $this->entityManager->flush();
-            $this->addFlash('success', 'asset.action.add_image.success');
-
-            return $this->redirectToRoute('details_asset', ['id' => $source->getBarcode()]);
-        }
-        // print errors
-        foreach ($form->getErrors() as $error) {
-            $this->addFlash('danger', $error->getMessage());
-        }
-
-        return $this->render('assets/action.html.twig', [
-            'asset' => $asset,
-            'options' => [
-                'form' => $options,
-                'api_url' => $api_url,
-            ],
-            'cur_state' => $isSource ? $source->getState() : 'asset.action.add_image.save_image_prepare',
-            'new_state' => State::SavedImage,
-            'form' => $form->createView(),
-        ]);
+        
+        // asset is target
+        
+        // add flash as info text
+        $this->addFlash('info', 'asset.action.add_image.select_source');
+        // save target in session
+        $session->set('asset_image_target', $asset->getBarcode());
+        // return to asset overview with search query for viable sources
+        return $this->redirectToRoute('search_assets', ['search' => 'c:5']);
     }
 
     /**
      * Show upload asset picture form.
-     *
-     * @see action()
+     * 
+     * @codeCoverageIgnore
      */
     #[Route('/objekt/{id}/upload', name: 'upload_picture_asset')]
     public function uploadPictureAction(string $id, Request $request)

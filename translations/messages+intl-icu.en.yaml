@@ -281,6 +281,7 @@ asset:
       info: 'Please state, why you want to remove the asset of the Case'
 
     add_image:
+      select_source: 'Choose source for image creation from the listed assets. Then click on add image to create new HDD image.'
       save_image_prepare: 'Choose image source'
       not_applicable: 'Add image action is not applicable'
       success: 'Succesfully added an image to a drive'

@@ -28,11 +28,37 @@
                         </tr>
                     </thead>
                     <tbody id="{{ form.vars.identifier }}-table-body" >
+                        {% if form.vars.default %}
+                        {% set asset = form.vars.default %}
+                        <tr class="item-row content-row">
+                            <td class="">
+                                <div class="form-group">
+                                    <div class="radio">
+                                        <label for="{{ form.item.vars.id }}_{{ asset.barcode  }}">
+                                            <input type="radio" name="{{ form.item.vars.full_name }}" value="{{ asset.barcode }}" id="{{ form.item.vars.id }}_{{ asset.barcode  }}" checked="checked">
+                                            {{ asset.barcode }}
+                                        </label>
+                                    </div>
+                                </div>
+                            </td>
+                            
+                            <td>
+                                <span class="label label-{{ asset.getCategory.bootstrapColor }}">
+                                {{ asset.getCategory | trans}}
+                                </span>
+                            </td>
+
+                            <td class=" text-truncate">
+                                <a href="{{ path('details_asset', {'id': asset.barcode}) }}" target="_blank">{{ asset.name }}</a>
+                            </td>
+                        </tr>
+                        {% else %}
                         <tr class="item-row muted empty-row">
                             <td colspan="32" class="text-muted {{ form.vars.label_size }}">
                                 {{ 'form.list.empty' | trans }}
                             </td>
                         </tr>
+                        {% endif %}
                         {% if form.vars.nullable %}
                         <tr class="item-row muted" id="{{ form.vars.identifier }}-empty">
                             <td colspan="32" class="text-muted text-center {{ form.vars.label_size }}">

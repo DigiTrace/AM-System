@@ -10,6 +10,8 @@ use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\DataTransformerInterface;
 use Symfony\Component\Form\Exception\TransformationFailedException;
 use Symfony\Component\Form\FormBuilderInterface;
+use Symfony\Component\HttpFoundation\RequestStack;
+use Symfony\Component\HttpFoundation\Session\SessionInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
 /**
@@ -21,6 +23,7 @@ class ImageTargetType extends AbstractType implements DataTransformerInterface
 {
     public function __construct(
         private EntityManagerInterface $entityManager,
+        private RequestStack $request,
     ) {
     }
 
@@ -36,10 +39,17 @@ class ImageTargetType extends AbstractType implements DataTransformerInterface
 
     public function configureOptions(OptionsResolver $resolver): void
     {
+        $session = $this->request->getSession();
+        $target = $session->get('asset_image_target');
+        if ($target) {
+            $target = $this->entityManager->find(Asset::class, $target);
+        }
+
         $resolver->setDefaults([
             'api' => 'asset_action_query_image_targets',
             'identifier' => 'imageTarget',
             'validation_groups' => [],
+            'default' => $target,
         ]);
     }
 
