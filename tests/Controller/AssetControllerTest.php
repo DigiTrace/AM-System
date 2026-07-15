@@ -1876,7 +1876,7 @@ class AssetControllerTest extends BaseWebTestCase
                     yield [
                         'caseId' => "Inactive Case $i",
                         'description' => (0 == $i % 2) ? 'yes' : 'no',
-                        'openedOn' => (new \DateTime('now')),
+                        'openedOn' => \DateTime::createFromFormat('U', $i),
                         'active' => false,
                     ];
                 }
@@ -1889,7 +1889,7 @@ class AssetControllerTest extends BaseWebTestCase
                     yield [
                         'caseId' => "Active Case $i",
                         'description' => (0 == $i % 2) ? 'yes' : 'no',
-                        'openedOn' => (new \DateTime('now')),
+                        'openedOn' => \DateTime::createFromFormat('U', $i + 1000),
                         'active' => true,
                     ];
                 }
@@ -1911,8 +1911,8 @@ class AssetControllerTest extends BaseWebTestCase
             $this->assertNotContains($exp, $result['data']);
         }
 
-        // first 10 active cases should occur
-        for ($i = 0; $i < 10; ++$i) {
+        // last 10 active cases should occur
+        for ($i = 5; $i < 15; ++$i) {
             $case = $active[$i];
 
             $exp = [
@@ -1923,8 +1923,8 @@ class AssetControllerTest extends BaseWebTestCase
             $this->assertContains($exp, $result['data']);
         }
 
-        // first 10 active cases should occur
-        for ($i = 10; $i < 15; ++$i) {
+        // first 5 active cases should not occur
+        for ($i = 0; $i < 5; ++$i) {
             $case = $active[$i];
 
             $exp = [
@@ -1992,7 +1992,7 @@ class AssetControllerTest extends BaseWebTestCase
                         'name' => (0 == $i % 2) ? 'yes' : 'no',
                         'usage' => '',
                         'note' => '',
-                        'lastUpdatedOn' => (new \DateTime('now')),
+                        'lastUpdatedOn' => \DateTime::createFromFormat('U', $i),
                         'state' => State::Added,
                         'storageOverride' => false,
                     ];
@@ -2009,7 +2009,7 @@ class AssetControllerTest extends BaseWebTestCase
                         'name' => (0 == $i % 2) ? 'yes' : 'no',
                         'usage' => '',
                         'note' => '',
-                        'lastUpdatedOn' => (new \DateTime('now')),
+                        'lastUpdatedOn' => \DateTime::createFromFormat('U', $i + 1000),
                         'state' => $i >= 5 ? State::Added : State::Lost,
                         'storageOverride' => true,
                     ];
@@ -2026,7 +2026,7 @@ class AssetControllerTest extends BaseWebTestCase
                         'name' => (0 == $i % 2) ? 'yes' : 'no',
                         'usage' => '',
                         'note' => '',
-                        'lastUpdatedOn' => (new \DateTime('now')),
+                        'lastUpdatedOn' => \DateTime::createFromFormat('U', $i + 2000),
                         'state' => $i >= 5 ? State::Added : State::Destroyed,
                         'storageOverride' => (0 == $i % 2) ? true : null,
                     ];
@@ -2171,7 +2171,7 @@ class AssetControllerTest extends BaseWebTestCase
                         'name' => (0 == $i % 2) ? 'yes' : 'no',
                         'usage' => '',
                         'note' => '',
-                        'lastUpdatedOn' => (new \DateTime('now')),
+                        'lastUpdatedOn' => \DateTime::createFromFormat('U', $i),
                         'state' => State::Added,
                         'storageOverride' => false,
                     ];
@@ -2188,7 +2188,7 @@ class AssetControllerTest extends BaseWebTestCase
                         'name' => (0 == $i % 2) ? 'yes' : 'no',
                         'usage' => '',
                         'note' => '',
-                        'lastUpdatedOn' => (new \DateTime('now')),
+                        'lastUpdatedOn' => \DateTime::createFromFormat('U', $i + 1000),
                         'state' => $i < 10 ? State::Added : State::Destroyed,
                     ];
                 }
@@ -2302,7 +2302,7 @@ class AssetControllerTest extends BaseWebTestCase
                         'name' => (0 == $i % 2) ? 'yes' : 'no',
                         'usage' => '',
                         'note' => '',
-                        'lastUpdatedOn' => (new \DateTime('now')),
+                        'lastUpdatedOn' => \DateTime::createFromFormat('U', $i),
                         'state' => State::Added,
                         'storageOverride' => false,
                     ];
@@ -2319,7 +2319,7 @@ class AssetControllerTest extends BaseWebTestCase
                         'name' => (0 == $i % 2) ? 'yes' : 'no',
                         'usage' => '',
                         'note' => '',
-                        'lastUpdatedOn' => (new \DateTime('now')),
+                        'lastUpdatedOn' => \DateTime::createFromFormat('U', $i + 1000),
                         'state' => $i < 10 ? State::Added : State::Destroyed,
                     ];
                 }
@@ -2431,7 +2431,7 @@ class AssetControllerTest extends BaseWebTestCase
                         'name' => (0 == $i % 2) ? 'yes' : 'no',
                         'usage' => '',
                         'note' => '',
-                        'lastUpdatedOn' => (new \DateTime('now')),
+                        'lastUpdatedOn' => \DateTime::createFromFormat('U', $i),
                     ];
                 }
             }
