@@ -8,7 +8,7 @@ use App\Enum\AssetState as State;
 /**
  * @author Ben Brooksnieder
  */
-class Clean extends AssetAction
+class Clean extends BaseAction
 {
     protected string $name = 'asset.actions.zero';
     protected bool $isSystemAction = false;
@@ -16,7 +16,7 @@ class Clean extends AssetAction
     protected bool $usageRequired = false;
     protected ?State $newState = State::Cleaned;
 
-    protected function action(Asset $asset, $data): array
+    protected function doAction(Asset $asset, $data): array
     {
         $asset->flushImages();
 

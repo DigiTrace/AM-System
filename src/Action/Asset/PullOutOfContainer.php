@@ -8,7 +8,7 @@ use App\Enum\AssetState as State;
 /**
  * @author Ben Brooksnieder
  */
-class PullOutOfContainer extends AssetAction
+class PullOutOfContainer extends BaseAction
 {
     protected string $name = 'asset.actions.remove_container';
     protected bool $isSystemAction = false;
@@ -19,7 +19,7 @@ class PullOutOfContainer extends AssetAction
         ['info', 'asset.action.remove_container.info'],
     ];
 
-    protected function action(Asset $asset, $data): array
+    protected function doAction(Asset $asset, $data): array
     {
         $asset->setLocation(null);
 

@@ -5,7 +5,6 @@ namespace App\Action\Asset;
 use App\Entity\Asset;
 use App\Enum\AssetState as State;
 use Symfony\Component\Form\FormBuilderInterface;
-use Symfony\Component\Validator\Constraint;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 /**
@@ -13,7 +12,7 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
  *
  * @author Ben Brooksnieder
  */
-abstract class AssetAction
+abstract class BaseAction implements ActionInterface
 {
     protected string $name;
     protected bool $isSystemAction;
@@ -55,7 +54,17 @@ abstract class AssetAction
         return $validator->validate([$asset, $this], new \App\Validator\Asset\State());
     }
 
-    final public function performAction(Asset $asset, $data): array
+    final public function getConstraints(): array
+    {
+        return \array_merge([], $this->prepareConstraints());
+    }
+
+    protected function prepareConstraints(): array
+    {
+        return [];
+    }
+
+    final public function action(Asset $asset, $data): array
     {
         $time = new \DateTime();
 
@@ -69,28 +78,15 @@ abstract class AssetAction
         $asset->setLastUpdatedOn($time);
         $asset->setLastUpdatePerformedOn($data['lastUpdatePerformedOn']);
 
-        return $this->action($asset, $data);
+        return $this->doAction($asset, $data);
     }
 
-    /**
-     * Get constraints to be validated after action.
-     *
-     * @return Constraint[]
-     */
-    final public function getFinalConstraints(): array
-    {
-        return \array_merge([], $this->getConstraints());
-    }
 
-    protected function getConstraints(): array
+    protected function doAction(Asset $asset, $data): array
     {
         return [];
     }
 
-    protected function action(Asset $asset, $data): array
-    {
-        return [];
-    }
 
     /**
      * Callback used to modify forms.

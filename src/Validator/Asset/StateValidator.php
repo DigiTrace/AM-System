@@ -2,7 +2,7 @@
 
 namespace App\Validator\Asset;
 
-use App\Action\Asset\AssetAction;
+use App\Action\Asset\BaseAction;
 use App\Entity\Asset as Entity;
 use App\Enum\AssetCategory as Category;
 use App\Enum\AssetState;
@@ -33,7 +33,7 @@ class StateValidator extends ConstraintValidator
         // TODO check for correct type of value
         /** @var Entity $asset */
         $asset = $value[0];
-        /** @var AssetAction $action */
+        /** @var BaseAction $action */
         $action = $value[1];
         $state = $action->getNewState();
 

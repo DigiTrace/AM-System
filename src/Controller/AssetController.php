@@ -3,7 +3,7 @@
 namespace App\Controller;
 
 use App\Action\Asset as Actions;
-use App\Action\Asset\AssetAction;
+use App\Action\Asset\ActionInterface;
 use App\Entity\Asset;
 use App\Entity\AssetHistory;
 use App\Enum\AssetCategory as Category;
@@ -312,7 +312,7 @@ class AssetController extends BaseController
         Request $request,
         AssetActionManager $manager,
         string $id,
-        AssetAction $action,
+        ActionInterface $action,
     ) {
         $asset = $this->entityManager->getRepository(Asset::class)->find($id);
 

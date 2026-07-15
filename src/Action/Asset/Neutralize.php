@@ -8,7 +8,7 @@ use App\Enum\AssetState as State;
 /**
  * @author Ben Brooksnieder
  */
-class Neutralize extends AssetAction
+class Neutralize extends BaseAction
 {
     protected string $name = 'asset.actions.neutralize';
 
@@ -20,7 +20,7 @@ class Neutralize extends AssetAction
         ['info', 'asset.action.neutralize.info'],
     ];
 
-    protected function action(Asset $asset, $data): array
+    protected function doAction(Asset $asset, $data): array
     {
         $asset->setCase(null);
         $asset->setLocation(null);

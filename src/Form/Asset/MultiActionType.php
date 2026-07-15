@@ -3,7 +3,7 @@
 namespace App\Form\Asset;
 
 use App\Action\Asset as Actions;
-use App\Action\Asset\AssetAction;
+use App\Action\Asset\BaseAction;
 use App\Entity\Asset;
 use App\Repository\AssetRepository;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -36,7 +36,7 @@ class MultiActionType extends AbstractType implements DataTransformerInterface
     /**
      * Allowed asset actions for multiple edits.
      *
-     * @return array<AssetAction>
+     * @return array<BaseAction>
      */
     public static function getActions(): array
     {
@@ -73,7 +73,7 @@ class MultiActionType extends AbstractType implements DataTransformerInterface
             'label' => 'asset.action.form.action',
             'choices' => static::getActions(),
             'data' => new Actions\Clean(),
-            'choice_label' => fn (AssetAction $choice, string $key, mixed $value) => $choice->getName(),
+            'choice_label' => fn (BaseAction $choice, string $key, mixed $value) => $choice->getName(),
             'required' => true,
         ]);
 

@@ -10,7 +10,7 @@ use Symfony\Component\Form\FormBuilderInterface;
 /**
  * @author Ben Brooksnieder
  */
-class AssignCase extends AssetAction
+class AssignCase extends BaseAction
 {
     protected string $name = 'asset.actions.assign_case';
 
@@ -19,7 +19,7 @@ class AssignCase extends AssetAction
     protected bool $usageRequired = true;
     protected ?State $newState = State::AssignedCase;
 
-    protected function action(Asset $asset, $data): array
+    protected function doAction(Asset $asset, $data): array
     {
         $asset->setCase($data['case']);
         return [];
@@ -30,7 +30,7 @@ class AssignCase extends AssetAction
         $builder->add('case', AssignCaseType::class, []);
     }
 
-    public function getConstraints(): array
+    public function prepareConstraints(): array
     {
         return [new \App\Validator\Asset\AssignedCase()];
     }

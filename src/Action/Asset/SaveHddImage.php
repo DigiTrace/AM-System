@@ -12,7 +12,7 @@ use Symfony\Component\Form\FormBuilderInterface;
  *
  * @author Ben Brooksnieder
  */
-class SaveHddImage extends AssetAction
+class SaveHddImage extends BaseAction
 {
     protected string $name = 'asset.actions.save_hdd_image';
 
@@ -21,7 +21,7 @@ class SaveHddImage extends AssetAction
     protected bool $usageRequired = true;
     protected ?State $newState = State::SavedImage;
 
-    protected function action(Asset $asset, $data): array
+    protected function doAction(Asset $asset, $data): array
     {
         $asset->addHdd($data['image_target']);
 
@@ -32,9 +32,4 @@ class SaveHddImage extends AssetAction
     {
         $builder->add('image_target', ImageTargetType::class, []);
     }
-
-    // public function getConstraints(): array
-    // {
-    //     return [new \App\Validator\Asset\AssignedCase()];
-    // }
 }

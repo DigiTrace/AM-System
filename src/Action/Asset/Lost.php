@@ -7,7 +7,7 @@ use App\Enum\AssetState as State;
 /**
  * @author Ben Brooksnieder
  */
-class Lost extends AssetAction
+class Lost extends BaseAction
 {
     protected string $name = 'asset.actions.lost';
     protected bool $isSystemAction = false;

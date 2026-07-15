@@ -14,7 +14,7 @@ use Symfony\Component\Validator\Constraints;
 /**
  * @author Ben Brooksnieder
  */
-class Edit extends AssetAction
+class Edit extends BaseAction
 {
     protected string $name = 'asset.actions.edit';
     protected bool $isSystemAction = false;
@@ -25,7 +25,7 @@ class Edit extends AssetAction
         ['info', 'asset.edit.info'], #TODO revise
     ];
 
-    protected function action(Asset $asset, $data): array
+    protected function doAction(Asset $asset, $data): array
     {
         $asset->setName($data['name']);
         $asset->setNote($data['note']);
@@ -59,7 +59,7 @@ class Edit extends AssetAction
         });
     }
 
-    public function getConstraints(): array
+    public function prepareConstraints(): array
     {
         return [new \App\Validator\Asset\Edit()];
     }

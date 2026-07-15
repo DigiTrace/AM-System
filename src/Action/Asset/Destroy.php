@@ -7,7 +7,7 @@ use App\Enum\AssetState as State;
 /**
  * @author Ben Brooksnieder
  */
-class Destroy extends AssetAction
+class Destroy extends BaseAction
 {
     protected string $name = 'asset.actions.destroy';
     protected bool $isSystemAction = false;

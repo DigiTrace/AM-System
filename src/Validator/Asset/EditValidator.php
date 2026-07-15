@@ -18,7 +18,7 @@ final class EditValidator extends ConstraintValidator
 
     public function validate(mixed $value, Constraint $constraint): void
     {
-        /* @var AssetAction $constraint */
+        /* @var BaseAction $constraint */
 
         if (null === $value || '' === $value) {
             return;

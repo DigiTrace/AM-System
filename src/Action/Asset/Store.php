@@ -11,7 +11,7 @@ use Symfony\Component\Validator\ConstraintViolation;
 /**
  * @author Ben Brooksnieder
  */
-class Store extends AssetAction
+class Store extends BaseAction
 {
     protected string $name = 'asset.actions.store';
 
@@ -20,7 +20,7 @@ class Store extends AssetAction
     protected bool $usageRequired = true;
     protected ?State $newState = State::StoredInContainer;
 
-    protected function action(Asset $asset, $data): array
+    protected function doAction(Asset $asset, $data): array
     {
         // check that new location is not old location
         $old = $asset->getLocation();
@@ -49,7 +49,7 @@ class Store extends AssetAction
         ]);
     }
 
-    public function getConstraints(): array
+    public function prepareConstraints(): array
     {
         return [new \App\Validator\Asset\Location()];
     }

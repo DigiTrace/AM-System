@@ -2,7 +2,7 @@
 
 namespace App\Form\Asset;
 
-use App\Action\Asset\AssetAction;
+use App\Action\Asset\BaseAction;
 use App\Action\Asset\Edit;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type as Field;
@@ -22,7 +22,7 @@ class SingleActionType extends AbstractType
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         /**
-         * @var AssetAction
+         * @var BaseAction
          */
         $action = $options['asset_action'];
         $notBefore = $options['not_before'];
@@ -62,7 +62,7 @@ class SingleActionType extends AbstractType
             'not_before' => null,
         ]);
 
-        $resolver->setAllowedTypes('asset_action', AssetAction::class);
+        $resolver->setAllowedTypes('asset_action', BaseAction::class);
         $resolver->setAllowedTypes('not_before', ['null', \DateTimeInterface::class]);
     }
 

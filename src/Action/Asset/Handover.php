@@ -7,7 +7,7 @@ use App\Enum\AssetState as State;
 /**
  * @author Ben Brooksnieder
  */
-class Handover extends AssetAction
+class Handover extends BaseAction
 {
     protected string $name = 'asset.actions.handover';
     protected bool $isSystemAction = false;

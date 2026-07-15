@@ -8,7 +8,7 @@ use App\Enum\AssetState as State;
 /**
  * @author Ben Brooksnieder
  */
-class UnbindReservation extends AssetAction
+class UnbindReservation extends BaseAction
 {
     protected string $name = 'asset.actions.unreserve';
     protected bool $isSystemAction = false;
@@ -16,7 +16,7 @@ class UnbindReservation extends AssetAction
     protected bool $usageRequired = false;
     protected ?State $newState = State::UnbindReservation;
 
-    protected function action(Asset $asset, $data): array
+    protected function doAction(Asset $asset, $data): array
     {
         $asset->setReservedBy(null);
 

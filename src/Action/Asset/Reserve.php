@@ -8,7 +8,7 @@ use App\Enum\AssetState as State;
 /**
  * @author Ben Brooksnieder
  */
-class Reserve extends AssetAction
+class Reserve extends BaseAction
 {
     protected string $name = 'asset.actions.reserve';
     protected bool $isSystemAction = false;
@@ -16,7 +16,7 @@ class Reserve extends AssetAction
     protected bool $usageRequired = false;
     protected ?State $newState = State::Reserved;
 
-    protected function action(Asset $asset, $data): array
+    protected function doAction(Asset $asset, $data): array
     {
         $asset->setReservedBy($data['user']);
 

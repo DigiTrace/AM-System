@@ -2,7 +2,7 @@
 
 namespace App\Service;
 
-use App\Action\Asset\AssetAction;
+use App\Action\Asset\ActionInterface;
 use App\Entity\Asset;
 use App\Entity\AssetHistory;
 use Doctrine\Common\Collections\Collection;
@@ -25,7 +25,7 @@ class AssetActionManager
     ) {
     }
 
-    public function isValidAction(Collection $assets, AssetAction $action): array
+    public function isValidAction(Collection $assets, ActionInterface $action): array
     {
         $violations = [];
 
@@ -48,7 +48,7 @@ class AssetActionManager
      *
      * @return void
      */
-    public function performAction(Collection $assets, array $data, AssetAction $action): array
+    public function performAction(Collection $assets, array $data, ActionInterface $action): array
     {
         $data['user'] = $this->security->getToken()?->getUser();
 
@@ -61,7 +61,7 @@ class AssetActionManager
         foreach ($assets as $asset) {
             // create history and apply changes
             $history = AssetHistory::fromAsset($asset);
-            $res = $action->performAction($asset, $data);
+            $res = $action->action($asset, $data);
 
             if (!empty($res)) {
                 $violations[$asset->getBarcode()] = new ConstraintViolationList($res);
@@ -69,7 +69,7 @@ class AssetActionManager
             }
 
             // finally validate modified asset
-            $errors = $this->validator->validate($asset, $action->getFinalConstraints());
+            $errors = $this->validator->validate($asset, $action->getConstraints());
             if ($errors->count() > 0) {
                 $violations[$asset->getBarcode()] = $errors;
                 continue;
