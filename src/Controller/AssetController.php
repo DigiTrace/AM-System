@@ -162,7 +162,7 @@ class AssetController extends BaseController
 
             // action must be valid for all assets
             if (empty($violations)) {
-                $this->addFlash('success', 'asset.action.multi_action.success');
+                $this->addFlash('success', 'asset.multi_action.success');
 
                 return $this->redirectToRoute('search_assets');
             }
