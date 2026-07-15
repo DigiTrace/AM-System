@@ -22,6 +22,11 @@ abstract class ExtendedSearch
 {
     public static string $regex_single_match = '/(!?\w+):((?:(?:(["\'])[\w <>()\-\.\/,=!üÜöÖäÄ]+)\3)|(?:[\w<>()\-\.\/,=!üÜöÖäÄ]+))/';
     public static string $regex_multiple_match = '/(!?\w+):\[((?:(["\']?)[\w <>()\-\.\/,=!üÜöÖäÄ]+\3\|)*(["\']?)[\w <>()\-\.\/,=!üÜöÖäÄ]+\4)\]/';
+    public static array $date_pattern = [
+        '/(?<operator>[<>]|<=|>=)?(?<day>\d{2})\.(?<month>\d{2})\.(?<year>\d{4}|\d{2})/',
+        '/(?<operator>[<>]|<=|>=)?(?<year>\d{4})-(?<month>\d{2}|\d{1})-(?<day>\d{2}|\d{1})/',
+        '/(?<operator>[<>]|<=|>=)?(?<month>\d{2})\/(?<day>\d{2})\/(?<year>\d{4}|\d{2})/',
+    ];
 
     protected array $params = [];
     protected array $errors = [];
@@ -105,7 +110,7 @@ abstract class ExtendedSearch
             // parse segment for key value pairs
             $subqueries = $this->getQueryValues($segment);
             if (0 == \count($subqueries)) {
-                $this->addError('warning', 'es.error.segment.empty', ['segment' => $segment]);
+                $this->addError('warning', 'es.error.empty_segment', ['%segment%' => $segment]);
                 continue;
             }
             $subexprs = [];
@@ -121,7 +126,7 @@ abstract class ExtendedSearch
 
             // skip if no valid sub expressions were found
             if (0 == \count($subexprs)) {
-                $this->addError('warning', 'es.error.segment.invalid', ['segment' => $segment]);
+                $this->addError('warning', 'es.error.invalid_segment', ['%segment%' => $segment]);
                 continue;
             }
 
@@ -133,7 +138,7 @@ abstract class ExtendedSearch
 
         // return if no valid queries
         if (0 == \count($segmentExprs)) {
-            $this->addError('danger', 'es.error.query.empty');
+            // $this->addError('danger', 'es.error.empty_query');
 
             return null;
         }
@@ -260,17 +265,11 @@ abstract class ExtendedSearch
      * @param bool   $neg        whether to negate query
      * @param array  $values     matching values
      */
-    protected function dateQuery(string $identifier, bool $neg, array $values): Comparison|Func|Orx
+    protected function dateQuery(string $identifier, bool $neg, array $values): Comparison|Func|Orx|null
     {
-        $pattern = [
-            '/(?<operator>[<>]|<=|>=)?(?<day>\d{2})\.(?<month>\d{2})\.(?<year>\d{4}|\d{2})/',
-            '/(?<operator>[<>]|<=|>=)?(?<year>\d{4})-(?<month>\d{2})-(?<day>\d{2})/',
-            '/(?<operator>[<>]|<=|>=)?(?<month>\d{2})\/(?<day>\d{2})\/(?<year>\d{4}|\d{2})/',
-        ];
-
         // try to parse dates
-        $values = array_map(function ($val) use ($pattern) {
-            foreach ($pattern as $pat) {
+        $parsed_dates = array_map(function ($val) {
+            foreach (static::$date_pattern as $pat) {
                 $matches = [];
                 if (preg_match($pat, $val, $matches)) {
                     // return formatted date
@@ -285,7 +284,7 @@ abstract class ExtendedSearch
         }, $values);
 
         // filter bad and invalid dates
-        $values = array_filter($values, function ($val) {
+        $valid_dates = array_filter($parsed_dates, function ($val) {
             if (!$val) {
                 return false;
             }
@@ -304,7 +303,13 @@ abstract class ExtendedSearch
                 '>' => $this->exprBuilder->gt("DATE_DIFF($identifier, $param)", 0),
                 '>=' => $this->exprBuilder->gte("DATE_DIFF($identifier, $param)", 0),
             };
-        }, $values);
+        }, $valid_dates);
+
+        if (0 === \count($exprs)) {
+            $this->addError('danger', 'es.error.invalid_date', ['%date%' => $values[0]]);
+
+            return null;
+        }
 
         // join expressions with OR
         $expr = (1 == \count($exprs))

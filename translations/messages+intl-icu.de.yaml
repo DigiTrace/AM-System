@@ -480,12 +480,15 @@ es:
       active: *CASE_ACTIVE
     
     error:
-      secrecy:
-        invalid: 'Ungültgie Vertraulichkeitsstufe: {secrecy}'
+      invalid_secrecy: 'Ungültgie Vertraulichkeitsstufe: "{secrecy}"'
         
   error:
-    unknown_tag: 'Unbekanntes Suchkriterium: {tag}'
-
+    unknown_tag: 'Unbekanntes Suchkriterium: "{tag}"'
+    empty_query: 'Leere Anfrage'
+    invalid_date: 'Ungültiges Datumsformat: "{date}"'
+    empty_segment: 'Leerer Suchterm: "{segment}"'
+    invalid_segment: 'Ungültiger Suchterm: "{segment}"'
+    
   form:
     add_query: 'Weiteren Suchterm hinufügen'
     drive_section: 'Datenträgereigenschaften'

@@ -43,7 +43,7 @@ class ExtendedCaseSearch extends ExtendedSearch
             'desc', 'd', 'description', 'beschreibung'                                => $this->descriptionQuery($data['neg'], $data['val']),
             'a', 'active', 'aktiv', 'caseactive', 'fall_aktiv'                        => $this->activeQuery($data['neg'], $data['val']),
             'o', 'b', 'open', 'begin', 'casebegin', 'offen', 'openedOn', 'date'  => $this->openedOnQuery($data['neg'], $data['val']),
-            default => $this->addError('danger', 'es.error.unknown_tag', ['tag' => $key]) && false,
+            default => $this->addError('danger', 'es.error.unknown_tag', ['%tag%' => $key]) && false,
         };
     }
 
@@ -78,7 +78,7 @@ class ExtendedCaseSearch extends ExtendedSearch
 
         foreach ($values as $key => $c) {
             if (!\in_array($c, $cases)) {
-                $this->addError('danger', 'es.case.error.secrecy.invalid', ['secrecy' => $c]);
+                $this->addError('danger', 'es.case.error.invalid_secrecy', ['%secrecy%' => $c]);
                 return null;
             }
         }
