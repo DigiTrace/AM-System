@@ -4,9 +4,18 @@ asset:
       error:
         duplicate: 'Objekt mit Barcode existiert bereits'
 
+  action:
+    usage_required: 'Bitte gebe eine aktualisierte Beschreibung der Verwendung des Objekts an.'
+
   barcode:
     format: 'Das Barcodeformat muss "DT(AS|HD|HW|AK)XXXXX" lauten'
 
+  edit:
+    no_changes_made: 'Keine Veränderungen am Objekt gemacht'
+
+  case:
+    case_null: 'Kein Fall angegeben'
+    assigned_to_other_case: 'Objekt ist bereits einem anderen Fall zugewiesen'
 
   state:
     cleaned:
@@ -19,8 +28,13 @@ asset:
       still_stored: 'Objekt ist noch in einem (anderen) Behälter gelagert'
     added_to_case:
       still_assigned: 'Objekt ist bereits einem Fall zugewiesen'
+      
   location:
     cyclic_reference: 'Zyklische referenz, das Objekt lagert bereits den Zielcontainer'
+    target_null: 'Kein Behälter angegeben'
+    target_not_storage: 'Objekt ist kein Behälter'
+    target_not_editable: 'Zielobjekt ist nicht editierbar'
+    same_location: 'Ziel ist Objekt selbst'
 
 case:
   error:    
