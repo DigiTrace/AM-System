@@ -20,7 +20,7 @@ class Store extends BaseAction
     protected bool $usageRequired = true;
     protected ?State $newState = State::StoredInContainer;
 
-    protected function doAction(Asset $asset, $data): array
+    public function action(Asset $asset, $data): ?array
     {
         // check that new location is not old location
         $old = $asset->getLocation();
@@ -39,7 +39,7 @@ class Store extends BaseAction
 
         $asset->setLocation($data['location']);
 
-        return [];
+        return parent::action($asset, $data);
     }
 
     public function buildForm(FormBuilderInterface $builder, array $options): void

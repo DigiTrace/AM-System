@@ -3,28 +3,33 @@
 namespace App\Action\Asset;
 
 use App\Entity\Asset;
-use App\Enum\AssetState as State;
+use App\Enum\AssetCategory;
+use Symfony\Component\Validator\Constraints\EqualTo;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 /**
  * @author Ben Brooksnieder
  */
-class Neutralize extends BaseAction
+class Neutralize extends CompositeAction
 {
     protected string $name = 'asset.actions.neutralize';
-
-    protected bool $isSystemAction = true;
     protected bool $confirmationRequired = false;
-    protected bool $usageRequired = true;
-    protected ?State $newState = State::Cleaned;
+    protected bool $usageRequired = false;
     protected array $messages = [
         ['info', 'asset.action.neutralize.info'],
     ];
 
-    protected function doAction(Asset $asset, $data): array
+    protected function getCompounds(): array
     {
-        $asset->setCase(null);
-        $asset->setLocation(null);
+        return [
+            UnassignCase::class,
+            PullOutOfContainer::class,
+            Clean::class,
+        ];
+    }
 
-        return [];
+    public function preValidation(ValidatorInterface $validator, Asset $asset)
+    {
+        return $validator->validate($asset->getCategory(), new EqualTo(AssetCategory::Hdd));
     }
 }

@@ -20,6 +20,7 @@ asset:
   state:
     cleaned:
       not_hdd: 'Objekt ist kein Datenträger'
+      empty: 'Datenträger speichert keine Festplattenimages'
     uneditable: 'Objekt ist nicht editierbar'
     same_state: 'Objekt hat bereits diesen Status'
     removed_from_case:

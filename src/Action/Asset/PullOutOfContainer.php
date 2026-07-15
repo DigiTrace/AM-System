@@ -19,10 +19,14 @@ class PullOutOfContainer extends BaseAction
         ['info', 'asset.action.remove_container.info'],
     ];
 
-    protected function doAction(Asset $asset, $data): array
+    public function action(Asset $asset, $data): ?array
     {
+        if ($asset->getLocation() === null) {
+            return null;
+        }
+        
         $asset->setLocation(null);
 
-        return [];
+        return parent::action($asset, $data);
     }
 }

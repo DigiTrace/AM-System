@@ -16,10 +16,14 @@ class UnbindReservation extends BaseAction
     protected bool $usageRequired = false;
     protected ?State $newState = State::UnbindReservation;
 
-    protected function doAction(Asset $asset, $data): array
+    public function action(Asset $asset, $data): ?array
     {
+        if (null === $asset->getReservedBy()) {
+            return null;
+        }
+
         $asset->setReservedBy(null);
 
-        return [];
+        return parent::action($asset, $data);
     }
 }

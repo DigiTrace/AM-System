@@ -16,10 +16,14 @@ class Clean extends BaseAction
     protected bool $usageRequired = false;
     protected ?State $newState = State::Cleaned;
 
-    protected function doAction(Asset $asset, $data): array
+    public function action(Asset $asset, $data): ?array
     {
+        if ($asset->getImages()->isEmpty()) {
+            return null;
+        }
+
         $asset->flushImages();
 
-        return [];
+        return parent::action($asset, $data);
     }
 }

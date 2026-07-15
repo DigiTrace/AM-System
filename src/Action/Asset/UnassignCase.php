@@ -19,10 +19,14 @@ class UnassignCase extends BaseAction
         ['info', 'asset.action.unassing_case.info'],
     ];
 
-    protected function doAction(Asset $asset, $data): array
+    public function action(Asset $asset, $data): ?array
     {
+        if (null === $asset->getCase()) {
+            return null;
+        }
+
         $asset->setCase(null);
 
-        return [];
+        return parent::action($asset, $data);
     }
 }

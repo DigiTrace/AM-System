@@ -5,7 +5,6 @@ namespace App\Action\Asset;
 use App\Entity\Asset;
 use App\Enum\AssetState as State;
 use Symfony\Component\Form\FormBuilderInterface;
-use Symfony\Component\Validator\Constraint;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 /**
@@ -26,16 +25,12 @@ interface ActionInterface
     public function preValidation(ValidatorInterface $validator, Asset $asset);
 
     /**
-     * Get constraints to be validated after action.
-     *
-     * @return Constraint[]
-     */
-    public function getConstraints(): array;
-
-    public function action(Asset $asset, $data): array;
-
-    /**
      * Callback used to modify forms.
      */
     public function buildForm(FormBuilderInterface $builder, array $options): void;
+
+    /**
+     * @return \Iterator<BaseAction>
+     */
+    public function getActions(): \Iterator;
 }

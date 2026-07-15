@@ -91,6 +91,7 @@ final class AssetFactory extends PersistentProxyObjectFactory
             'lastUpdatedOn' => self::faker()->dateTime(),
             'lastUpdatePerformedOn' => self::faker()->dateTime(),
             'storageOverride' => null,
+            'systemAction' => false,
         ];
 
         return $defaults;

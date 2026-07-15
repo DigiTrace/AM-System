@@ -59,24 +59,53 @@ class AssetActionManager
         $violations = [];
 
         foreach ($assets as $asset) {
-            // create history and apply changes
-            $history = AssetHistory::fromAsset($asset);
-            $res = $action->action($asset, $data);
+            
+            // iterate over all compound actions
+            $toPersists = [];
+            $skip = false;
 
-            if (!empty($res)) {
-                $violations[$asset->getBarcode()] = new ConstraintViolationList($res);
-                continue;
+            foreach ($action->getActions() as $single) {
+                // create history and apply changes
+                $history = AssetHistory::fromAsset($asset);
+                $result = $single->action($asset, $data);
+
+                // if result is null, skip action
+                if ($result === null) {
+                    continue;
+                }
+
+                // set system action to true (unset if necessary later)
+                $asset->setSystemAction(true);
+
+                // if result is set with violations, skip asset
+                if (!empty($result)) {
+                    $violations[$asset->getBarcode()] = new ConstraintViolationList($result);
+                    $skip = true;
+                    break;
+                }
+
+                // finally validate modified asset
+                $errors = $this->validator->validate($asset, $single->getConstraints());
+                if ($errors->count() > 0) {
+                    $violations[$asset->getBarcode()] = $errors;
+                    $skip = true;
+                    break;
+                }
+
+                $toPersists[] = $history;
             }
 
-            // finally validate modified asset
-            $errors = $this->validator->validate($asset, $action->getConstraints());
-            if ($errors->count() > 0) {
-                $violations[$asset->getBarcode()] = $errors;
+            if ($skip) {
                 continue;
             }
-
+             
+            // persist all history and assets
+            foreach($toPersists as $history) {
+                $this->entityManager->persist($history);
+            }
+            // last action is not system action
+            $asset->setSystemAction(false);
             $this->entityManager->persist($asset);
-            $this->entityManager->persist($history);
 
             if ($asset->isDrive()) {
                 $this->entityManager->persist($asset->getDrive());

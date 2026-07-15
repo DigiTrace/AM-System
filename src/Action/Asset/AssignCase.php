@@ -19,10 +19,11 @@ class AssignCase extends BaseAction
     protected bool $usageRequired = true;
     protected ?State $newState = State::AssignedCase;
 
-    protected function doAction(Asset $asset, $data): array
+    public function action(Asset $asset, $data): ?array
     {
         $asset->setCase($data['case']);
-        return [];
+
+        return parent::action($asset, $data);
     }
 
     public function buildForm(FormBuilderInterface $builder, array $options): void

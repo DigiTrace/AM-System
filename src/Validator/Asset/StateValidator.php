@@ -67,6 +67,10 @@ class StateValidator extends ConstraintValidator
                     $this->context->buildViolation('asset.state.cleaned.not_hdd')
                     ->addViolation();
                 }
+                else if ($asset->getImages()->isEmpty()) {
+                    $this->context->buildViolation('asset.state.cleaned.empty')
+                    ->addViolation();
+                }
                 break;
             case AssetState::Reserved:
                 if ($asset->getReservedBy()) {

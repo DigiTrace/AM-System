@@ -25,12 +25,12 @@ class Edit extends BaseAction
         ['info', 'asset.edit.info'], #TODO revise
     ];
 
-    protected function doAction(Asset $asset, $data): array
+    public function action(Asset $asset, $data): ?array
     {
         $asset->setName($data['name']);
         $asset->setNote($data['note']);
 
-        return [];
+        return parent::action($asset, $data);
     }
 
     public function buildForm(FormBuilderInterface $builder, array $options): void

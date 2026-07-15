@@ -20,6 +20,7 @@ asset:
   state:
     cleaned:
       not_hdd: 'Asset is not a drive'
+      empty: 'Asset does not store any images'
     uneditable: 'Asset is not editable'
     same_state: 'Asset is already in this state'
     removed_from_case:

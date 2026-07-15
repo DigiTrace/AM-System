@@ -4,6 +4,8 @@ namespace App\Action\Asset;
 
 use App\Entity\Asset;
 use App\Enum\AssetState as State;
+use ArrayIterator;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
@@ -15,14 +17,10 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
 abstract class BaseAction implements ActionInterface
 {
     protected string $name;
-    protected bool $isSystemAction;
     protected bool $confirmationRequired;
     protected bool $usageRequired;
     protected ?State $newState;
     protected array $messages = [];
-    protected ?array $selector = null;
-
-    protected array $constraints = [];
 
     public function getName(): string
     {
@@ -64,7 +62,7 @@ abstract class BaseAction implements ActionInterface
         return [];
     }
 
-    final public function action(Asset $asset, $data): array
+    public function action(Asset $asset, $data): ?array
     {
         $time = new \DateTime();
 
@@ -73,25 +71,21 @@ abstract class BaseAction implements ActionInterface
         }
 
         $asset->setState($this->newState);
-        $asset->setSystemAction($this->isSystemAction);
         $asset->setModifiedBy($data['user']);
         $asset->setLastUpdatedOn($time);
         $asset->setLastUpdatePerformedOn($data['lastUpdatePerformedOn']);
 
-        return $this->doAction($asset, $data);
-    }
-
-
-    protected function doAction(Asset $asset, $data): array
-    {
         return [];
     }
-
 
     /**
      * Callback used to modify forms.
      */
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
+    }
+
+    public function getActions(): \Iterator {
+        return new ArrayIterator([$this]);
     }
 }

@@ -21,11 +21,11 @@ class SaveHddImage extends BaseAction
     protected bool $usageRequired = true;
     protected ?State $newState = State::SavedImage;
 
-    protected function doAction(Asset $asset, $data): array
+    public function action(Asset $asset, $data): ?array
     {
         $asset->addHdd($data['image_target']);
 
-        return [];
+        return parent::action($asset, $data);
     }
 
     public function buildForm(FormBuilderInterface $builder, array $options): void

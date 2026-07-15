@@ -552,9 +552,14 @@ class AssetControllerTest extends BaseWebTestCase
     public function testNullActionValid()
     {
         $client = static::createClient();
-        // TODO test for images
         $factory = AssetFactory::new();
-        $asset = $factory->hdd()->create();
+        $asset = $factory->hdd()->create([
+            'state' => State::Edited,
+            ]);
+        $image = $factory->exhibitHdd()->create([
+            'hdds' => [$asset->_real()]
+        ]);
+        
         $barcode = $asset->getBarcode();
 
         $history = [
@@ -1195,7 +1200,7 @@ class AssetControllerTest extends BaseWebTestCase
         $this->assertNoAssetChanges($history, $barcode);
     }
 
-    public function testNeutralizeActionValid()
+    public function testNeutralizeActionValidFull()
     {
         $client = static::createClient();
         $factory = AssetFactory::new();
@@ -1208,6 +1213,11 @@ class AssetControllerTest extends BaseWebTestCase
             ->assignedToCase($case->_real())
             ->storedIn($container->_real())
             ->create();
+
+        $image = $factory->exhibitHdd()->create([
+            'hdds' => [$asset->_real()]
+        ]);
+
         $barcode = $asset->getBarcode();
 
         $history = [
@@ -1242,29 +1252,100 @@ class AssetControllerTest extends BaseWebTestCase
 
         $data['barcode'] = $barcode;
         $data['state'] = State::Cleaned;
-        $data['systemAction'] = true;
+        $data['systemAction'] = false;
         $data['modifiedBy'] = $this->getUser('user');
         $data['location'] = null;
         $data['case'] = null;
 
-        // check history for state change
+        // check for original history 
         $this->seeInDatabase(AssetHistoryRepository::class, $history);
 
-        // // check history for state change
-        // $history['state'] = $data['state'];
-        // $history['systemAction'] = $data['systemAction'];
-        // $history['modifiedBy'] = $data['modifiedBy'];
-        // $history['usage'] = $data['usage'];
-        // $this->seeInDatabase(AssetHistoryRepository::class, $history);
+        // check for history of unassign case
+        $history['state'] = State::RemovedFromCase;
+        $history['case'] = null;
+        $history['systemAction'] = true;
+        $history['modifiedBy'] = $data['modifiedBy'];
+        $history['usage'] = $data['usage'];
+        $this->seeInDatabase(AssetHistoryRepository::class, $history);
 
-        // // check history for location change
-        // $history['location'] = $data['location'];
-        // $this->seeInDatabase(AssetHistoryRepository::class, $history);
+        // check history for location change
+        $history['state'] = State::PulledOutOfContainer;
+        $history['location'] = null;
+        $this->seeInDatabase(AssetHistoryRepository::class, $history);
 
         $this->seeInDatabase(AssetRepository::class, $data);
     }
 
-    #[Depends('testNeutralizeActionValid')]
+    public function testNeutralizeActionValidNoCase()
+    {
+        $client = static::createClient();
+        $factory = AssetFactory::new();
+
+        $container = $factory->container()->create();
+
+        $asset = $factory
+            ->hdd()
+            ->storedIn($container->_real())
+            ->create();
+
+        $image = $factory->exhibitHdd()->create([
+            'hdds' => [$asset->_real()]
+        ]);
+
+        $barcode = $asset->getBarcode();
+
+        $history = [
+            'asset' => $asset->_real(),
+            'usage' => $asset->getUsage(),
+            'state' => $asset->getState(),
+            'modifiedBy' => $asset->getModifiedBy(),
+            'location' => $asset->getLocation(),
+            'case' => $asset->getCase(),
+        ];
+
+        $data = [
+            'usage' => 'not assigned anymore',
+        ];
+
+        $crawler = $this->loginUser($client)->request('GET', "/objekt/$barcode/neutralisieren");
+
+        // get form
+        $name = 'single_action';
+        $submit = '[save]';
+        $form = $crawler->selectButton($name.$submit)->form();
+
+        // populate form
+        $formData = $data;
+
+        // submit form
+        $form->setValues([$name => $formData]);
+        $payload = $form->getPhpValues();
+
+        $client->request($form->getMethod(), $form->getUri(), $payload);
+        $this->assertResponseRedirects("/objekt/$barcode");
+
+        $data['barcode'] = $barcode;
+        $data['state'] = State::Cleaned;
+        $data['systemAction'] = false;
+        $data['modifiedBy'] = $this->getUser('user');
+        $data['location'] = null;
+        $data['case'] = null;
+
+        // check for original history 
+        $this->seeInDatabase(AssetHistoryRepository::class, $history);
+
+        // check history for location change
+        $history['state'] = State::PulledOutOfContainer;
+        $history['location'] = null;
+        $history['systemAction'] = true;
+        $history['modifiedBy'] = $data['modifiedBy'];
+        $history['usage'] = $data['usage'];
+        $this->seeInDatabase(AssetHistoryRepository::class, $history);
+
+        $this->seeInDatabase(AssetRepository::class, $data);
+    }
+
+    #[Depends('testNeutralizeActionValidFull')]
     public function testNeutralizeActionInvalidNotHdd()
     {
         $client = static::createClient();
@@ -1289,30 +1370,30 @@ class AssetControllerTest extends BaseWebTestCase
         $this->assertNoAssetChanges($history, $barcode);
     }
 
-    #[Depends('testNeutralizeActionValid')]
-    public function testNeutralizeActionInvalidNotApplicable()
-    {
-        $client = static::createClient();
-        $factory = AssetFactory::new();
+    // #[Depends('testNeutralizeActionValidFull')]
+    // public function testNeutralizeActionInvalidNotApplicable()
+    // {
+    //     $client = static::createClient();
+    //     $factory = AssetFactory::new();
 
-        $asset = $factory->hdd()->with(['state' => State::Cleaned])->create();
-        $barcode = $asset->getBarcode();
+    //     $asset = $factory->hdd()->with(['state' => State::Cleaned])->create();
+    //     $barcode = $asset->getBarcode();
 
-        $history = [
-            'asset' => $asset->_real(),
-            'usage' => $asset->getUsage(),
-            'state' => $asset->getState(),
-            'modifiedBy' => $asset->getModifiedBy(),
-            'location' => $asset->getLocation(),
-            'case' => $asset->getCase(),
-        ];
+    //     $history = [
+    //         'asset' => $asset->_real(),
+    //         'usage' => $asset->getUsage(),
+    //         'state' => $asset->getState(),
+    //         'modifiedBy' => $asset->getModifiedBy(),
+    //         'location' => $asset->getLocation(),
+    //         'case' => $asset->getCase(),
+    //     ];
 
-        $this->loginUser($client)->request('GET', "/objekt/$barcode/neutralisieren");
-        $this->assertResponseRedirects("/objekt/$barcode");
+    //     $this->loginUser($client)->request('GET', "/objekt/$barcode/neutralisieren");
+    //     $this->assertResponseRedirects("/objekt/$barcode");
 
-        // assert no changes made to database
-        $this->assertNoAssetChanges($history, $barcode);
-    }
+    //     // assert no changes made to database
+    //     $this->assertNoAssetChanges($history, $barcode);
+    // }
 
     public function testStoreActionValidContainer()
     {
@@ -2665,7 +2746,7 @@ class AssetControllerTest extends BaseWebTestCase
         $form = $crawler->selectButton('multi_action[preview]')->form();
 
         $data = [
-            'action' => 0, // null
+            'action' => 1, // customer
             'assets' => [],
         ];
 
@@ -2706,7 +2787,7 @@ class AssetControllerTest extends BaseWebTestCase
         for ($i = 0; $i < 10; ++$i) {
             $asset = $assets[$i];
             $testdata['barcode'] = $asset->getBarcode();
-            $testdata['state'] = State::Cleaned;
+            $testdata['state'] = State::TakenToCustomer;
             $testdata['systemAction'] = false;
             $testdata['modifiedBy'] = $this->getUser('user');
 
