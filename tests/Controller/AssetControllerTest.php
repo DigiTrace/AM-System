@@ -1364,6 +1364,118 @@ class AssetControllerTest extends BaseWebTestCase
         $this->seeInDatabase(AssetRepository::class, $data);
     }
 
+    #[Depends('testStoreActionValidContainer')]
+    public function testStoreActionRelocateDifferentState()
+    {
+        $client = static::createClient();
+        $factory = AssetFactory::new();
+
+        $original_container = $factory->container()->create();
+        $container = $factory->container()->create();
+        $asset = $factory->create([
+            'state' => State::Edited,
+            'usage' => 'Stored in original container',
+            'location' => $original_container->_real(),
+        ]);
+        $barcode = $asset->getBarcode();
+
+        $history = [
+            'asset' => $asset->_real(),
+            'usage' => $asset->getUsage(),
+            'state' => $asset->getState(),
+            'modifiedBy' => $asset->getModifiedBy(),
+            'location' => $asset->getLocation(),
+        ];
+
+        $data = [
+            'usage' => 'test',
+        ];
+
+        $crawler = $this->loginUser($client)->request('GET', "/objekt/$barcode/einlegen/in/");
+
+        // get form
+        $name = 'single_action';
+        $submit = '[save]';
+        $form = $crawler->selectButton($name.$submit)->form();
+
+        // populate form
+        $formData = $data;
+
+        // submit form
+        $form->setValues([$name => $formData]);
+        $payload = $form->getPhpValues();
+        $payload[$name]['location']['item'] = $container->getBarcode();
+
+        $client->request($form->getMethod(), $form->getUri(), $payload);
+        $this->assertResponseRedirects("/objekt/$barcode");
+
+        $data['barcode'] = $barcode;
+        $data['state'] = State::StoredInContainer;
+        $data['systemAction'] = false;
+        $data['modifiedBy'] = $this->getUser('user');
+        $data['location'] = $container->_real();
+
+        // assert correct database changes
+        $this->seeInDatabase(AssetHistoryRepository::class, $history);
+        $this->seeInDatabase(AssetRepository::class, $data);
+    }
+
+    #[Depends('testStoreActionRelocateDifferentState')]
+    public function testStoreActionRelocateSameState()
+    {
+        $client = static::createClient();
+        $factory = AssetFactory::new();
+
+        $original_container = $factory->container()->create();
+        $container = $factory->container()->create();
+        $asset = $factory->create([
+            'state' => State::StoredInContainer,
+            'usage' => 'Stored in original container',
+            'location' => $original_container->_real(),
+        ]);
+        $barcode = $asset->getBarcode();
+
+        $history = [
+            'asset' => $asset->_real(),
+            'usage' => $asset->getUsage(),
+            'state' => $asset->getState(),
+            'modifiedBy' => $asset->getModifiedBy(),
+            'location' => $asset->getLocation(),
+        ];
+
+        $data = [
+            'usage' => 'test',
+        ];
+
+        $crawler = $this->loginUser($client)->request('GET', "/objekt/$barcode/einlegen/in/");
+
+        // get form
+        $name = 'single_action';
+        $submit = '[save]';
+        $form = $crawler->selectButton($name.$submit)->form();
+
+        // populate form
+        $formData = $data;
+
+        // submit form
+        $form->setValues([$name => $formData]);
+        $payload = $form->getPhpValues();
+        $payload[$name]['location']['item'] = $container->getBarcode();
+
+        $client->request($form->getMethod(), $form->getUri(), $payload);
+        $this->assertResponseRedirects("/objekt/$barcode");
+
+        $data['barcode'] = $barcode;
+        $data['state'] = State::StoredInContainer;
+        $data['systemAction'] = false;
+        $data['modifiedBy'] = $this->getUser('user');
+        $data['location'] = $container->_real();
+
+        // assert correct database changes
+        $this->seeInDatabase(AssetHistoryRepository::class, $history);
+        $this->seeInDatabase(AssetRepository::class, $data);
+    }
+
     public function testStoreActionValidStorageOverride()
     {
         $client = static::createClient();

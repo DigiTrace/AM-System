@@ -75,10 +75,11 @@ class StateValidator extends ConstraintValidator
                 }
                 break;
             case AssetState::StoredInContainer:
-                if ($asset->getLocation()) {
-                    $this->context->buildViolation('asset.state.stored_in_container.still_stored')
-                    ->addViolation();
-                }
+                // allow relocating of asset
+                // if ($asset->getLocation()) {
+                //     $this->context->buildViolation('asset.state.stored_in_container.still_stored')
+                //     ->addViolation();
+                // }
                 break;
             case AssetState::PulledOutOfContainer:
                 if (!$asset->getLocation()) {

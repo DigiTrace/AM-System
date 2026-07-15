@@ -531,7 +531,7 @@
                 
         {% if asset.getCategory == AssetCategory.Hdd or
               asset.getCategory == AssetCategory.ExhibitHdd  %}
-            <a href='{{ path("save_image_on_drive_asset",{id:id})}}'> <span class="glyphicon glyphicon-import"></span> {{ 'asset.actions.add_image' | trans }}</a><br>
+            <a href='{{ path("save_image_on_drive_asset",{id:id})}}'> <span class="glyphicon glyphicon-import"></span> {{ 'asset.actions.save_hdd_image' | trans }}</a><br>
         {% endif %}
                 
         
