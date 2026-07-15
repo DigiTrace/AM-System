@@ -451,7 +451,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                    {% for history in asset.getHistories %}
+                    {% for history in asset.getHistories|reverse %}
                         
                         <tr {{ history.isSystemAction ? 'class="active"' : ''}}>
                             <td>{{ history.getLastUpdatePerformedOn | date('d.m.y H:i')}}</td>
