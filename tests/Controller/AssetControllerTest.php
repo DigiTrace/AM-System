@@ -1476,6 +1476,56 @@ class AssetControllerTest extends BaseWebTestCase
         $this->seeInDatabase(AssetRepository::class, $data);
     }
 
+    #[Depends('testStoreActionRelocateSameState')]
+    public function testStoreActionRelocateInvalidSameContainer()
+    {
+        $client = static::createClient();
+        $factory = AssetFactory::new();
+
+        $original_container = $factory->container()->create();
+        $asset = $factory->create([
+            'state' => State::StoredInContainer,
+            'usage' => 'Stored in original container',
+            'location' => $original_container->_real(),
+        ]);
+        $barcode = $asset->getBarcode();
+
+        $history = [
+            'asset' => $asset->_real(),
+            'usage' => $asset->getUsage(),
+            'state' => $asset->getState(),
+            'modifiedBy' => $asset->getModifiedBy(),
+            'location' => $asset->getLocation(),
+        ];
+
+        $data = [
+            'usage' => 'test',
+        ];
+
+        $crawler = $this->loginUser($client)->request('GET', "/objekt/$barcode/einlegen/in/");
+
+        // get form
+        $name = 'single_action';
+        $submit = '[save]';
+        $form = $crawler->selectButton($name.$submit)->form();
+
+        // populate form
+        $formData = $data;
+
+        // submit form
+        $form->setValues([$name => $formData]);
+        $payload = $form->getPhpValues();
+        $payload[$name]['location']['item'] = $original_container->getBarcode();
+
+        $client->request($form->getMethod(), $form->getUri(), $payload);
+        
+        $this->assertResponseIsSuccessful();
+        // alert symbol from validation errors
+        $this->assertSelectorExists('.alert-danger');
+        // assert no changes made to database
+        $this->assertNoAssetChanges($history, $barcode);
+    }
+
     public function testStoreActionValidStorageOverride()
     {
         $client = static::createClient();

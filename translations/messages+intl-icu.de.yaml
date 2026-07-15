@@ -279,6 +279,9 @@ asset:
       info: "Das sollte nicht passieren, wir sind Profis!"
       warning: 'Wenn ein Objekt als zerstört oder verloren deklariert ist, kann es anschließend nicht mehr modifiziert werden..'
 
+    store:
+      same_container: 'Objekt ist bereits in diesem Behälter'
+
     remove_container:
       info: 'Bitte notiere, warum das Objekt aus dem Behälter geholt werden soll'
 

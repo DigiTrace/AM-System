@@ -8,6 +8,7 @@ use App\Entity\AssetHistory;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
+use Symfony\Component\Validator\ConstraintViolationList;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 /**
@@ -63,7 +64,7 @@ class AssetActionManager
             $res = $action->performAction($asset, $data);
 
             if (!empty($res)) {
-                $violations[$asset->getBarcode()] = $res;
+                $violations[$asset->getBarcode()] = new ConstraintViolationList($res);
                 continue;
             }
 

@@ -278,6 +278,9 @@ asset:
       info: "This isn't suppose to happen, we are professionals!"
       warning: 'When an asset has been declared as destroyed or lost, it cant be altered afterwards.'
 
+    store:
+      same_container: 'Asset is already stored in container'
+
     remove_container:
       info: 'Please state, why you want to pull the asset out of the container'
 

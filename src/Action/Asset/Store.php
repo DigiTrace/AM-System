@@ -6,6 +6,7 @@ use App\Entity\Asset;
 use App\Enum\AssetState as State;
 use App\Form\Asset\StorageType;
 use Symfony\Component\Form\FormBuilderInterface;
+use Symfony\Component\Validator\ConstraintViolation;
 
 /**
  * @author Ben Brooksnieder
@@ -21,6 +22,21 @@ class Store extends AssetAction
 
     protected function action(Asset $asset, $data): array
     {
+        // check that new location is not old location
+        $old = $asset->getLocation();
+        $new = $data['location'];
+
+        if (null != $old && $old->getBarcode() == $new->getBarcode()) {
+            return [new ConstraintViolation(
+                'asset.action.store.same_container',
+                'asset.action.store.same_container',
+                [],
+                $asset,
+                'location',
+                $old->getBarcode(),
+            )];
+        }
+
         $asset->setLocation($data['location']);
 
         return [];
