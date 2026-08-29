@@ -1,1826 +1,969 @@
 <?php
-   // AM-System
-   // Copyright (C) 2019 Robert Krasowski
-   // This program was created during an internship at DigiTrace GmbH
-   // Read LIZENZ.txt for full notice
-
-   // This program is free software: you can redistribute it and/or modify
-   // it under the terms of the GNU General Public License as published by
-   // the Free Software Foundation, either version 3 of the License, or
-   // (at your option) any later version.
-
-   // This program is distributed in the hope that it will be useful,
-   // but WITHOUT ANY WARRANTY; without even the implied warranty of
-   // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-   // GNU General Public License for more details.
-
-   // You should have received a copy of the GNU General Public License
-   // along with this program.  If not, see <http://www.gnu.org/licenses/>.
-   
 
 namespace App\Controller;
 
-//use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
-use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\Request;
+use App\Action\Asset as Actions;
+use App\Action\Asset\ActionInterface;
+use App\Entity\Asset;
+use App\Entity\AssetHistory;
+use App\Enum\AssetCategory as Category;
+use App\Enum\AssetState as State;
+use App\Form\Asset\AddType;
+use App\Form\Asset\MultiActionType;
+use App\Form\Asset\SingleActionType;
+use App\Form\Asset\UploadPictureType;
+use App\Form\Type\EntitySearchType;
+use App\Repository\AssetRepository;
+use App\Service\AssetActionManager;
+use App\Service\ExtendedAssetSearch;
+use App\Service\ExtendedCaseSearch;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\ORM\EntityManagerInterface;
+use Knp\Component\Pager\PaginatorInterface;
+use Symfony\Component\Finder\Finder;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
-use Symfony\Component\Form\Extension\Core\Type\SubmitType;
-use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
-use Symfony\Component\Form\Extension\Core\Type\DateTimeType;
-use Symfony\Component\Form\Extension\Core\Type\TextareaType;
-use Symfony\Component\Form\Extension\Core\Type\FileType;
-use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
-use Symfony\Component\Form\Extension\Core\Type\CollectionType;
-use Symfony\Component\Form\Extension\Core\Type\RadioType;
-use Symfony\Component\Form\Extension\Core\Type\IntegerType;
-use Symfony\Component\Form\Extension\Core\Type\SearchTypeType;
-use App\Form\Type\ActionChooseType;
-use App\Form\Type\AddObjectType;
-use Symfony\Component\HttpFoundation\File\File;
-use App\Entity\Objekt;
-use App\Entity\Fall;
-use App\Entity\Datentraeger;
-use App\Entity\Nutzer;
-use App\Controller\helper;
-use Symfony\Component\Validator\Constraints\NotBlank;
-use Symfony\Component\Validator\Constraints\GreaterThanOrEqual;
-# zu entfernen
-#use Symfony\Component\HttpFoundation\Session\SessionInterface;
-
-
-
-# neu 
-
+use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Session\SessionInterface;
+use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
-use Doctrine\Persistence\ManagerRegistry;
-use Symfony\Component\HttpFoundation\RequestStack;
 
+/**
+ * Controller for managing assets.
+ *
+ * @author Ben Brooksnieder
+ */
+class AssetController extends BaseController
+{
+    public function __construct(
+        private EntityManagerInterface $entityManager,
+        private TranslatorInterface $translator,
+        private ValidatorInterface $validator,
+    ) {
+    }
 
+    /**
+     * Return list of all assets, with optional search (simple or advanced) applied.
+     */
+    #[Route('/objekte', name: 'search_assets')]
+    public function searchAssets(
+        Request $request,
+        SessionInterface $session,
+        PaginatorInterface $paginator,
+        ExtendedAssetSearch $extendedAssetSearch,
+    ) {
+        $query = null;
+        $search = $request->query->get('suche');
+        $search ??= $request->query->get('search');
 
-class ObjectDetailController extends AbstractController{
-    
-    
-    private $translator;
+        // search form
+        $form = $this->createForm(EntitySearchType::class,
+            [
+                'search' => $search,
+            ], [
+                'limit' => $session->get('limit'),
+                'show_extended_search' => true,
+            ]);
+        $form->handleRequest($request);
 
-    public function __construct(TranslatorInterface $translator)
+        if ($form->isSubmitted()) {
+            $formData = $form->getData();
+            $search = $formData['search'];
+
+            // allowed values for table sizes
+            $limit = match (\intval($formData['limit'])) {
+                default => 25,
+                50 => 50,
+                100 => 100,
+                1000 => 1000,
+            };
+
+            // update session search limit
+            $session->set('limit', $limit);
+        }
+
+        // apply extended asset search to create query
+        if ($search) {
+            $query = $extendedAssetSearch->generateSearchQuery($search);
+            foreach ($extendedAssetSearch->getErrors() as $err) {
+                $this->addFlash($err['type'], $err['message']);
+            }
+        }
+
+        // no search query or parse error, apply default asset listing
+        if (null === $query) {
+            $repo = $this->entityManager->getRepository(Asset::class);
+            $builder = $repo->createQueryBuilder('asset');
+            $builder->select('PARTIAL asset.{barcode, category, state, name}');
+            $query = $builder;
+        }
+
+        // populate paginator
+        $pagination = $paginator->paginate(
+            $query, // query
+            $request->query->getInt('page', 1), // page number
+            $session->get('limit') ?? 25, // limit per page,
+            [
+                'defaultSortFieldName' => 'asset.barcode',
+                'defaultSortDirection' => 'asc',
+            ]
+        );
+
+        // selection form for multiple edits
+        $selectionForm = $this->createForm(MultiActionType::class, [], [
+            'method' => 'POST',
+            'action' => $this->generateUrl('asset_multi_edit'),
+            'preview' => true,
+        ],
+        );
+
+        // render object table
+        return $this->render('assets/search.html.twig', [
+            'search' => $form->createView(),
+            'selection' => $selectionForm->createView(),
+            'eas_categories' => Category::cases(),
+            'eas_states' => State::cases(),
+            'pagination' => $pagination,
+        ]);
+    }
+
+    /**
+     * Edit multiple assets at once. Might be invoked by asset overview page.
+     */
+    #[Route('objekte/aendern', name: 'asset_multi_edit')]
+    public function multiAction(
+        Request $request,
+        AssetActionManager $manager,
+    ) {
+        // populate form and handle request
+        $form = $this->createForm(MultiActionType::class, [], []);
+        $form->handleRequest($request);
+
+        // show immediate form errors
+        $data = $form->getData();
+        foreach ($form->getErrors() as $error) {
+            $this->addFlash('danger', $error->getMessage());
+        }
+
+        // pre validate assets to verify that it is legitimate action
+        $violations = [];
+        if (!empty($data['assets']) && !empty($data['action'])) {
+            $violations = $manager->isValidAction($data['assets'], $data['action']);
+        }
+
+        // check if form is valid and submitted by save button (not preview)
+        if ($form->get('save')->isClicked()
+           && $form->isSubmitted()
+           && 0 == $form->getErrors()->count()
+           && empty($violations)) {
+            // perform action on multiple assets
+            $violations = $manager->performAction($data['assets'], $data, $data['action']);
+
+            // action must be valid for all assets
+            if (empty($violations)) {
+                $this->addFlash('success', 'asset.multi_action.success');
+
+                return $this->redirectToRoute('search_assets');
+            }
+
+            // else refresh assets
+            foreach ($data['assets'] as $asset) {
+                $this->entityManager->refresh($asset);
+            }
+        }
+
+        return $this->render('assets/multi_action.html.twig', [
+            'assets' => $data['assets'] ?? [],
+            'violations' => $violations,
+            'form' => $form->createView(),
+        ]);
+    }
+
+    /**
+     * Im Grunde eine Art "API" zum Verwenden des Barcode Scanners
+     * Durch das Scannen des jeweiligen Barcodes soll automatisch zur
+     * Detailansicht des jeweiligen Objektes geführt wird.
+     */
+    #[Route('/objekte-scanner', name: 'scan_assets')]
+    public function assetScanner(Request $request)
     {
-        $this->translator = $translator;
+        $form = $this->createFormBuilder()
+            ->add('search', TextType::class, [
+                'required' => false,
+                'label' => 'asset.scanner.form',
+                'attr' => ['autofocus' => true],
+            ])
+            ->getForm();
+
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            $searchword = trim($form->getData()['search']);
+            if (!empty($searchword)) {
+                $asset = $this->entityManager->getRepository(Asset::class)->find($searchword);
+
+                if ($asset) {
+                    return $this->redirectToRoute('details_asset', ['id' => $asset->getBarcode()]);
+                }
+
+                $this->addFlash('danger', 'asset.error.not_found');
+            }
+        }
+
+        return $this->render('assets/scanner.html.twig', [
+            'form' => $form->createView(),
+        ]);
     }
 
-
-
-
-
-
-
-
-
-    /*
-     * Diese Funktion ueberprueft, ob der uebermittelte Barcode den konventionen
-     * entsprechen, das heißt neunstellig mit vordefinierten woertern.
-     */
-    private function checkBarcode($barcode,$kategorie){
-        
-        $prafix = str_split($barcode,4)[0];
-        
-        if( ($prafix == "DTAS" && ($kategorie == Objekt::KATEGORIE_ASSERVAT || $kategorie == Objekt::KATEGORIE_ASSERVAT_DATENTRAEGER)||
-             $prafix == "DTHD" && $kategorie == Objekt::KATEGORIE_DATENTRAEGER||
-             $prafix == "DTHW" && ($kategorie == Objekt::KATEGORIE_AUSRUESTUNG || $kategorie == Objekt::KATEGORIE_BEHAELTER) || 
-             $prafix == "DTAK" && $kategorie == Objekt::KATEGORIE_AKTE) 
-            && strlen($barcode) == 9){
-            return $prafix;
-        }
-        return false;
-    }    
-    
-    
-    
     /**
-     * @Route("/objekt/anlegen", name="add_object")
+     * Show form to add new asset or handle new asset form request.
      */
-    public function add_Object(Request $request,ManagerRegistry $doctrine){
-        
-        $usr= $this->getUser();
-          
-        $new_object = new Objekt();
-        
-     /* 
-      @Assert\Regex(
-          pattern="/DT(AS|HW|AK|HD)\\d{5}$/i",
-          htmlPattern="/DT(AS|HW|AK|HD)\\d{5}$/i",
-      )*/
-        
-        
-        $addform = $this->createForm(AddObjectType::class, 
-                                       null,
-                                       ['entityManager' => $doctrine->getManager()]);
+    #[Route('/objekt/anlegen', name: 'add_asset')]
+    public function add(Request $request)
+    {
+        $form = $this->createForm(AddType::class, null, []);
+        $form->handleRequest($request);
 
-        $addform->handleRequest($request);
+        if ($form->isSubmitted() && $form->isValid()) {
+            /**
+             * @var Asset
+             */
+            $asset = $form->getData();
+            $asset->setState(State::Added); // TODO Not State::Added?
+            $asset->setModifiedBy($this->getUser());
+            $asset->setLastUpdatedOn(new \DateTime());
 
-        
-        if (    $addform->isSubmitted() && 
-                $addform->isValid() ) {
-            
-            $info = $addform->getData();
-            if($this->checkBarcode($info['barcode_id'],$info['kategorie_id'])){
-                $em = $doctrine->getManager();
-                
-                if(($em->getRepository(Objekt::class)->find($addform->getData()['barcode_id'])) == null){
-                   $new_object->setStatus(Objekt::STATUS_EINGETRAGEN);
-                   $new_object->setBarcode($info['barcode_id']);
-                   $new_object->setName($info['name'] ?? '');
-                   $new_object->setVerwendung($info['verwendung']);
-                   $new_object->setNotiz($info['notiz']);
-                   $new_object->setKategorie($info['kategorie_id']);
-                   $new_object->setZeitstempelumsetzung($info['dueDate']);
+            // add as seperate step
+            $case = $asset->getCase();
+            $asset->setCase(null);
 
-                   
-                   $new_object->setNutzer($em->getRepository(Nutzer::class)->findOneBy(array('id' => $usr->getId())));
+            $this->entityManager->persist($asset);
 
-                   $em->persist($new_object);
-                   
-                   
-                   
-                   if($info['case'] != ""){
-                        $this->add_to_case($doctrine,$new_object->getBarcodeId(),$info['case'], $info['dueDate'],"Aufgrund der Eintragung automatisiert hinzugefügt");
-                   }
-                   
-                   
-                   
-                   
-                   if($info['kategorie_id'] == Objekt::KATEGORIE_DATENTRAEGER ||
-                      $info['kategorie_id'] == Objekt::KATEGORIE_ASSERVAT_DATENTRAEGER){
-                       
-                       $new_datentraeger = new Datentraeger($info);
-                       
-                       $em->persist($new_datentraeger);
-                   }
-                   else{
-                       if($info['bauart'] != null     ||
-                          $info['formfaktor'] != null ||
-                          $info['groesse'] != null    ||
-                          $info['hersteller'] != null ||
-                          $info['modell'] != null     ||
-                          $info['sn'] != null         ||
-                          $info['pn'] != null         ||
-                          $info['anschluss'] != null){
-                           
-                            
-                            $this->addFlash('danger','not.valid.object.infos');
-                            
-                            return $this->render('default/add_object_form.html.twig', array(
-                            'addform' => $addform->createView(),
-                            )); 
-                       }
-                   }
-                   
-                   $em->flush();
-
-                   if($addform->get("save")->isClicked() == true){
-                       return $this->redirectToRoute('detail_object',array('id' =>$new_object->getBarcode()) );  
-                   }
-                   elseif($addform->get("saveandaddsimilar")->isClicked() == true){
-                       $this->addFlash('success',$this->translator->trans('object.successfully.saved %object%',array("%object%" => $new_object->getBarcode())));
-                        
-                   }
-                        
-                   else{
-                       $this->addFlash('success',$this->translator->trans('object.successfully.saved %object%',array("%object%" => $new_object->getBarcode())));
-                       $addform = $this->createForm(AddObjectType::class, 
-                                       null,
-                                       ['entityManager' => $doctrine->getManager()]);   
-                   }
-                   
-                }
-                else
-                {
-                    // Wenn der Barcode in der Datenbank bereits verfuegbar ist
-                    $this->addFlash('danger','barcode.already.exists.in.database');
-                }
+            if ($asset->isDrive()) {
+                $this->entityManager->persist($asset->getDrive());
             }
-            else
-            {
-                $this->addFlash('danger','barcode.not.valid');
+
+            // add history entry and assign case
+            if (null !== $case) {
+                $history = AssetHistory::fromAsset($asset);
+                $asset->setCase($case);
+                $asset->setState(State::AssignedCase);
+                $asset->setUsage('Aufgrund der Eintragung automatisiert hinzugefügt');
+                $asset->setLastUpdatedOn(new \DateTime());
+
+                $this->entityManager->persist($history);
+                $this->entityManager->persist($asset);
+            }
+
+            // save to database
+            $this->entityManager->flush();
+            if ($form->get('save')->isClicked()) {
+                return $this->redirectToRoute('details_asset', [
+                    'id' => $asset->getBarcode(),
+                ]);
+            }
+
+            $this->addFlash('success', 'asset.add.form.success');
+            if ($form->get('save_and_new')->isClicked()) {
+                $form = $this->createForm(AddType::class);
+            }
+        } else {
+            foreach ($form->getErrors() as $error) {
+                $this->addFlash('danger', $error->getMessage());
             }
         }
-        if(  $addform->isSubmitted() && $addform->isValid() == false){
-            $this->addFlash('danger','object.is.not.saved');
-        }
-        
-        return $this->render('default/add_object_form.html.twig', array(
-            'addform' => $addform->createView(),
-        )); 
-      } 
-    
-       
-    
-    
-    
-    /**
-     * @Route("/objekte/aendern/", name="select_new_status_for_multiple_objects")
-     */
-    public function select_new_status_for_multiple_objects(Request $request,RequestStack $requeststack, ManagerRegistry $doctrine)
-    {     
-       
-        $chooseform = $this->createForm(ActionChooseType::class, 
-                                        null,
-                                        ['entityManager' => $doctrine->getManager()]);
-        
-        $session=$requeststack->getSession();
 
-        $chooseform->handleRequest($request);
-        if (    $chooseform->isSubmitted() && 
-                $chooseform->isValid() ) {
-            
-            $temp = $chooseform->getData();
-            
-            // if a Objects has to be stored or added to case, this action cant
-            // proceed, if contextthing isnt set
-            if(($temp["newstatus"] == Objekt::STATUS_EINEM_FALL_HINZUGEFUEGT ||
-                $temp["newstatus"] == Objekt::STATUS_IN_EINEM_BEHAELTER_GELEGT) &&
-                $temp["contextthings"] == null){
-                
-                $this->addFlash('danger','selected_action_needs_contextthings');
-            }
-            else{   
-                $session->set("newstatus",$temp["newstatus"]);
-                $session->set("newdescription",$temp["newdescription"]);
-                $session->set("contextthings",$temp["contextthings"]);
-                $session->set("dueDate",$temp["dueDate"]);
-                
-                return $this->redirectToRoute('alter_multiple_objects');
-            }
-            
-        }
-        else{
-            $this->addFlash("info",'action_description_mass_update_part1');
-        }
-        return $this->render('default/select_action.html.twig', array(
-            'chooseform'=> $chooseform->createView(),
-        ));
-        
-    }
-    
-    
-    
-    
-      
-      
-    /**
-     * @Route("/objekte/aendern/in", name="alter_multiple_objects")
-     */
-    public function alter_multiple_objects(Request $request,RequestStack $requeststack,ManagerRegistry $doctrine)
-    {     
-        $session=$requeststack->getSession();
-        $errorIds = "";
-        $errorActionOnObject = "";
-        $builder = $this->createFormBuilder(); 
-        $builder->add('objects', CollectionType::class, array(
-            'entry_type' => TextType::class,
-            'allow_add' => true,
-            'prototype' => true,
-            'entry_options'=> array('label' => false,
-                                    'attr' => array('onkeyup' => 'checklength(this)',
-                                                    'maxlength' => '9',
-                                                    )),
-                                    'required'=> false,
-                                    'label' => 'objects'
-            ));
-        
-         
-        $chooseform = $builder->add('continue',SubmitType::class,array('label' => 'label.do.action'))
-                    ->getForm();
-        
-       
-        $chooseform->handleRequest($request);
-        
-        
-        
-        if (    $chooseform->isSubmitted() && 
-                $chooseform->isValid() &&
-                $session->get("newstatus") != null &&
-                $session->get("newdescription") != null && 
-                $session->get("dueDate") != null ) {
-            $store_object = null;
-            $case = null;
-            
-            $date = $session->get("dueDate");
-            $newstatus = $session->get("newstatus");
-            
-            $ids = $chooseform->getData()['objects'];
-            
-            //Status has to be evaluted, cause relationship has to be validated 
-            if($newstatus == Objekt::STATUS_IN_EINEM_BEHAELTER_GELEGT){
-                $store_object = $doctrine->getRepository(Objekt::class)->find($session->get("contextthings"));
-            }
-            if($newstatus == Objekt::STATUS_EINEM_FALL_HINZUGEFUEGT){
-                $case = $doctrine->getRepository(Fall::class)->find($session->get("contextthings"));  
-            }
-            
-            $objects = [];
-            foreach( $ids as $id){
-                $reason = "";
-                $contextreason =  "";
-                
-                if($id != ""){
-                    $object = $doctrine->getRepository(Objekt::class)->find($id);
-
-                    if($object == null){
-                        $errorIds = $errorIds . $id."\r\n";
-                        continue;
-                    }
-                    // Check if Input has duplicate Objects
-                    if($objects == null){
-                        array_push($objects, $object); 
-                        $toadd = true;
-                    }
-                    else{
-                        $toadd = true;
-                        foreach ($objects as $key => $tempobject){
-
-                            if($object->getBarcode() == 
-                                   $tempobject->getBarcode()){
-                                $toadd = false;
-                            }
-
-
-                            // special case for container, they will be updated 
-                            // via the change of the container
-                            /*if($tempobject->getKategorie() == helper::KATEGORIE_BEHAELTER){
-                                if($this->has_object_relationship_with_store_object($object, $tempobject) == true){
-                                    $toadd = false;
-                                } 
-                            }*/
-                            // reverse case
-                            /*if($object->getKategorie() == helper::KATEGORIE_BEHAELTER){
-                                unset($objects[$key]);
-                            }*/
-                        }
-                        if($toadd  == true){
-                            array_push($objects, $object);
-                        }
-                    }
-
-                    // Check if the Object id valid with the new status
-                    if($toadd == true){
-                        switch($newstatus){
-                            case Objekt::STATUS_IN_EINEM_BEHAELTER_GELEGT:
-                                $contextthing = $doctrine->getRepository(Objekt::class)->find($session->get("contextthings"));
-                                break;
-                            case Objekt::STATUS_EINEM_FALL_HINZUGEFUEGT:
-                                $contextthing = $doctrine->getRepository(Fall::class)->find($session->get("contextthings"));
-                                break;
-                            default:
-                               $contextthing = null; 
-                        }
-                        $action_correct = $object->isObjectWithNewStatusValid($newstatus, 
-                                                                $contextthing,
-                                                                $reason);
-
-                        if($action_correct == false){
-                            $message= $this->translator->trans($reason,array("context" => $contextthing));
-                            $errorActionOnObject = $errorActionOnObject . $id." : ".$message."\r\n";
-                        }
-                    }
-                }
-            }
-            
-            if($errorActionOnObject != ""){
-                $message= $this->translator->trans('objects.action.not.correct %counts%',array("counts" => $errorActionOnObject));
-                $this->addFlash('danger',$message);
-                
-            }
-            if($errorIds != ""){
-                $message= $this->translator->trans('objects.not.found %counts%',array("counts" => $errorIds));
-                $this->addFlash('danger',$message);
-            }
-            
-            
-            if($errorActionOnObject == "" &&
-               $errorIds == ""){
-                
-                
-                foreach($objects as $object){
-                    
-                    switch($newstatus){
-                        case Objekt::STATUS_IN_EINEM_BEHAELTER_GELEGT:
-                            $this->store_object($doctrine,
-                                            $object->getBarcode(), 
-                                            $store_object->getBarcode(), 
-                                            $date, 
-                                            $session->get("newdescription"));
-                            break;
-                        case Objekt::STATUS_EINEM_FALL_HINZUGEFUEGT:
-                            $this->add_to_case( $doctrine,
-                                           $object->getBarcode(), 
-                                           $case->getId(), 
-                                            $date, 
-                                            $session->get("newdescription"));
-                            break;
-                        case Objekt::VSTATUS_NEUTRALISIERT:
-                            
-                            $this->neutralize_object($doctrine,$object,
-                                                     $session->get("newdescription"),
-                                                     $date);
-                            
-                            break;
-                        default :
-                            $this->alter_object($doctrine,
-                                            $object, 
-                                            $newstatus, 
-                                            $session->get("newdescription"), 
-                                            $date);
-                            break;
-                    }
-                    
-                  
-                }
-                
-                
-                 $conn = $doctrine->getConnection();
-
-                // Removed check of new status cause of virtual status
-                $sql = '
-                    SELECT count(barcode_id) as count FROM ams_Objekt
-                    WHERE  UNIX_TIMESTAMP(NOW()) - UNIX_TIMESTAMP(zeitstempel) <= 30';
-                $stmt = $conn->prepare($sql);
-                $result = $stmt->execute();
-                
-                $count = $result->fetchAssociative()["count"];
-                
-                // Clear session for securityreasons
-                $session->remove("newdescription");
-                $session->remove("newstatus");
-                $session->remove("contextthings");
-                $session->remove("dueDate");
-                
-                $message= $this->translator->trans('count.objects.are.changed %counts%',array("counts" => $count));
-                $this->addFlash('success',$message);
-                return $this->redirectToRoute('search_objects');
-                
-            }
-            
-        }
-        else{
-            $this->addFlash("info",$this->translator->trans('action_description_mass_update_part2 %newstatus%',
-                array("newstatus" => $this->translator->trans(array_search($session->get("newstatus"),
-            Objekt::$statusToId)))));
-        }
-        
-        // When the Site is called directly go to search_objects
-        if($session->get("newstatus") == null &&
-                $session->get("contextthings") == null &&
-                $session->get("newdescription") == null){
-                return $this->redirectToRoute('search_objects'); 
-        }
-        
-        return $this->render('default/select_objects_for_selected_action.html.twig', array(
-            'chooseform'=> $chooseform->createView(),
-            'title' => 'update_chosen_objects',
-        ));
-        
+        return $this->render('assets/add.html.twig', [
+            'form' => $form->createView(),
+        ]);
     }
 
-
     /**
-     * Show details page of a specific object.
-     * 
-     * @param Request         $request  Symfony request
-     * @param ManagerRegistry $doctrine Database interface
-     * @param string          $id       DT-ID of object
+     * Show details page of an asset.
+     *
+     * @param Request $request Symfony request
+     * @param string  $id      DT-ID of object
      */
-    #[Route('/objekt/{id}', name: 'detail_object')]
-    public function details_object(Request $request, ManagerRegistry $doctrine, $id)
+    #[Route('/objekt/{id}', name: 'details_asset')]
+    public function details(string $id, Request $request)
     {
         // query database for object
-        $object = $doctrine->getRepository(Objekt::class)->find($id);
-        $datentraeger = $doctrine->getRepository(Datentraeger::class)->find($id);
+        $asset = $this->entityManager->getRepository(Asset::class)->find($id);
 
         // check if object was found
-        if($object == null){
-            $this->addFlash('danger','object_was_not_found');
-            
-            // redirect to overview page
-            return $this->forward('App\Controller\ObjectOverviewController::search_objects', array());
-        }
-        $em = $doctrine->getManager();
+        if (null == $asset) {
+            $this->addFlash('danger', 'asset.error.not_found');
 
-        
-        // query object history
-        $query = $em->createQuery('SELECT o '
-                    . 'FROM App:HistorieObjekt o '
-                    . "WHERE o.barcode_id = :barcode " 
-                    . "ORDER by o.historie_id desc ")
-                    ->setParameter("barcode",$object->getBarcode());  
-        $history_entrys = $query->getResult();
-        
-        $stored_objects = null;
-        // if object is a container, show stored objects
-        if($object->getKategorie() == Objekt::KATEGORIE_BEHAELTER){
-            
-            $query = $em->createQuery('SELECT o '
-                    . 'FROM App:Objekt o '
-                    . 'LEFT JOIN  App:Fall f WITH o.fall_id = f.id '
-                    . 'WHERE o.standort = :barcode '
-                    . 'ORDER BY f.case_id desc, o.barcode_id')
-                    ->setParameter("barcode",$object->getBarcode());  
-            $stored_objects = $query->getResult();
+            return $this->redirectToRoute('search_assets');
         }
-        
+
         // render object detail view
-        return $this->render('default/detail_object.html.twig', [
-            'id' => $object->getBarcode(),
-            'objekt' => $object ,
-            'datentraeger' => $datentraeger,
-            'history_entries' => $history_entrys,
-            'stored_objects' => $stored_objects,
+        return $this->render('assets/details.html.twig', [
+            'id' => $asset->getBarcode(),
+            'asset' => $asset,
         ]);
     }
-    
-    private function check_edited_fields($newVerwendung,$columnname, $oldvalue, $newvalue){
-        if(strcmp($oldvalue,
-                  $newvalue) != 0){
-            $newVerwendung = $newVerwendung. $columnname.": '".$oldvalue.
-                     "' => '".$newvalue."'". PHP_EOL;
-        }
-        return $newVerwendung;
-    }
-    
-    
-    
-    private function get_EditObjectForm($object,$datentraeger, $filledform){
-        
-        if($datentraeger != null){
-            $field = array(
-                "name" => $object->getName(),
-                "verwendung" => $object->getVerwendung(),
-                "notiz" => $object->getNotiz(),
-                "bauart" => $datentraeger->getBauart(),
-                "formfaktor" => $datentraeger->getFormfaktor(),
-                "groesse" => $datentraeger->getGroesse(),
-                "hersteller" => $datentraeger->getHersteller(),
-                "modell" => $datentraeger->getModell(),
-                "sn" => $datentraeger->getSN(),
-                "pn" => $datentraeger->getPN(),
-                "anschluss" => $datentraeger->getAnschluss()
-            );
-        }
-        else{
-            $field = array(
-            "name" => $object->getName(),
-            "verwendung" => $object->getVerwendung(),
-            "notiz" => $object->getNotiz(),
-            );
-        }
-        
-        // Wenn der Nutzer bereits Daten ausgefuellt hat, sollen diese Daten
-        // bei eventueller Falscheingabe modifiziert werden koennen
-        if($filledform != null){
-            $field = $filledform->getData();
-            
-        }
-        $tempform= $this->createFormBuilder(null,array('attr' => array('onsubmit' => "return alertbeforesubmit()")))
-            ->add('name',TextType::class, array('attr' => array('value' => $field['name']),
-                                                            'constraints' => [new \Symfony\Component\Validator\Constraints\NotBlank()
-                                                            ],'label' => 'desc.name'))
-            // Bei Textarea Felderm muss der vordefinierte Wert mittels 'data' definiert werden
-            ->add('verwendung', TextareaType::class,array('required' => false,'label' => 'desc.usage','data' => $field['verwendung']))
-            ->add('notiz', TextareaType::class,array('required' => false,'label' => 'desc.additional.usage','data' => $field['notiz']));
-        
-        if($datentraeger != null){
-        $tempform->add('bauart', TextType::class,array('required' => false,'label' => 'desc.type', 'attr' => array('value' => $field['bauart'])))
-                ->add('formfaktor',  TextType::class,array('required' => false, 'label' => 'desc.formfactor','attr' => array('value' => $field['formfaktor'])))
-                ->add('groesse', IntegerType::class,array('required' => false,'label' => 'desc.size','attr' => array('value' => $field['groesse'])))
 
-                ->add('hersteller',  TextType::class,array('required' => false,'label' => 'desc.producer' ,'attr' => array('value' => $field['hersteller'])))
-                ->add('modell',  TextType::class,array('required' => false,'label' => 'desc.modell','attr' => array('value' => $field['modell'])))
-                ->add('sn',  TextType::class,array('required' => false, 'label' => 'desc.sn', 'attr' => array('value' => $field['sn'])))
-                ->add('pn',  TextType::class,array('required' => false, 'label' => 'desc.pn', 'attr' => array('value' => $field['pn'])))
-                ->add('anschluss',  TextType::class,array('required' => false, 'attr' => array('value' => $field['anschluss'])));
-        }
-        
-        $tempform->add('save',SubmitType::class,array('label' => 'label.do.action'));
-            
-        return $tempform;
-    }
-
-
-    
     /**
-     * @Route("/objekt/{id}/editieren", name="edit_object")
+     * Apply asset action to an asset.
      */
-    public function  edit_object(Request $request,ManagerRegistry $doctrine,$id)
-    {        
-        $em = $doctrine->getManager();
-        $object = $doctrine->getRepository(Objekt::class)->find($id);
-        $datentraeger = $doctrine->getRepository(Datentraeger::class)->find($id);
-        
-        if($object == null){
-            $this->addFlash('danger','object_was_not_found');
-            return $this->redirectToRoute('search_objects'); 
-        }
-        
-        if($object->isObjectWithNewStatusValid(Objekt::STATUS_EDITIERT, 
-                                            null, 
-                                            $reason) == false){
-            $this->addFlash('danger', $this->translator->trans($reason));
-            return $this->redirectToRoute('detail_object',array('id' =>$id) );
-        }
-        
-        // schleichende Migration von alten Datentraeger Objekten
-        if($datentraeger == null && 
-            ( $object->getKategorie() == Objekt::KATEGORIE_DATENTRAEGER ||
-                $object->getKategorie() == Objekt::KATEGORIE_ASSERVAT_DATENTRAEGER )
-          ){
-            $datentraeger = new Datentraeger();
-            $datentraeger->setBarcode($id);
-        }
-       
-        
-        // Ab hier hat jeder Datentraeger (Asservat HDD, HDD) einen Eintrag in
-        // der Datentraegertabelle
-        
-        
-        $newVerwendung = "";
-                
-        $changeform = $this->get_EditObjectForm($object, $datentraeger, null)->getForm();
-        
-        $name = $object->getName();
-        $verwendung = $object->getVerwendung();
-        
-        $changeform->handleRequest($request);
-        
-        if ($changeform->isSubmitted() && $changeform->isValid()) {
-                  
-            $editablefields = ["name"       => array($object->getName()      ,$changeform->getData()['name']),
-                               "verwendung" => array($object->getVerwendung(),$changeform->getData()['verwendung']),
-                               "notiz"     => array($object->getNotiz() ,$changeform->getData()['notiz'])];
-            
-            
-            foreach($editablefields as $fieldname=>$oldAndNewValues){
-                $newVerwendung = $this->check_edited_fields($newVerwendung,
-                                                        $fieldname,
-                                                        $oldAndNewValues[0],
-                                                        $oldAndNewValues[1]);
-            }
-            
-            
-            if($datentraeger != null)
-            {
-                $editablefields = ["bauart"        => array($datentraeger->getBauart()    ,$changeform->getData()['bauart']),
-                                   "formfaktor"    => array($datentraeger->getFormfaktor(),$changeform->getData()['formfaktor']),
-                                   "groesse"       => array($datentraeger->getGroesse()   ,$changeform->getData()['groesse']),
-                                   "hersteller"    => array($datentraeger->getHersteller(),$changeform->getData()['hersteller']),
-                                   "modell"        => array($datentraeger->getModell()    ,$changeform->getData()['modell']),
-                                   "Seriennummer"  => array($datentraeger->getSN()        ,$changeform->getData()['sn']),
-                                   "Produktnummer" => array($datentraeger->getPN()        ,$changeform->getData()['pn']),
-                                   "anschluss"     => array($datentraeger->getAnschluss() ,$changeform->getData()['anschluss'])];
-            
-                foreach($editablefields as $fieldname=>$oldAndNewValues){
-                    $newVerwendung = $this->check_edited_fields($newVerwendung,
-                                                            $fieldname,
-                                                            $oldAndNewValues[0],
-                                                            $oldAndNewValues[1]);
-                } 
-            }
-            // Wenn keine Aenderung festgestellt wurde, 
-            // wird auf die Detailseite angesteuert
-            if($newVerwendung == ""){
-                return $this->redirectToRoute('detail_object',array('id' =>$id) );
-            }
-            $object->setSystemaktion(true); 
-            $hist = $object->createNewHistorieEntry();
+    private function action(
+        Request $request,
+        AssetActionManager $manager,
+        string $id,
+        ActionInterface $action,
+    ) {
+        $asset = $this->entityManager->getRepository(Asset::class)->find($id);
 
-            $object->setSystemaktion(false);
-            
-            $object->setName($changeform->getData()['name']);
-            $object->setVerwendung($changeform->getData()['verwendung']);
-            $object->setNotiz($changeform->getData()['notiz']);
-            
-            if($datentraeger != null)
-            {
-                $datentraeger->setBauart($changeform->getData()['bauart']);
-                $datentraeger->setFormfaktor($changeform->getData()['formfaktor']);
-                if($changeform->getData()['groesse'] != ''){
-                    $datentraeger->setGroesse($changeform->getData()['groesse']);
-                }
-                
-                $datentraeger->setHersteller($changeform->getData()['hersteller']);
-                $datentraeger->setModell($changeform->getData()['modell']);
-                $datentraeger->setSN($changeform->getData()['sn']);
-                $datentraeger->setPN($changeform->getData()['pn']);
-                $datentraeger->setAnschluss($changeform->getData()['anschluss']);
-                
-            }
-            
-            
-            $em->persist($object);
-            $em->persist($hist);
-            if($datentraeger != null){
-                $em->persist($datentraeger);
-            }
-            
-	        $this->admiteditedObject($doctrine,$object, $newVerwendung);
-	    
-	        $em->flush();
-            
-            return $this->redirectToRoute('detail_object',array('id' =>$id) );  
+        if (null === $asset) {
+            $this->addFlash('danger', 'asset.error.not_found');
+
+            return $this->redirectToRoute('search_assets');
         }
-        else{
-             $this->addFlash('info','action.description.edit.object');
+
+        $collection = new ArrayCollection([$asset]);
+
+        // simulate state change to verify that it is legitimate action
+        $violations = $manager->isValidAction($collection, $action);
+
+        if (!empty($violations)) {
+            foreach ($violations[$asset->getBarcode()] as $error) {
+                $this->addFlash('danger', $error->getMessage());
+            }
+
+            return $this->redirectToRoute('details_asset', ['id' => $asset->getBarcode()]);
         }
-        return $this->render('default/edit_object_form.html.twig', [
-            'id' => $id,
-            'changeform' => $changeform->createView(),
+
+        // create action form
+        $form = $this->createForm(SingleActionType::class, [
+            'usage' => $asset->getUsage(),
+            'name' => $asset->getName(),
+            'note' => $asset->getNote(),
+            'drive' => $asset->getDrive(),
+        ], [
+            'asset_action' => $action,
+            'not_before' => $asset->getLastUpdatePerformedOn(),
+        ]);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            $violations = $manager->performAction($collection, $form->getData(), $action);
+
+            if (empty($violations)) {
+                $this->addFlash('success', 'asset.action.success');
+
+                return $this->redirectToRoute('details_asset', ['id' => $asset->getBarcode()]);
+            }
+
+            foreach ($violations[$asset->getBarcode()] as $error) {
+                $this->addFlash('danger', $error->getMessage());
+            }
+        }
+
+        // print errors
+        foreach ($form->getErrors() as $error) {
+            $this->addFlash('danger', $error->getMessage());
+        }
+        // show additional messages
+        foreach ($action->getMessages() as $message) {
+            $this->addFlash($message[0], $message[1]);
+        }
+
+        return $this->render('assets/single_action.html.twig', [
+            'asset' => $asset,
+            'action' => $action,
+            'form' => $form->createView(),
         ]);
     }
-    // This function make the historyentry for the edit Action
-    private function admiteditedObject(ManagerRegistry $doctrine, $object, $newVerwendung){
-        $em = $doctrine->getManager();
-        
-        $hist = new \App\Entity\HistorieObjekt($object->getBarcode());
 
-        $hist->setFall($object->getFall());
-        $hist->setNutzerId($this->getNutzer($doctrine));
-        $hist->setReserviertVon($object->getreserviertVon());
-        $hist->setStandort($object->getStandort());
-        $hist->setZeitstempelumsetzung($object->getZeitstempelumsetzung());
-        // Veraenderte Daten
-        $hist->setStatusId(Objekt::STATUS_EDITIERT);
-        $hist->setVerwendung($newVerwendung);
-        $hist->setSystemaktion(true);
-        $hist->setZeitstempel(new \DateTime("now"));
+    //
+    // ====================== Asset action methods ======================
+    //
 
-        foreach($object->getImages() as $image){
-            $hist->addImage($image);
-        }
-
-        $em->persist($hist);
-        return 0;
-
-    }
-
-    
-   
-    private function getNutzer(ManagerRegistry $doctrine){
-        $em = $doctrine->getManager();
-        $usr= $this->getUser();
-
-
-        return  $em->getRepository(Nutzer::class)->findOneBy(array('id' => $usr->getId())); // muss geklaert werden
-    }
-    
-    
-    
-    
-    
     /**
-     * @Route("/objekt/{id}/nullen", name="null_object")
+     * Show form to edit asset or handle asset edit form request.
      */
-    public function null_object_action(Request $request,ManagerRegistry $doctrine,$id){
-       return $this->changeVeraenderung($request, $doctrine,
-                                        $id, 
-                                        Objekt::STATUS_GENULLT,
-                                        true,
-                                        false);
-    }
-    
-    /**
-     * @Route("/objekt/{id}/verwenden", name="use_object")
-     */
-    public function use_object_action(Request $request,ManagerRegistry $doctrine, $id){
-        return $this->changeVeraenderung($request, $doctrine, 
-                                        $id, 
-                                        Objekt::STATUS_IN_VERWENDUNG,
-                                        false,
-                                        false);
-    }
-    
-    
-    /**
-     * @Route("/objekt/{id}/vernichtet", name="destroyed_object")
-     */
-    public function destroyed_object_action(Request $request, ManagerRegistry $doctrine, $id){
-        return $this->changeVeraenderung($request, $doctrine,
-                                        $id, 
-                                        Objekt::STATUS_VERNICHTET,
-                                        false,
-                                        true,
-                                        array(array('warning','warning.object.cant.be.used.anymore')));
-    }
-    
-    /**
-     * @Route("/objekt/{id}/uebergeben", name="delivery_object")
-     */
-    public function delivery_object_action(Request $request, ManagerRegistry $doctrine, $id){
-        return $this->changeVeraenderung($request, $doctrine,
-                                        $id, 
-                                        Objekt::STATUS_AN_PERSON_UEBERGEBEN,
-                                        false,
-                                        false,
-                                        array(array('info','action.description.delivery.object'),)
-                                        );
-    }
-    
-    
-     /**
-     * @Route("/objekt/{id}/verloren", name="lost_object")
-     */
-    public function lost_object_action(Request $request,ManagerRegistry $doctrine, $id){
-        return $this->changeVeraenderung($request,$doctrine,
-                                        $id, 
-                                        Objekt::STATUS_VERLOREN,
-                                        true,
-                                        true,
-                                        array(array('info','action.description.lost.object'),
-                                            array('warning','warning.object.cant.be.used.anymore')));
-    }
-    
-     /**
-     * @Route("/objekt/{id}/reservieren", name="reserve_object")
-     */
-    public function reserve_object_action(Request $request,ManagerRegistry $doctrine,$id){
-       return $this->changeVeraenderung($request, $doctrine,
-                                        $id, 
-                                        Objekt::STATUS_RESERVIERT,
-                                        true,
-                                        false);
-    }
-    
-    /**
-     * @Route("/objekt/{id}/reservierung/aufheben", name="unreserve_object")
-     */
-    public function unreserve_object_action(Request $request, ManagerRegistry $doctrine, $id){
-        return $this->changeVeraenderung($request, $doctrine,
-                                         $id, 
-                                         Objekt::STATUS_RESERVIERUNG_AUFGEHOBEN,
-                                         true,
-                                         false);
-    }
-    
-    
-    /**
-     * @Route("/objekt/{id}/entnehmen", name="pull_out_object")
-     */
-    public function pull_out_object_action(Request $request, ManagerRegistry $doctrine, $id){
-       return $this->changeVeraenderung($request, $doctrine, 
-                                        $id, 
-                                        Objekt::STATUS_AUS_DEM_BEHAELTER_ENTFERNT,
-                                        false,
-                                        false,
-                                        array(array('info','action.description.pull.out.object'),));
-    }
-    
-    /**
-     * @Route("/objekt/{id}/aus/Fall/entfernen", name="remove_from_case_object")
-     */
-    public function remove_from_case_object_action(Request $request, ManagerRegistry $doctrine, $id){
-       return $this->changeVeraenderung($request, $doctrine,
-                                        $id, 
-                                        Objekt::STATUS_AUS_DEM_FALL_ENTFERNT,
-                                        false,
-                                        false,
-                                       array(array('info','action.description.remove.from.case.object'),) );
-    }
-    
-    
-    private function neutralize_object(ManagerRegistry $doctrine,
-                            \App\Entity\Objekt $object,
-                            $new_verwendung, 
-                            $datum){
-        
-        if($object->getStatus() != Objekt::STATUS_GENULLT){
-            $this->alter_object($doctrine,
-                $object,
-                Objekt::STATUS_GENULLT,
-                $new_verwendung,
-                $datum,
-                true);
-        }
-        if($object->getStandort() != null){
-            $this->alter_object($doctrine,
-                $object,
-                Objekt::STATUS_AUS_DEM_BEHAELTER_ENTFERNT,
-                $new_verwendung,
-                $datum,
-                true);
-        }
-
-        if($object->getFall() != null){
-            $this->alter_object($doctrine,
-                $object,
-                Objekt::STATUS_AUS_DEM_FALL_ENTFERNT,
-                $new_verwendung,
-                $datum);
-
-        }
-        
-        
-    }
-    
-    
-    /**
-     * @Route("/objekt/{id}/neutralisieren", name="neutralize_object")
-     */
-    public function neutralize_object_action(Request $request, ManagerRegistry $doctrine,$id){
-       
-        
-        return $this->changeVeraenderung($request,$doctrine,
-                                        $id, 
-                                        Objekt::VSTATUS_NEUTRALISIERT,
-                                        false,
-                                        false,
-                                        array(array('info','action.description.neutralize.object'),));
-       
-    }
-
-    private function alter_object( ManagerRegistry $doctrine, 
-                            \App\Entity\Objekt $object,
-                                $status_id,
-                            $new_verwendung, 
-                            $datum, 
-                            $isSystemaktion = false){
-        
-        $usr= $this->getUser();
-        $em = $doctrine->getManager();
-           
-        $hist = $object->createNewHistorieEntry();
-        
-        $em->persist($hist);
-
-        $new_status = $status_id;
-        
-        $object->setSystemaktion($isSystemaktion);
-
-        $object->setZeitstempel(new \DateTime('now'));
-        $object->setZeitstempelumsetzung($datum);
-        
-
-        $object->setVerwendung($new_verwendung);
-        $object->setStatus($new_status);
-        $object->setNutzer($this->getNutzer($doctrine));
-        
-        // Notwendige Aenderung, um eine Aktion an ein Objekt durchzufuehren
-        switch($status_id){
-            case Objekt::STATUS_GENULLT:
-                $object->flushImages();
-                break;
-            case Objekt::STATUS_AUS_DEM_FALL_ENTFERNT:
-                $object->setFall(null);
-                break;
-            case Objekt::STATUS_RESERVIERT:
-                $object->setReserviertVon($this->getNutzer($doctrine));
-                break;
-            case Objekt::STATUS_RESERVIERUNG_AUFGEHOBEN:
-                $object->setReserviertVon(null);
-                break;
-            case Objekt::STATUS_AUS_DEM_BEHAELTER_ENTFERNT:
-                $object->setStandort(null);
-                break;
-            
-        }
-        
-        $em->flush();
-            
-        return null;
-    }
-    
-    
-    
-     /**
-     * @Route("/objekt/{id}/einlegen/in", name="select_object")
-     */
-    public function select_objects_action(Request $request,ManagerRegistry $doctrine,$id)
+    #[Route('/objekt/{id}/editieren', name: 'edit_asset')]
+    public function edit(Request $request, AssetActionManager $manager, string $id)
     {
-        $object = $doctrine->getRepository(Objekt::class)->find($id);
-        
-        if($object == null){
-            $this->addFlash('danger','object_was_not_found');
-            return $this->redirectToRoute('search_objects'); 
-        }
-        
-        $status_id = Objekt::STATUS_IN_EINEM_BEHAELTER_GELEGT;
-        if($object->isObjectWithNewStatusValid($status_id, 
-                                            null, 
-                                            $reason) == false){
-            $this->addFlash('danger',$this->translator->trans($reason));
-            return $this->redirectToRoute('detail_object',array('id' =>$id) );
-        }
-        
-        
-        
-        /*
-         * In dieser Funktion werden alle Behaelter dargestellt,
-         * wobei diese Filterbar sind, sprich Beispielsweise per
-         * Suchbegriff gefunden werden kann.
-         * Wenn ein Behaelter gefunden worden ist, wird die Form mit der
-         * Begründung aufgerufen.
-         */
-        $searchform = $this->get_SearchForm();
-        
-        
-        // Mit diesen Befehl wird festgestellt, ob eine Aenderung durchgefuehrt
-        // worden ist
-        $searchform->handleRequest($request);
-        
-        $searchword = null;
-        $objekte = null;
-        
-        if ($searchform->isSubmitted() && $searchform->isValid()) {
-            $searchword = $searchform->getData()['suchwort'];
-        }
-        
-        /*
-         * Wenn das Suchwort leer ist, dann werden alle Behaelter ausgegeben
-         */
-        if($searchword == null){
-            
-            
-            $em = $doctrine->getManager();
-            $query = $em->createQuery('SELECT o '
-                    . 'FROM App:Objekt o '
-                    . "WHERE o.kategorie_id =".Objekt::KATEGORIE_BEHAELTER
-                    . " AND o.barcode_id != :barcode "
-                    . "AND o.status_id !=".Objekt::STATUS_VERNICHTET. " "
-                    . "AND o.status_id !=".Objekt::STATUS_VERLOREN. " "
-                    . "AND(o.standort != :barcode OR o.standort is null)")
-                    ->setParameter("barcode", $id);  
-            $objekte = $query->getResult();
-            
-        }
-        else{
-            $em = $doctrine->getManager();
-            $query = $em->createQuery('SELECT o '
-                    . 'FROM App:Objekt o '
-                    . "WHERE (o.name like :searchword "
-                    . " OR o.barcode_id like :searchword )"
-                    . " AND o.kategorie_id =".Objekt::KATEGORIE_BEHAELTER
-                    . " AND o.barcode_id != :barcode "
-                    . "AND o.status_id !=".Objekt::STATUS_VERNICHTET. " "
-                    . "AND o.status_id !=".Objekt::STATUS_VERLOREN. " "
-                    . "AND(o.standort != :barcode OR o.standort is null)")
-                    ->setParameter("searchword","%".$searchword."%")
-                    ->setParameter("barcode", $id);  
-            $objekte = $query->getResult();
-        }
-        
-        return $this->render('default/select_object.html.twig', array(
-            'searchform'=> $searchform->createView(),
-            'objekte'=> $objekte,
-            'objekt_id' => $id,
-            'isReversed' => false,
-            'title' => "containersummary",
-            'forwardaction' => "store_object"
-        ));
-        
+        return $this->action($request, $manager, $id, new Actions\Edit());
     }
-    
-    
-    
-    private function store_object(ManagerRegistry $doctrine,$fromid,$toid,$timestamp,$description){
-        
-        
-        $object = $doctrine->getRepository(Objekt::class)->find($fromid); // Das Objekt, was in den Behaelter hinzugefuegt wird
-        $store_object = $doctrine->getRepository(Objekt::class)->find($toid); // Behaelter, wo das Objekt gelagert wird
-        
-        if($object->getStandort() != null){
-            $this->alter_object($doctrine,
-                $object,
-                Objekt::STATUS_AUS_DEM_BEHAELTER_ENTFERNT,
-                "",
-                $timestamp,
-                true);
-        }
-        
-        $em = $doctrine->getManager();
-        
-        $hist = $object->createNewHistorieEntry();
-        $em->persist($hist);
 
-        $object->setSystemaktion(false); 
-        
-        $new_status = Objekt::STATUS_IN_EINEM_BEHAELTER_GELEGT;
-
-        $object->setZeitstempel(new \DateTime('now'));
-        $object->setZeitstempelumsetzung($timestamp);
-        $object->setStatus($new_status);
-
-        $object->setVerwendung($description);
-        $object->setNutzer($this->getNutzer($doctrine));
-
-
-        $object->setStandort($store_object);
-
-
-        $em->flush();
-    }
-    
-    
-     /**
-     * @Route("/objekt/{fromid}/einlegen/in/{toid}", 
-      * name="store_object",
-      * requirements={"toid": "\w+","fromid": "\w+"})
+    /**
+     * Show form to neutralize drive asset.
      */
-    public function store_object_action(Request $request,ManagerRegistry $doctrine,$fromid,$toid)
+    #[Route('/objekt/{id}/neutralisieren', name: 'neutralize_asset')]
+    public function neutralize(Request $request, AssetActionManager $manager, string $id)
     {
-        
-        $object = $doctrine->getRepository(Objekt::class)->find($fromid); // Das Objekt, was in den Behaelter hinzugefuegt wird
-        
-        if($object == null){
-            $this->addFlash('danger','object_was_not_found');
-            return $this->redirectToRoute('search_objects'); 
-        }
-        
-        $store_object = $doctrine->getRepository(Objekt::class)->find($toid); // Behaelter, wo das Objekt gelagert wird
-        
-        if($store_object == null){
-            $this->addFlash('danger','container_was_not_found');
-            return $this->redirectToRoute('detail_object',array('id' =>$fromid) ); 
-        }
-        
-        
-        $changeform = $this->getStatusChangeForm(
-            true, 
-            false,
-            $object->getZeitstempelumsetzung(),
-            $object->getVerwendung()
-        );
-        
-       
-        
-        if($object->isObjectWithNewStatusValid(Objekt::STATUS_IN_EINEM_BEHAELTER_GELEGT, 
-                                            $store_object, 
-                                            $reason) == false){
-            $this->addFlash('danger', $this->translator->trans($reason));
-            return $this->redirectToRoute('detail_object',array('id' =>$fromid) );
-        }
-        
-        
-        $changeform->handleRequest($request);
-        
-        if ($changeform->isSubmitted() && $changeform->isValid()) {
-            
-            $this->store_object($doctrine
-                                ,$fromid, 
-                                $toid,
-                                $changeform->getData()['dueDate'],
-                                $changeform->getData()['verwendung']);
-            
-            return $this->redirectToRoute('detail_object',array('id' =>$fromid) );  
-        }
-        else{
-            $this->addFlash("info",$this->translator->trans('action.description.store.object %category% %objectname% %containername%',
-                                         array("%objectname%" => $object->getName(),
-                                               "%category%" => $this->translator->trans(array_search($object->getKategorie(),Objekt::$kategorienToId)),
-                                               "%containername%" => $store_object->getName())));
-        }
-        return $this->render('default/change_object.html.twig', [
-            'id' => $fromid,
-            'changeform' => $changeform->createView(),
-        ]);
-        
+        return $this->action($request, $manager, $id, new Actions\Neutralize());
     }
-    
-   
-    
+
     /**
-     * @Route("/objekt/{id}/in/fall", name="select_case")
+     * Show clean action.
+     *
+     * @see action()
      */
-    public function select_case_action(Request $request,ManagerRegistry $doctrine,$id)
+    #[Route('/objekt/{id}/nullen', name: 'clean_asset')]
+    public function cleanAction(Request $request, AssetActionManager $manager, string $id)
     {
-        
-        /*
-         * In dieser Funktion werden alle Faelle dargestellt,
-         * wobei diese Filterbar sind, sprich Beispielsweise per
-         * Suchbegriff gefunden werden kann.
-         */
-        $searchform = $this->get_SearchForm();
-        
-        $searchword = null;
-        $searchform->handleRequest($request);
-        if ($searchform->isSubmitted() && $searchform->isValid()) {
-            $searchword = $searchform->getData()['suchwort'];
-            
-        }
-        
-        $em = $doctrine->getManager();
-        $cases = null;
-        
-        if($searchword == null){
-            $cases = $doctrine->getRepository(Fall::class)
-                    ->findAll();
-        }
-        else{
-            $query = $em->createQuery('SELECT f '
-                    . 'FROM App:Fall f '
-                    . "WHERE f.beschreibung like :search "
-                    . "OR f.case_id like :search ")
-                    ->setParameter('search','%'.$searchword."%");     
-            $cases = $query->getResult();
-        }
-        
-        $query = $em->createQuery('SELECT f '
-                    . 'FROM App:Objekt o, '
-                    . 'App:Fall f '
-                    . "WHERE (DATE_DIFF(o.zeitstempel,:time) = 0 and "
-                    . "o.fall_id = f.id and "
-                    . "o.status_id = ".Objekt::STATUS_EINEM_FALL_HINZUGEFUEGT .") OR DATE_DIFF(f.zeitstempel_beginn,:time) = 0 and "
-                    . "o.nutzer_id = :user ")
-                    ->setParameter("time", new \DateTime('now'))
-                    ->setParameter("user", $this->getNutzer($doctrine));
-        $todaycases = $query->getResult();
-        
-        return $this->render('default/select_case.html.twig', array(
-            'searchform'=> $searchform->createView(),
-            'faelle' => $cases,
-            'objektid' => $id,
-            'letztefaelle' => $todaycases
-        ));
-        
-
+        return $this->action($request, $manager, $id, new Actions\Clean());
     }
-    
-    private function add_to_case(ManagerRegistry $doctrine,$objectid,$caseid, $timestamp,$newdescription){
-       
-        $em = $doctrine->getManager();
-        $object = $em->getRepository(Objekt::class)->find($objectid);         
-        $case = $em->getRepository(Fall::class)->find($caseid);
-        
-        $hist = $object->createNewHistorieEntry();
-        $em->persist($hist);
-            
-        $new_status = Objekt::STATUS_EINEM_FALL_HINZUGEFUEGT;
 
-        $object->setZeitstempel(new \DateTime('now'));
-        $object->setStatus($new_status);
-        $object->setZeitstempelumsetzung($timestamp);
-        $object->setVerwendung($newdescription);
-        $object->setNutzer($this->getNutzer($doctrine));
-
-
-        $object->setFall($case);
-
-
-        $em->flush();
-    }
-    
     /**
-     * @Route("/objekt/{objectid}/in/fall/{caseid}/hinzufuegen", name="add_to_case",requirements={"caseid"=".+"})
+     * Show destroy action.
+     *
+     * @see action()
      */
-    public function add_to_case_action(Request $request,ManagerRegistry $doctrine, $objectid, $caseid){
-        $em = $doctrine->getManager();
-        
-        $object = $em->getRepository(Objekt::class)->find($objectid); // Das Objekt, was dem Fall hinzugefuegt wird
-        
-        $changeform = $this->getStatusChangeForm(
-            true,
-            true,
-            $object->getZeitstempelumsetzung(),
-            $object->getVerwendung()
-        );
-        
-        // Falls Objekt nicht mehr aenderbar ist, soll die Aktion nicht mittels
-        // manipulierten Anfragen ausgeführt werden
-        if($object->getStatus() == Objekt::STATUS_VERNICHTET ||
-            $object->getStatus() == Objekt::STATUS_VERLOREN ||
-            $object->getFall() != null){
-            return $this->redirectToRoute('detail_object',array('id' =>$objectid) );
-        }
-        
-        
-                   
-        $query = $em->createQuery('SELECT f '
-            . 'FROM App:Fall f '
-            . 'where f.case_id = :caseid')
-               ->setParameter('caseid',$caseid)
-                ->setMaxResults(1);
-        
-        $case = $query->getResult();
-        
-        if($case != null){
-            
-            $case = $query->getResult()[0];
-            $changeform->handleRequest($request);
-        
-            if ($changeform->isSubmitted() && $changeform->isValid()) {
-
-                $this->add_to_case($doctrine,
-                                    $objectid, 
-                                    $case->getId(), 
-                                    $changeform->getData()['dueDate'], 
-                                    $changeform->getData()['verwendung']);
-
-
-                return $this->redirectToRoute('detail_object',array('id' =>$objectid) );  
-            }
-            else{
-                 $this->addFlash("info",$this->translator->trans('action.description.add.to.case %category% %objectname% %casename%',
-                                             array("%objectname%" => $object->getName(),
-                                                   "%category%" => $this->translator->trans(array_search($object->getKategorie(),Objekt::$kategorienToId)),
-                                                   "%casename%" => $case->getBeschreibung())));
-            }
-            return $this->render('default/change_object.html.twig', [
-                'id' => $objectid,
-                'changeform' => $changeform->createView(),
-            ]);
-        }
-        else{
-            $this->addFlash("danger","case_not_found");
-            return $this->redirectToRoute('detail_object',array('id' =>$objectid) );
-        }
-        
-        
+    #[Route('/objekt/{id}/vernichtet', name: 'destroy_asset')]
+    public function destroyAction(Request $request, AssetActionManager $manager, string $id)
+    {
+        return $this->action($request, $manager, $id, new Actions\Destroy());
     }
 
-    
-    private function get_SearchForm(){
-        return $this->createFormBuilder(null,array('attr' => array('class' =>'navbar-form navbar-right')))
-                ->add("suchwort", \Symfony\Component\Form\Extension\Core\Type\SearchType::class,array('required' => false,'label'=> false))
-                ->getForm();
-    }
-    
-    
     /**
-     * @Route("/objekt/{id}/upload", name="upload_pic")
+     * Show hand over to person action.
+     *
+     * @see action()
      */
-    public function upload_pic_action (Request $request,ManagerRegistry $doctrine,$id){
-        
-        $object = $doctrine->getRepository(Objekt::class)->find($id);
-        
-        if($object == null){
-            $this->addFlash('danger','object_was_not_found');
-            return $this->redirectToRoute('search_objects'); 
+    #[Route('/objekt/{id}/uebergeben', name: 'handover_asset')]
+    public function handoverAction(Request $request, AssetActionManager $manager, string $id)
+    {
+        return $this->action($request, $manager, $id, new Actions\Handover());
+    }
+
+    /**
+     * Show reserve action.
+     *
+     * @see action()
+     */
+    #[Route('/objekt/{id}/reservieren', name: 'reserve_asset')]
+    public function reserveAction(Request $request, AssetActionManager $manager, string $id)
+    {
+        return $this->action($request, $manager, $id, new Actions\Reserve());
+    }
+
+    /**
+     * Show lost action.
+     *
+     * @see action()
+     */
+    #[Route('/objekt/{id}/verloren', name: 'lost_asset')]
+    public function lostAction(Request $request, AssetActionManager $manager, string $id)
+    {
+        return $this->action($request, $manager, $id, new Actions\Lost());
+    }
+
+    /**
+     * Show store asset in container action.
+     *
+     * @see action()
+     */
+    #[Route('/objekt/{id}/einlegen/in/', name: 'store_asset')]
+    public function storeAction(Request $request, AssetActionManager $manager, string $id)
+    {
+        return $this->action($request, $manager, $id, new Actions\Store());
+    }
+
+    /**
+     * Show pull out of container action.
+     *
+     * @see action()
+     */
+    #[Route('/objekt/{id}/entnehmen', name: 'pull_out_asset')]
+    public function pullOutOfContainerAction(Request $request, AssetActionManager $manager, string $id)
+    {
+        return $this->action($request, $manager, $id, new Actions\PullOutOfContainer());
+    }
+
+    /**
+     * Show assigning to case action.
+     *
+     * @see action()
+     */
+    #[Route('/objekt/{id}/in/fall/', name: 'assign_case_asset')]
+    public function assignCaseAction(Request $request, AssetActionManager $manager, string $id)
+    {
+        return $this->action($request, $manager, $id, new Actions\AssignCase());
+    }
+
+    /**
+     * Show remove case action.
+     *
+     * @see action()
+     */
+    #[Route('/objekt/{id}/aus/Fall/entfernen', name: 'remove_case_asset')]
+    public function removeFromCaseAction(Request $request, AssetActionManager $manager, string $id)
+    {
+        return $this->action($request, $manager, $id, new Actions\UnassignCase());
+    }
+
+    /**
+     * Show unbind reservation action.
+     *
+     * @see action()
+     */
+    #[Route('/objekt/{id}/reservierung/aufheben', name: 'unreserve_asset')]
+    public function unbindReservationAction(Request $request, AssetActionManager $manager, string $id)
+    {
+        return $this->action($request, $manager, $id, new Actions\UnbindReservation());
+    }
+
+    /**
+     * Show use action.
+     *
+     * @see action()
+     */
+    #[Route('/objekt/{id}/verwenden', name: 'use_asset')]
+    public function useAction(Request $request, AssetActionManager $manager, string $id)
+    {
+        return $this->action($request, $manager, $id, new Actions\Used());
+    }
+
+    /**
+     * Show save image on drive action.
+     *
+     * If asset is a target to store hdd record images, redirect to overview page with filter enabled
+     * to select source. Also, store selected target in session such that it is shown when selecting
+     * available targets in action view.
+     *
+     * @see action()
+     */
+    #[Route('/objekt/{id}/Asservatenimage/speichern/', name: 'save_image_on_drive_asset')]
+    public function saveImageOnDriveAction(
+        Request $request,
+        AssetActionManager $manager,
+        string $id,
+        SessionInterface $session,
+    ) {
+        $asset = $this->entityManager->getRepository(Asset::class)->find($id);
+
+        if (null === $asset) {
+            $this->addFlash('danger', 'asset.error.not_found');
+
+            return $this->redirectToRoute('search_assets');
         }
-        
-        
-        if($object->getPic() != null || $object->getPicpath() != null){
-            return $this->redirectToRoute('detail_object',array('id' =>$id) );
+
+        if ($asset->isHddImageSource()) {
+            return $this->action($request, $manager, $id, new Actions\SaveHddImage());
         }
-        
-	// TODO: make list another way 
-        $pubpics = array();
-        $i = 0;
-        if ($handle = opendir($this->getParameter("pic_directory"))) {
-            while (false !== ($entry = readdir($handle))) {
-                if ($entry != "." && $entry != ".." && $entry != ".gitkeep") {
-                    $pubpics[$i++] = $entry;
-                }
-            }
-            closedir($handle);
+        if (!$asset->isHddImageTarget()) {
+            $this->addFlash('danger', 'asset.action.add_image.not_applicable');
+
+            return $this->redirectToRoute('details_asset', ['id' => $id]);
         }
-        
-        
-        $form = $this->createFormBuilder(null, array("attr" => array("class" => "form")));
-        $form->add('pic', FileType::class,array('required' => false,
-                                                'constraints' => [
-                                                new \Symfony\Component\Validator\Constraints\File([
-                                                    "maxSize" => "10M", // 8388608 2M, 10670080 10M, Fehler: non well formed value
-                                                    'mimeTypes' => [
-                                                        'image/jpeg',
-                                                        'image/jpg',
-                                                    ],
-                                                ])],
-                                                'label' => 'label.upload.pic'));
-        $form->add('picpublic', CheckboxType::class,array('required' => false,'label' => 'label.pic.to.public'));
-        
-       
-        $form->add('selectpubpic', ChoiceType::class,array('required' => false,
-                                                           'placeholder'=> false,
-                                                            'expanded' => true,
-                                                            'multiple' => false,
-                                                            'label_attr' => array('class' => "radio-inline"),
-                                                            'choices' => $pubpics,
-                                                            'choice_label' => function($pubpics, $key, $index) {
-                                                                                        return $index;
-                                                            }));
-        
-        
-        
-        
-        $changeform = $form->add('save',SubmitType::class,array('label' => 'label.do.action'))
-                    ->getForm();
-        
-        $changeform->handleRequest($request);
-        
-        if ($changeform->isSubmitted() && $changeform->isValid()) {
-            
-            //$this->get('session')->getFlashBag()->clear();
-            
-            $picfile = $changeform['pic']->getData();
-            $tempfilename  = "";
-            $em = $doctrine->getManager();
-            
-            if($picfile != null){
-               
-                $image = imagecreatefromjpeg($picfile->getRealPath());
-                $tempfilename  = "";
+
+        // asset is target
+
+        // add flash as info text
+        $this->addFlash('info', 'asset.action.add_image.select_source');
+        // save target in session
+        $session->set('asset_image_target', $asset->getBarcode());
+
+        // return to asset overview with search query for viable sources
+        return $this->redirectToRoute('search_assets', ['search' => 'c:5']);
+    }
+
+    /**
+     * Show upload asset picture form.
+     *
+     * @codeCoverageIgnore
+     */
+    #[Route('/objekt/{id}/upload', name: 'upload_picture_asset')]
+    public function uploadPictureAction(string $id, Request $request)
+    {
+        $asset = $this->entityManager->getRepository(Asset::class)->find($id);
+
+        if (null == $asset) {
+            $this->addFlash('danger', 'asset.error.not_found');
+
+            return $this->redirectToRoute('search_assets');
+        }
+
+        // if image is set, redirect
+        if (null !== $asset->getPicture() || null != $asset->getPicturePath()) {
+            return $this->redirectToRoute('details_asset', ['id' => $id]);
+        }
+
+        // get all public available images
+        $finder = new Finder();
+        $finder
+            ->in($this->getParameter('pic_directory'))
+            ->files()
+            ->name(['*.jpg', '*.jpeg']) // TODO why not png?
+            ->sortByChangedTime()
+        ;
+        $public_pictures = iterator_to_array($finder, false);
+
+        $form = $this->createForm(UploadPictureType::class, null, ['public_pictures' => $public_pictures]);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            $data = $form->getData();
+
+            $history = AssetHistory::fromAsset($asset);
+
+            // uploaded new picture
+            if (!empty($data['picture'])) {
+                $image = imagecreatefromjpeg($data['picture']->getRealPath());
+                $tempfilename = '';
                 $quality = 110;
-                
-                do{
-                    if($tempfilename != ""){
+
+                do {
+                    if ('' != $tempfilename) {
                         unlink($tempfilename);
                     }
-                    $quality -=10;
-                    
-                    $tempfilename = tempnam(sys_get_temp_dir(), "uploadpic");
-                    imagejpeg($image, $tempfilename,$quality);
-                }
-                while(filesize($tempfilename)> (3 * 1024 * 1024) && $quality != 10); // Imagesize should be under 3MB
+                    $quality -= 10;
 
-               if($quality == 10){
-                   $this->addFlash('danger','error.image.cant.be.saved');
+                    $tempfilename = tempnam(sys_get_temp_dir(), 'uploadpic');
+                    imagejpeg($image, $tempfilename, $quality);
+                } while (filesize($tempfilename) > (3 * 1024 * 1024) && 10 != $quality); // Imagesize should be under 3MB
 
-                   return $this->render('default/upload_pic.html.twig', [
-                        'id' => $object,
-                        'changeform' => $changeform->createView(),
+                if (10 == $quality) {
+                    $this->addFlash('danger', 'asset.upload_pic.error.quality');
+
+                    return $this->render('default/upload_picture.html.twig', [
+                        'asset' => $asset,
+                        'form' => $form->createView(),
                     ]);
+                }
 
-               }
+                $picture = new \Symfony\Component\HttpFoundation\File\File($tempfilename, true);
 
+                if ($data['is_public']) {
+                    $filename = md5(uniqid()).'.'.$picture->guessExtension();
+                    $picture->move($this->getParameter('pic_directory'), $filename);
+                    $asset->setPicturePath($filename);
+                    $asset->setUsage($this->translator->trans('asset.upload_pic.usage_public'));
+                } else {
+                    $asset->setPicture($picture);
+                    $asset->setUsage($this->translator->trans('asset.upload_pic.usage_private'));
+                }
 
-                $picfile  = new \Symfony\Component\HttpFoundation\File\File( $tempfilename,true);
+                // clear remaining picture in temp folder
+                if ('' != $tempfilename && file_exists($tempfilename)) {
+                    unlink($tempfilename);
+                }
+            } elseif (!empty($data['select_public'])) {
+                $asset->setPicturePath($data['select_public']->getRelativePathname());
+                $asset->setUsage($this->translator->trans('asset.upload_pic.usage_selected'));
+            } else {
+                $this->addFlash('danger', 'asset.upload_pic.error.not_saved');
+
+                return $this->render('default/upload_picture.html.twig', [
+                    'asset' => $asset,
+                    'form' => $form->createView(),
+                ]);
             }
-            
-            
-            if($changeform['picpublic']->getData() != "1"){
-                $object->setPic($picfile);
-                $object->setPicpath(null);
-                $newVerwendung = $this->translator->trans("uploaded.pic.private");                
-            }
-            else{
-                
-                $filename = md5(uniqid()).".".$picfile->guessExtension();
-                $picfile->move($this->getParameter("pic_directory"),$filename);
-                $object->setPicpath($filename);
-                //$object->setPic(null);
-                $newVerwendung = $this->translator->trans("uploaded.pic.for.other");
-            }
-            
-            if($changeform['selectpubpic']->getData() != "" && 
-                $changeform['pic']->getData() == ""){
-                $object->setPicpath($changeform['selectpubpic']->getData());
-                $newVerwendung = $this->translator->trans("uploaded.pic.from.other");
-                //$object->setPic(null);
-            }
-            
-            $em->flush();
-            
-            if($tempfilename != "" && file_exists($tempfilename)){
-                //clear remaining Picture in Temp folder
-                unlink($tempfilename);
-            }
-            
-            $this->admiteditedObject($doctrine,$object, $newVerwendung);
-            
-            
-            
-            return $this->redirectToRoute('detail_object',array('id' =>$id) );
-            
+
+            $this->entityManager->persist($history);
+            $this->entityManager->persist($asset);
+            $this->entityManager->flush();
+
+            $this->addFlash('success', 'asset.upload_pic.success');
+
+            return $this->redirectToRoute('details_asset', ['id' => $asset->getBarcode()]);
         }
-        
-        
-        $this->addFlash('info','action.upload.pic');
-        
-        return $this->render('default/upload_pic.html.twig', [
-            'id' => $object,
-            'changeform' => $changeform->createView(),
+        // print errors
+        foreach ($form->getErrors() as $error) {
+            $this->addFlash('danger', $error->getMessage());
+        }
+
+        $this->addFlash('info', 'asset.upload_pic.info');
+
+        return $this->render('default/upload_picture.html.twig', [
+            'asset' => $asset,
+            'form' => $form->createView(),
         ]);
     }
-    
-    
-    
-    
+
     /**
-     * @Route("/objekt/{id}/Asservatenimage/speichern/", name="select_exhibit_hdd_object")
+     * Displays FAQ and help page for extended asset search.
+     *
+     * @codeCoverageIgnore
      */
-    public function select_exhibit_hdd_objects_action(Request $request,ManagerRegistry $doctrine,$id)
+    #[Route('/objekte/faq', name: 'eas_faq')]
+    public function searchFaq()
     {
-        // Nur zum Ueberpruefen der ID
-        $object = $doctrine->getRepository(Objekt::class)->find($id);
-        
-        if($object == null){
-            $this->addFlash('danger','object_was_not_found');
-            return $this->redirectToRoute('search_objects'); 
-        }
-               
-        if($object->isObjectWithNewStatusValid(Objekt::STATUS_FESTPLATTENIMAGE_GESPEICHERT, 
-                                            null, 
-                                            $reason) == false){
-            $this->addFlash('danger',$this->translator->trans($reason));
-            return $this->redirectToRoute('detail_object',array('id' =>$id) );
-        }
-        
-        
-        
-        $searchform = $this->get_SearchForm();
-        
-        
-        // Mit diesen Befehl wird festgestellt, ob eine Aenderung durchgefuehrt
-        // worden ist
-        $searchform->handleRequest($request);
-        
-        $searchword = null;
-        $objekte = null;
-        
-        if ($searchform->isSubmitted() && $searchform->isValid()) {
-            $searchword = $searchform->getData()['suchwort'];
-        }
-        
-        
-        switch($object->getKategorie()){
-            case Objekt::KATEGORIE_ASSERVAT_DATENTRAEGER:
-                $searchkategorie = Objekt::KATEGORIE_DATENTRAEGER;
-                $isReversed = true;
-                $title = "exhibithddsummary";
-                break;
-            case Objekt::KATEGORIE_DATENTRAEGER:
-                $searchkategorie = Objekt::KATEGORIE_ASSERVAT_DATENTRAEGER;
-                $isReversed = false;
-                $title = "hddsummary";
-                break;
-        }
-        
-        $em = $doctrine->getManager();
-        if($searchword == null){
-            $query = $em->createQuery('SELECT o '
-                    . 'FROM App:Objekt o '
-                    . "WHERE o.kategorie_id = :searchkategorie"
-                    . " AND o.status_id != :status_destroyed"
-                    . " AND o.status_id != :status_lost"
-                    . " AND :object not MEMBER OF o.Images"
-                    . " AND :object not MEMBER OF o.HDDs")
-                    ->setParameter("searchkategorie",$searchkategorie)
-                    ->setParameter("status_destroyed",Objekt::STATUS_VERNICHTET)
-                    ->setParameter("status_lost",Objekt::STATUS_VERLOREN)
-                    ->setParameter(":object",$object);
-        }
-        else{
-            $query = $em->createQuery('SELECT o '
-                    . 'FROM App:Objekt o '
-                    . "WHERE (o.name like :searchword"
-                    . " OR o.barcode_id like :searchword)"
-                    . " AND o.kategorie_id = :searchkategorie"
-                    . " AND o.status_id != :status_destroyed"
-                    . " AND o.status_id != :status_lost"
-                    . " AND :object not MEMBER OF o.Images"
-                    . " AND :object not MEMBER OF o.HDDs")
-                    ->setParameter("searchword","%".$searchword."%")
-                    ->setParameter("searchkategorie",$searchkategorie)
-                    ->setParameter("status_destroyed",Objekt::STATUS_VERNICHTET)
-                    ->setParameter("status_lost",Objekt::STATUS_VERLOREN)
-                    ->setParameter(":object",$object);
-        }
-        $objekte = $query->getResult();
-        
-        return $this->render('default/select_object.html.twig', array(
-            'searchform'=> $searchform->createView(),
-            'objekte'=> $objekte,
-            'objekt_id' => $id,
-            'isReversed' => $isReversed,
-            'title' => $title,
-            'forwardaction' => "save_image_on_hdd"
-        ));
-        
+        return $this->render('eas/faq.html.twig');
     }
-    
-    
-     /**
-     * @Route("/objekt/{fromid}/Asservatenimage/speichern/von/{toid}/{returnid}", 
-      * name="save_image_on_hdd", 
-      * requirements={"toid": "\w+","fromid": "\w+","returnid":"0|1"})
+
+    //
+    // ====================== JS API methods ======================
+    //
+
+    /**
+     * Helper function to list available cases to link to asset when adding new assets.
+     * The request parameter `query` can optionally be used to filter results.
+     *
+     * @see add()
+     *
+     * @api
      */
-    public function save_image_on_hdd_action(Request $request,ManagerRegistry $doctrine,$fromid,$toid,$returnid)
+    #[Route('/asset/cases', name: 'add_asset_query_cases')]
+    public function listCaseOptions(Request $request, ExtendedCaseSearch $extendedSearch): JsonResponse
     {
-        
-        $object = $doctrine->getRepository(Objekt::class)->find($fromid); // Der Datentraeger, wo das Image gespeichert wird
-        
-        if($object == null){
-            $this->addFlash('danger','object_was_not_found');
-            return $this->redirectToRoute('search_objects'); 
-        }
-        $exhibit_object = $doctrine->getRepository(Objekt::class)->find($toid); // Festplattenasservat
+        $search = \trim($request->query->get('query', ''));
+        $limit = $request->query->get('limit', 10);
 
-        
-        if($exhibit_object == null){
-            $this->addFlash('danger','exhibit_object_was_not_found');
-            return $this->redirectToRoute('detail_object',array('id' =>$fromid) ); 
+        $limit = match (\intval($limit)) {
+            10 => 10,
+            25 => 25,
+            50 => 50,
+            default => 10,
+        };
+
+        $builder = $extendedSearch->generateSearchQuery($search);
+        $builder->andWhere('caseFile.active = 1');
+        $builder->orderBy('caseFile.openedOn', 'DESC');
+
+        $query = $builder->getQuery();
+        $total = $builder
+        ->select('COUNT(caseFile)')
+        ->getQuery()
+        ->getSingleScalarResult();
+
+        $query->setMaxResults($limit);
+        $cases = $query->execute();
+
+        $data = [];
+        foreach ($cases as $case) {
+            $data[] = [
+                'id' => $case->getId(),
+                'caseId' => $case->getCaseId(),
+                'description' => $case->getDescription(),
+            ];
         }
 
-
-        $callbackid = ($returnid == 0)? $object->getBarcode():$exhibit_object->getBarcode();
-        
-        
-        if($object->isObjectWithNewStatusValid(Objekt::STATUS_FESTPLATTENIMAGE_GESPEICHERT, 
-                                            $exhibit_object, 
-                                            $reason) == false){
-            $this->addFlash('danger',$this->translator->trans($reason,array("context" => $exhibit_object)));
-            return $this->redirectToRoute('detail_object',array('id' =>$callbackid) );
-        }
-        
-        $changeform = $this->getStatusChangeForm(
-            true,
-            false,
-            $object->getZeitstempelumsetzung(),
-            $object->getVerwendung()
-        );
-        
-        // Falls Objekt nicht mehr aenderbar ist, soll die Aktion nicht mittels
-        // manipulierten Anfragen ausgeführt werden
-        if($object->getStatus() == Objekt::STATUS_VERNICHTET ||
-            $object->getStatus() == Objekt::STATUS_VERLOREN ||
-            $exhibit_object->getStatus() == Objekt::STATUS_VERNICHTET ||
-            $exhibit_object->getStatus() == Objekt::STATUS_VERLOREN){
-            return $this->redirectToRoute('detail_object',array('id' =>$callbackid) );
-        }
-        
-        
-        
-        $changeform->handleRequest($request);
-        
-        if ($changeform->isSubmitted() && $changeform->isValid()) {
-            $em = $doctrine->getManager(); 
-            $hist = $object->createNewHistorieEntry();
-            $em->persist($hist);
-
-           
-            $new_status = Objekt::STATUS_FESTPLATTENIMAGE_GESPEICHERT;
-            
-            $object->setZeitstempel(new \DateTime('now'));
-            $object->setZeitstempelumsetzung($changeform->getData()['dueDate']);
-            $object->setStatus($new_status);
-            
-            $object->setVerwendung($changeform->getData()['verwendung']);
-            $object->setNutzer($this->getNutzer($doctrine));
-            
-            
-            $object->addImage($exhibit_object);
-           
-            
-            $em->flush();
-            
-            return $this->redirectToRoute('detail_object',array('id' =>$callbackid) );  
-        }
-        else{
-            $this->addFlash("info",$this->translator->trans('action.description.save.image.on.hdd %objectname% %exhibit_hdd_name%',
-                                         array("%objectname%" => $object->getName(),
-                                               "%exhibit_hdd_name%" => $exhibit_object->getName())));
-        }
-        return $this->render('default/change_object.html.twig', [
-            'id' => $fromid,
-            'changeform' => $changeform->createView(),
+        return new JsonResponse([
+            'update' => true,
+            'data' => $data,
+            'total' => $total,
         ]);
-        
     }
-    
-    //
-    // ====================== Private methods ======================
-    //
-
 
     /**
-     * Create new page with form to describe new state.
-     * 
-     * @param Request         $request       Symfony request
-     * @param ManagerRegistry $doctrine      Database interface
-     * @param string          $id            Barcode ID
-     * @param int             $statusId      New state ID of object
-     * @param bool            $usageNullable Whether description is optional
-     * @param bool            $alertOnSubmit Whether to show JS alert on confirmation
-     * @param ?array          $infotext      Additional info textes to display
-     * 
-     * @return \Symfony\Component\HttpFoundation\RedirectResponse|\Symfony\Component\HttpFoundation\Response
+     * Helper function to list available storage locations when storing asset.
+     * The request parameter `query` can optionally be used to filter results.
+     *
+     * @see storeAction()
+     *
+     * @api
      */
-    private function changeVeraenderung(
+    #[Route('/asset/locations', name: 'asset_action_query_locations')]
+    public function listStorageOptions(
         Request $request,
-        ManagerRegistry $doctrine,
-        string $id,
-        int $statusId,
-        bool $usageNullable,
-        bool $alertOnSubmit,
-        ?array $infotext = null
-    ) {
+        ExtendedAssetSearch $extendedSearch,
+        TranslatorInterface $translator,
+    ): JsonResponse {
+        $search = \trim($request->query->get('query', ''));
+        $limit = $request->query->get('limit', 10);
 
-        // load object to verify, that no duplication in state change happended
-        $object = $doctrine->getRepository(Objekt::class)->find($id);
+        $limit = match (\intval($limit)) {
+            10 => 10,
+            25 => 25,
+            50 => 50,
+            default => 10,
+        };
 
-        // check if object was found, otherwise redirect to overview page
-        if ($object == null) {
-            $this->addFlash('danger', 'object_was_not_found');
-            return $this->redirectToRoute('search_objects');
+        $builder = $extendedSearch->generateSearchQuery($search);
+        /**
+         * @var AssetRepository
+         */
+        $repo = $this->entityManager->getRepository(Asset::class);
+        $builder->andWhere($repo->isEditableQuery('asset'));
+        $builder->andWhere($repo->isStorageQuery('asset'));
+        $builder->orderBy('asset.lastUpdatedOn', 'DESC');
+
+        $query = $builder->getQuery();
+        $total = $builder
+        ->select('COUNT(asset)')
+        ->getQuery()
+        ->getSingleScalarResult();
+
+        $query->setMaxResults($limit);
+        $assets = $query->execute();
+
+        $data = [];
+        foreach ($assets as $asset) {
+            $data[] = [
+                'active' => $asset->isEditable(),
+                'barcode' => $asset->getBarcode(),
+                'category' => $asset->getCategory()->trans($translator),
+                'color' => $asset->getCategory()->bootstrapColor(),
+                'name' => $asset->getName(),
+            ];
         }
 
-        // check if object with new proposed state is in a valid state, 
-        // otherwise redirect to objects details page
-        if (!$object->isObjectWithNewStatusValid($statusId, null, $reason)) {
-            $this->addFlash('danger', $this->translator->trans($reason));
-            return $this->redirectToRoute('detail_object', ['id' => $id]);
-        }
-
-        // get form, do not allow changes to be recorded before current last recorded change happend
-        $changeForm = $this->getStatusChangeForm(
-            $usageNullable,
-            $alertOnSubmit,
-            $object->getZeitstempelumsetzung(),
-            $object->getVerwendung()
-        );
-
-        // populate form with request data, if any
-        $changeForm->handleRequest($request);
-
-        // process form
-        if ($changeForm->isSubmitted() && $changeForm->isValid()) {
-
-            #todo put logic in model class
-            switch($statusId){
-                case Objekt::VSTATUS_NEUTRALISIERT:
-                    $this->neutralize_object($doctrine,$object,$changeForm->getData()['verwendung'],$changeForm->getData()['dueDate']);
-                    break;
-                case Objekt::STATUS_AN_PERSON_UEBERGEBEN:
-                    if($object->isObjectWithNewStatusValid(Objekt::STATUS_AUS_DEM_BEHAELTER_ENTFERNT) == true){
-                        $this->alter_object($doctrine, 
-                                    $object,
-                                    Objekt::STATUS_AUS_DEM_BEHAELTER_ENTFERNT,
-                                    "",
-                                    $changeForm->getData()['dueDate'],
-                                    true);
-                    }
-                    
-                    $this->alter_object($doctrine,
-                                $object,
-                                Objekt::STATUS_AN_PERSON_UEBERGEBEN,
-                                $changeForm->getData()['verwendung'],
-                                $changeForm->getData()['dueDate']);
-                    
-                    break;
-                    
-                default:
-                    $this->alter_object($doctrine,
-                                $object,
-                                $statusId,
-                                $changeForm->getData()['verwendung'],
-                                $changeForm->getData()['dueDate']);
-                    break;
-            }
-            
-            // return to detail page
-            return $this->redirectToRoute('detail_object', ['id' => $id]);  
-        }
-        
-        // if present, show additional info texts
-        if(!empty($infotext)){
-            foreach($infotext as $text ){
-                $this->addFlash($text[0],$text[1]); 
-            }
-        }
-        
-        // render form
-        return $this->render('default/change_object.html.twig', [
-            'id' => $id,
-            'changeform' => $changeForm->createView(),
+        return new JsonResponse([
+            'update' => true,
+            'data' => $data,
+            'total' => $total,
         ]);
     }
-    
 
     /**
-     * Build form for changing state of an object.
-     * 
-     * @param bool       $usageNullable       Whether use case description is optional
-     * @param bool       $alertOnSubmit       Whether to show JS alert before submitting form
-     * @param ?\DateTime $notBefore           Prevent recording changes before specified date.
-     * @param ?string    $previousDescription Previous description of objects use case
-     * 
-     * @todo #todo maybe source out in own lib or helper file?
-     * 
-     * @return \Symfony\Component\Form\FormInterface
+     * Helper function to list available targets for a hdd image.
+     *
+     * @see saveImageOnDriveAction()
+     *
+     * @api
      */
-    private function getStatusChangeForm(bool $usageNullable, bool $alertOnSubmit, ?\DateTime $notBefore, ?string $previousDescription)
-    {
-        // create form builder
-        $form = $this->createFormBuilder(null, $alertOnSubmit ? ['attr' => ['onsubmit' => 'return alertbeforesubmit()']] : []);
+    #[Route('/asset/image_targets', name: 'asset_action_query_image_targets')]
+    public function listHddImageTargets(
+        Request $request,
+        ExtendedAssetSearch $extendedSearch,
+        TranslatorInterface $translator,
+    ): JsonResponse {
+        $search = \trim($request->query->get('query', ''));
+        $limit = $request->query->get('limit', 10);
 
-        // add use case texet field
-        $form->add('verwendung',  TextareaType::class,[
-            'label'       => $usageNullable ? 'desc.ousage' : 'desc.usage',
-            'required'    => !$usageNullable,
-            'data'        => $previousDescription,
-            'constraints' => !$usageNullable ? new NotBlank() : [],
-        ]);
-                
-        // add due date date time field
-        // add constraint to prevent continuity of recorded changes
-        $form->add('dueDate', DateTimeType::class,[
-            'label'        => 'desc.action.done',
-            'required'     => true,
-            'data'         => new \Datetime(),
-            'widget'       => 'single_text',
-            'with_seconds' => true,
-            'constraints'  => $notBefore ? new GreaterThanOrEqual($notBefore) : [],
-        ]);
+        $limit = match (\intval($limit)) {
+            10 => 10,
+            25 => 25,
+            50 => 50,
+            default => 10,
+        };
 
-        // add submit button
-        $form->add('save',SubmitType::class,['label' => 'label.do.action']);
-        
-        return $form->getForm();   
+        $builder = $extendedSearch->generateSearchQuery($search);
+        /**
+         * @var AssetRepository
+         */
+        $repo = $this->entityManager->getRepository(Asset::class);
+        $builder->andWhere($repo->isEditableQuery('asset'));
+        $builder->andWhere($repo->isHddImageTargetQuery('asset'));
+
+        $query = $builder->getQuery();
+        $total = $builder
+        ->select('COUNT(asset)')
+        ->getQuery()
+        ->getSingleScalarResult();
+
+        $query->setMaxResults($limit);
+        $assets = $query->execute();
+
+        $data = [];
+        foreach ($assets as $asset) {
+            $data[] = [
+                'active' => $asset->isEditable(),
+                'barcode' => $asset->getBarcode(),
+                'category' => $asset->getCategory()->trans($translator),
+                'color' => $asset->getCategory()->bootstrapColor(),
+                'name' => $asset->getName(),
+            ];
+        }
+
+        return new JsonResponse([
+            'update' => true,
+            'data' => $data,
+            'total' => $total,
+        ]);
+    }
+
+    /**
+     * Helper function to list available sources for a hdd image.
+     *
+     * @see saveImageOnDriveAction()
+     *
+     * @api
+     */
+    #[Route('/asset/image_sources', name: 'asset_action_query_image_sources')]
+    public function listHddImageSources(
+        Request $request,
+        ExtendedAssetSearch $extendedSearch,
+        TranslatorInterface $translator,
+    ): JsonResponse {
+        $search = \trim($request->query->get('query', ''));
+        $limit = $request->query->get('limit', 10);
+
+        $limit = match (\intval($limit)) {
+            10 => 10,
+            25 => 25,
+            50 => 50,
+            default => 10,
+        };
+
+        $builder = $extendedSearch->generateSearchQuery($search);
+        /**
+         * @var AssetRepository
+         */
+        $repo = $this->entityManager->getRepository(Asset::class);
+        $builder->andWhere($repo->isEditableQuery('asset'));
+        $builder->andWhere($repo->isHddImageSourceQuery('asset'));
+
+        $query = $builder->getQuery();
+        $total = $builder
+        ->select('COUNT(asset)')
+        ->getQuery()
+        ->getSingleScalarResult();
+
+        $query->setMaxResults($limit);
+        $assets = $query->execute();
+
+        $data = [];
+        foreach ($assets as $asset) {
+            $data[] = [
+                'active' => $asset->isEditable(),
+                'barcode' => $asset->getBarcode(),
+                'category' => $asset->getCategory()->trans($translator),
+                'color' => $asset->getCategory()->bootstrapColor(),
+                'name' => $asset->getName(),
+            ];
+        }
+
+        return new JsonResponse([
+            'update' => true,
+            'data' => $data,
+            'total' => $total,
+        ]);
+    }
+
+    /**
+     * Search for assets.
+     *
+     * @api
+     */
+    #[Route('/asset/assets', name: 'assets')]
+    public function getAssets(
+        Request $request,
+        ExtendedAssetSearch $extendedSearch,
+    ): JsonResponse {
+        $search = \trim($request->query->get('query', ''));
+        $limit = $request->query->get('limit', 10);
+        $limit = match (\intval($limit)) {
+            10 => 10,
+            25 => 25,
+            50 => 50,
+            default => 10,
+        };
+
+        $builder = $extendedSearch->generateSearchQuery($search);
+        $query = $builder->getQuery();
+        $total = $builder
+        ->select('COUNT(asset)')
+        ->getQuery()
+        ->getSingleScalarResult();
+
+        $query->setMaxResults($limit);
+        $assets = $query->execute();
+
+        $data = [];
+        foreach ($assets as $asset) {
+            $data[] = [
+                'active' => $asset->isEditable(),
+                'barcode' => $asset->getBarcode(),
+                'category' => $asset->getCategory()->trans($this->translator),
+                'categoryColor' => $asset->getCategory()->bootstrapColor(),
+                'state' => $asset->getState()->trans($this->translator),
+                'stateColor' => $asset->getState()->bootstrapColor(),
+                'name' => $asset->getName(),
+            ];
+        }
+
+        return new JsonResponse([
+            'update' => true,
+            'data' => $data,
+            'total' => $total,
+        ]);
     }
 }

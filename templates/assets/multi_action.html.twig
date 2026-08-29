@@ -1,0 +1,398 @@
+{#
+   // AM-System
+   // Copyright (C) 2019 Robert Krasowski
+   // This program was created during an internship at DigiTrace GmbH
+   // Read LIZENZ.txt for full notice
+
+   // This program is free software: you can redistribute it and/or modify
+   // it under the terms of the GNU General Public License as published by
+   // the Free Software Foundation, either version 3 of the License, or
+   // (at your option) any later version.
+
+   // This program is distributed in the hope that it will be useful,
+   // but WITHOUT ANY WARRANTY; without even the implied warranty of
+   // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   // GNU General Public License for more details.
+
+   // You should have received a copy of the GNU General Public License
+   // along with this program.  If not, see <http://www.gnu.org/licenses/>.
+   
+#}
+
+{% extends 'base2.html.twig' %}
+{% form_theme form 'bootstrap_3_layout.html.twig' %} 
+
+{% block content1 %}
+    {# <div class="wrapper">
+        <div class="container" > #}
+            <h2>{{ 'asset.multi_action.header' | trans}}</h2>
+
+            {{ include('messages.html.twig') }}
+
+            {# {{ dump(violations) }} #}
+
+            {{ form_start(form) }}
+            <div class="row">
+                <div class="col-lg-6 col-xs-12">
+                    {{ form_row(form.action) }}
+                </div>
+                <div class="col-lg-6 col-xs-12">
+                    {{ form_row(form.lastUpdatePerformedOn) }}
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-xs-12">
+                    {{ form_row(form.usage) }}
+                </div>
+            </div>
+
+            {# Storage selector #}
+            <div id="storage_selector_container" 
+                {% if constant('class', form.action.vars.data) != form.vars.store_action_class %}
+                style="display: none;"
+                {% endif %}
+                >
+                <h3>{{ 'asset.multi_action.storage' | trans }}</h3>
+                {{ form_row(form.location) }}
+            </div>
+            
+            {# Case selector #}
+            <div id="case_selector_container" 
+                {% if constant('class', form.action.vars.data) != form.vars.assign_case_action_class %}
+                style="display: none;"
+                {% endif %}
+                >
+                <h3>{{ 'asset.multi_action.case' | trans }}</h3>
+                {{ form_row(form.case) }}
+            </div>
+            
+            {# Selected assets table #}
+            <div id="asset_selector_container">
+
+                {{ form_errors(form.assets) }}
+                <div class="row">
+                    <div class="col-lg-4">
+                        <h3>{{ 'asset.multi_action.items' | trans }}</h3>
+                    </div>
+                    <div class="col-lg-8">
+                        <div class="navbar-form navbar-right">
+                            <div class="form-group">
+                                <input class="form-control" id="selected_asset_add_item_query" type="text" style="width: 600px;">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {# Add items #}
+
+                <div class="scrollable-tbody">
+                    <table class="table table-hover list-table" id="asset_list_table">
+                        <thead>
+                            <tr>
+                                <th class="col-md-1 col-sm-1"></th>
+                                <th class="col-md-2 col-sm-1">{{ 'asset.attr.barcode' | trans }}</th>
+                                <th class="col-md-2 col-sm-1">{{ 'asset.attr.category' | trans }}</th>
+                                <th class="col-md-7 col-sm-6">{{ 'asset.attr.name' | trans }}</th>
+                                <th class="col-md-2 col-sm-1">{{ 'asset.attr.state' | trans }}</th>
+                            </tr>
+                        </thead>
+                        <tbody id="searched_assets">
+                            <tr class="item-row muted empty-row">
+                                <td colspan="32" class="text-muted">
+                                    {{ 'form.list.empty' | trans }}
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <div class="d-flex justify-content-between align-items-center mt-2 px-1">
+                        <small class="text-muted" id="asset-table-summary">
+                            {{ 'form.list.summary' | trans({'%current%' : '0', '%total%': 'form.list.all' | trans}) }}
+                        </small>
+                    </div>
+                </div>
+
+                {# <h4>{{ 'asset.multi_action.selected' | trans }}</h4> #}
+
+
+                <div class="scrollable-tbody" style="max-height: 600px;">
+                    <table class="table table-hover list-table" id="selected_assets_table">
+                        <thead>
+                            <tr>
+                                <th class="col-md-1 col-sm-1"></th>
+                                <th class="col-md-1 col-sm-1">{{ 'asset.attr.barcode' | trans }}</th>
+                                <th class="col-md-2 col-sm-2">{{ 'asset.attr.category' | trans }}</th>
+                                <th class="col-md-3 col-sm-4">{{ 'asset.attr.name' | trans }}</th>
+                                <th class="col-md-2 col-sm-2">{{ 'asset.attr.state' | trans }}</th>
+                                <th class="col-md-3 col-sm-2">{{ 'asset.multi_action.violations' | trans }}</th>
+                            </tr>
+                        </thead>
+                        <tbody id="selected_assets">
+                        {% for asset in assets %}
+                            {% set errors = violations[asset.getBarcode] ?? null %}
+                            <tr class="item-row content-row 
+                            {{ asset.isEditable ? '' : 'active' }}
+                            {{ errors is null ? '' : 'danger' }} 
+                            " data-id="{{ asset.barcode }}">
+                                <td>
+                                    
+                                    <button type="button" class="btn btn-danger btn-sm remove-item" data-id="{{ asset.barcode }}">
+                                        {{ 'asset.multi_action.remove_item' | trans }}
+                                        <span class="glyphicon glyphicon-remove" aria-hidden="true"></span>
+                                    </button>
+                                    <input type="checkbox" id="{{ form.assets.vars.id }}_{{ asset.barcode }}" name="{{ form.assets.vars.full_name }}[]" value="{{ asset.barcode }}" checked="checked" hidden="hidden">
+                                </td>
+                                <td style='font-family: courier;font-size: large'>
+                                    {% if asset.isEditable %}
+                                        {{ asset.getBarcode }}
+                                    {% else %}
+                                        <s>{{ asset.getBarcode }}</s>
+                                    {% endif %}
+                                </td>
+                                
+                                <td>
+                                    <span class="label label-{{ asset.getCategory.bootstrapColor }}">
+                                    {{ asset.getCategory | trans}}
+                                    </span>
+                                </td>
+                            
+                                <td>
+                                    <a target="_blank" href="{{ path('details_asset', {'id': asset.getBarcode}) }}">
+                                        {{ asset.getName }} 
+                                    <a/>
+                                </td>
+
+                                <td>
+                                    <span class="label label-{{ asset.getState.bootstrapColor }}">
+                                    {{ asset.getState | trans}}
+                                    </span>
+                                </td>
+                                
+                                <td>
+                                    {% if errors is not null %}
+                                    <div class="form-group has-error">
+                                        <ul class="list-unstyled">
+                                            {% for error in errors %}
+                                                <li>
+                                                    <span class="glyphicon glyphicon-exclamation-sign"></span>
+                                                    {{ error.message }}
+                                                </li>
+                                            {% endfor %}
+                                        </ul>
+                                    </div>
+                                    {% endif %}
+                                </td>
+                
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                
+            </div>
+            <div class="form-footer">
+                {{ form_widget(form.save) }}
+            </div>
+
+            {% if form._token is defined %}
+            {{ form_widget(form._token) }}
+            {% endif %}
+            {{ form_end(form, {'render_rest': false}) }}
+{% endblock %}
+
+{% block stylesheets %}
+<style> 
+div.scrollable-tbody {
+    max-height: 400px;
+}
+</style>
+{% endblock %}
+
+{% block javascripts %}
+<script>
+    "use strict";
+
+    const ItemList = (function(){
+        const actionSelector = '#{{ form.action.vars.id }}';
+        const locationSelector = '#storage_selector_container';
+        const caseSelector = '#case_selector_container';
+
+        const assetSearchSelector = '#selected_asset_add_item_query';
+        const assetLimitSelector = '#';
+        const assetTbodySelector = '#searched_assets';
+        const selectedTbodySelector = '#selected_assets';
+        const summarySelector = "#asset-table-summary"
+
+
+        const summary = '{{ 'form.list.summary' | trans({'%current%' : '__current__', '%total%': '__total__'}) }}';
+
+        const route = '{{ path('details_asset', {'id': 'XXX'}) }}';
+        const api_url = '{{ path('assets') }}';
+
+        let prevRequest = null;
+
+        /// create new row for suggestions table
+        const createRow = function(item){
+            // create only row if entry does not yet exists in other table
+            const duplicate = $(`${selectedTbodySelector} .item-row[data-id=${item.barcode}]`).length > 0;
+            const disabled = duplicate ? ' disabled="disabled"' : '';
+            const classes = duplicate ? 'btn-default' : 'btn-primary';
+
+            const row = $($.parseHTML(
+                `<tr class="item-row content-row">
+                        <td class="id-holder">
+                            <button type="button" class="btn ${classes} btn-sm add-item" ${disabled}>
+                                {{ 'asset.multi_action.add_item' | trans }}
+                                <span class="glyphicon glyphicon-arrow-down" aria-hidden="true"></span>
+                            </button>
+                        </td>
+
+                        <td style='font-family: courier;font-size: large'>
+                        </td>
+                        
+                        <td>
+                            <span class="label">
+                            </span>
+                        </td>
+                    
+                        <td>
+                            <a target="_blank">
+                            </a>
+                        </td>
+
+                        <td>
+                            <span class="label">
+                            </span>
+                        </td>
+                </tr>`
+            ));
+            const tds = row.children();
+            
+            // set row properties
+            if (!item.active) {
+                row.addClass('active');
+            }
+            $(row).attr('data-id', item.barcode);
+
+            // set 1st column - buttons
+            $(tds[0]).find('button').attr('data-id', item.barcode);
+            $(tds[0]).find('button').on('click', (e) => selectRow(item.barcode));
+
+            // 2nd col - barcode
+            if (!item.active) {
+                $(tds[1]).append('<s></s>');
+                $(tds[1]).find('s').text(item.barcode);
+            }
+            else {
+                $(tds[1]).text(item.barcode);
+            }
+
+            // 3rd col - category
+            $(tds[2]).find('span').text(item.category).addClass(`label-${item.categoryColor}`);
+            
+            // 4rd col - name
+            $(tds[3]).find('a').attr('href', route.replace('XXX', item.barcode)).text(item.name);
+            
+            // 5th col - state
+            $(tds[4]).find('span').text(item.state).addClass(`label-${item.stateColor}`);
+
+            // add new element
+            $(assetTbodySelector).append(row);
+        };
+
+        /// move row from suggestions to select table
+        const selectRow = function(id){
+            $(`${assetTbodySelector} .content-row[data-id=${id}]`).detach().appendTo(`${selectedTbodySelector}`);
+            
+            const button = $($.parseHTML(
+                `<button type="button" class="btn btn-danger btn-sm remove-item">
+                    {{ 'asset.multi_action.remove_item' | trans }}
+                    <span class="glyphicon glyphicon-remove" aria-hidden="true"></span>
+                </button>`
+            ));
+            $(button).on('click', (e) => deleteRow(id));
+
+            const input = $($.parseHTML(
+                `<input type="checkbox" name="{{ form.assets.vars.full_name }}[]" checked="checked" hidden="hidden">`
+            ));
+            input.val(id);
+
+            $(`${selectedTbodySelector} .content-row[data-id=${id}]`).find('.id-holder').empty().append(button, input);
+            $(`${selectedTbodySelector} .content-row[data-id=${id}]`).append('<td></td>');
+        };
+
+        // remove row from select table
+        const deleteRow = function(id){
+            $(`${selectedTbodySelector} .content-row[data-id=${id}]`).remove();
+        };
+
+        const updateTable = function(data) {
+            $(assetTbodySelector).find('.content-row').remove();
+            data.data.forEach((e) => createRow(e));
+
+            $(summarySelector).text(summary
+                .replace('__current__', data.data.length)
+                .replace('__total__', data.total)
+            );
+        }
+
+        const runQuery = function() {
+            const data = $(assetSearchSelector).val();
+            // const limit = $(limitSelector).val();
+            const limit = 10;
+                
+            // improve performance by canceling old requests
+            if (prevRequest != null) {
+                prevRequest.abort();
+            }
+                
+            prevRequest = $.ajax({
+                url : api_url,
+                data: {
+                    query: data,
+                    limit: limit
+                },
+                success: function(response) {
+                    if(!response.update) {
+                        return;
+                    }
+
+                    updateTable(response);
+                }
+            });
+        };
+
+        return {
+            init: function(){
+                $(".remove-item").on("click", function(e){
+                    deleteRow($(this).data('id'));                    
+                });
+
+                $(assetSearchSelector).on("input", (e) => runQuery());
+
+                $(actionSelector).on("change", function(e){
+                    const val = $(this).val();
+
+                    if (val == '{{ form.vars.store_action_value }}'){
+                        $(locationSelector).slideDown();
+                    }
+                    else {
+                        $(locationSelector).slideUp();
+                    }
+
+                    if (val == '{{ form.vars.assign_case_action_value }}'){
+                        $(caseSelector).slideDown();
+                    }
+                    else {
+                        $(caseSelector).slideUp();
+                    }
+                })
+            }
+        }
+    })();
+
+    $(function() {
+        ItemList.init();
+    });
+</script>
+{% endblock %}

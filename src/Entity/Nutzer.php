@@ -3,17 +3,20 @@
 namespace App\Entity;
 
 use App\Repository\NutzerRepository;
+use Deprecated;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Doctrine\ORM\Mapping\AttributeOverride;
+use Doctrine\ORM\Mapping\AttributeOverrides;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 
 #[ORM\Entity(repositoryClass: NutzerRepository::class)]
 #[ORM\Table(name: "ams_Nutzer")]
-#[AttributeOverrides([
-    new AttributeOverride(name:"username", column: new ORM\Column(options:[collation => "utf8_bin"]))
-
-])]
-
+// #[AttributeOverrides([
+//     new AttributeOverride(name:"username", column: new ORM\Column(options:['collation' => "utf8_bin", 'unique' => true]),)
+// ])]
 class Nutzer implements UserInterface, PasswordAuthenticatedUserInterface
 {
     #[ORM\Id]
@@ -25,7 +28,7 @@ class Nutzer implements UserInterface, PasswordAuthenticatedUserInterface
     private ?string $username = null;
 
 
-    #[ORM\Column(length: 180, unique: true)]
+    #[ORM\Column(length: 180, unique: true, options:['collation' => "utf8_bin"])]
     private ?string $fullname = null;
 
 
@@ -67,6 +70,18 @@ class Nutzer implements UserInterface, PasswordAuthenticatedUserInterface
     // wird auch nicht in die Datenbank gespeichert
     private $plainPassword;
 
+    #[ORM\OneToMany(mappedBy: 'modifiedBy', targetEntity: AssetHistory::class)]
+    private Collection $assetHistories;
+
+    #[ORM\OneToMany(mappedBy: 'reservedBy', targetEntity: AssetHistory::class)]
+    private Collection $reservedAssetHistories;
+
+    public function __construct()
+    {
+        $this->assetHistories = new ArrayCollection();
+        $this->reservedAssetHistories = new ArrayCollection();
+    }
+
 
 
     public function getUsername(): string
@@ -100,6 +115,8 @@ class Nutzer implements UserInterface, PasswordAuthenticatedUserInterface
 
     /**
      * A visual identifier that represents this user.
+     * 
+     * Alias for `getUsername`.
      *
      * @see UserInterface
      */
@@ -156,6 +173,7 @@ class Nutzer implements UserInterface, PasswordAuthenticatedUserInterface
     /**
      * @see UserInterface
      */
+    #[Deprecated()]
     public function eraseCredentials(): void
     {
         // If you store any temporary, sensitive data on the user, clear it here
@@ -232,6 +250,66 @@ class Nutzer implements UserInterface, PasswordAuthenticatedUserInterface
     public function setPlainPassword(string $plainPassword): self
     {
         $this->plainPassword = $plainPassword;
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, AssetHistory>
+     */
+    public function getAssetHistories(): Collection
+    {
+        return $this->assetHistories;
+    }
+
+    public function addAssetHistory(AssetHistory $assetHistory): static
+    {
+        if (!$this->assetHistories->contains($assetHistory)) {
+            $this->assetHistories->add($assetHistory);
+            $assetHistory->setLastChangeBy($this);
+        }
+
+        return $this;
+    }
+
+    public function removeAssetHistory(AssetHistory $assetHistory): static
+    {
+        if ($this->assetHistories->removeElement($assetHistory)) {
+            // set the owning side to null (unless already changed)
+            if ($assetHistory->getLastChangeBy() === $this) {
+                $assetHistory->setLastChangeBy(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, AssetHistory>
+     */
+    public function getReservedAssetHistories(): Collection
+    {
+        return $this->reservedAssetHistories;
+    }
+
+    public function addReservedAssetHistory(AssetHistory $reservedAssetHistory): static
+    {
+        if (!$this->reservedAssetHistories->contains($reservedAssetHistory)) {
+            $this->reservedAssetHistories->add($reservedAssetHistory);
+            $reservedAssetHistory->setReservedBy($this);
+        }
+
+        return $this;
+    }
+
+    public function removeReservedAssetHistory(AssetHistory $reservedAssetHistory): static
+    {
+        if ($this->reservedAssetHistories->removeElement($reservedAssetHistory)) {
+            // set the owning side to null (unless already changed)
+            if ($reservedAssetHistory->getReservedBy() === $this) {
+                $reservedAssetHistory->setReservedBy(null);
+            }
+        }
+
         return $this;
     }
 

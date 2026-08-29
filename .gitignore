@@ -17,6 +17,8 @@
 ###> phpunit/phpunit ###
 /phpunit.xml
 .phpunit.result.cache
+.phpunit/
+/.phpunit.cache/
 ###< phpunit/phpunit ###
 
 ###> php-cs-fixer ###
@@ -24,7 +26,7 @@
 ###< php-cs-fixer
 
 .env
-/migrations/*
+# /migrations/*
 !/migrations/.gitkeep
 /public/uploads/pic/*
 !/public/uploads/pic/.gitkeep

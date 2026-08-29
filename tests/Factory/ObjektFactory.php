@@ -4,6 +4,7 @@ namespace App\Tests\Factory;
 
 use App\Entity\Nutzer;
 use App\Entity\Objekt;
+use App\Enum\AssetCategory;
 use Doctrine\ORM\EntityRepository;
 use Zenstruck\Foundry\LazyValue;
 use Zenstruck\Foundry\Persistence\PersistentProxyObjectFactory;
@@ -34,12 +35,12 @@ final class ObjektFactory extends PersistentProxyObjectFactory
     private static bool $generateDrive = true;
 
     private static array $category_to_prefix = [
-        Objekt::KATEGORIE_ASSERVAT => "DTAS",
-        Objekt::KATEGORIE_AUSRUESTUNG => "DTHW",
-        Objekt::KATEGORIE_BEHAELTER => "DTHW",
-        Objekt::KATEGORIE_DATENTRAEGER => "DTHD",
-        Objekt::KATEGORIE_AKTE => "DTAS",
-        Objekt::KATEGORIE_ASSERVAT_DATENTRAEGER => "DTAS",
+        AssetCategory::Exhibit => "DTAS",
+        AssetCategory::Equipment => "DTHW",
+        AssetCategory::Container => "DTHW",
+        AssetCategory::Hdd => "DTHD",
+        AssetCategory::Record => "DTAS",
+        AssetCategory::ExhibitHdd => "DTAS",
     ];
 
     /**
@@ -73,7 +74,7 @@ final class ObjektFactory extends PersistentProxyObjectFactory
      *
      * @return string DT barcode label
      */
-    public static function generateBarcode(?string $prefix = null)
+    public static function generateBarcode(?string $prefix = null): string
     {
         $types = ['DTAS', 'DTHD', 'DTHW'];
 
@@ -95,12 +96,12 @@ final class ObjektFactory extends PersistentProxyObjectFactory
     {
         // choose category
         $category = array_rand([
-            Objekt::KATEGORIE_ASSERVAT,
-            Objekt::KATEGORIE_AUSRUESTUNG,
-            Objekt::KATEGORIE_BEHAELTER,
-            Objekt::KATEGORIE_DATENTRAEGER,
-            Objekt::KATEGORIE_AKTE,
-            Objekt::KATEGORIE_ASSERVAT_DATENTRAEGER,
+            AssetCategory::Exhibit,
+            AssetCategory::Equipment,
+            AssetCategory::Container,
+            AssetCategory::Hdd,
+            AssetCategory::Record,
+            AssetCategory::ExhibitHdd,
         ]);
         
         // generate barcode based on category
@@ -128,7 +129,7 @@ final class ObjektFactory extends PersistentProxyObjectFactory
         ->afterPersist(function (Objekt $objekt, array $attributes) {
             if(static::$generateDrive){
                 // if objekt is storage device, add entry for that with given barcode
-                if (Objekt::KATEGORIE_DATENTRAEGER == $attributes['kategorie'] || Objekt::KATEGORIE_ASSERVAT_DATENTRAEGER == $attributes['kategorie']) {
+                if (AssetCategory::Hdd == $attributes['kategorie'] || AssetCategory::ExhibitHdd == $attributes['kategorie']) {
                     DatentraegerFactory::new()->create([
                         'barcode' => $attributes['barcode'],
                     ]);
@@ -141,7 +142,7 @@ final class ObjektFactory extends PersistentProxyObjectFactory
     {
         return $this->with([
             'barcode' => $this->generateBarcode('DTAS'),
-            'kategorie' => Objekt::KATEGORIE_ASSERVAT,
+            'kategorie' => AssetCategory::Exhibit,
         ]);
     }
 
@@ -149,7 +150,7 @@ final class ObjektFactory extends PersistentProxyObjectFactory
     {
         return $this->with([
             'barcode' => $this->generateBarcode('DTHW'),
-            'kategorie' => Objekt::KATEGORIE_AUSRUESTUNG,
+            'kategorie' => AssetCategory::Equipment,
         ]);
     }
 
@@ -157,7 +158,7 @@ final class ObjektFactory extends PersistentProxyObjectFactory
     {
         return $this->with([
             'barcode' => $this->generateBarcode('DTHW'),
-            'kategorie' => Objekt::KATEGORIE_BEHAELTER, 
+            'kategorie' => AssetCategory::Container, 
         ]);
     }
 
@@ -165,7 +166,7 @@ final class ObjektFactory extends PersistentProxyObjectFactory
     {
         return $this->with([
             'barcode' => $this->generateBarcode('DTHD'),
-            'kategorie' => Objekt::KATEGORIE_DATENTRAEGER,
+            'kategorie' => AssetCategory::Hdd,
         ]);
     }
 
@@ -173,7 +174,7 @@ final class ObjektFactory extends PersistentProxyObjectFactory
     {
         return $this->with([
             'barcode' => $this->generateBarcode('DTAS'),
-            'kategorie' => Objekt::KATEGORIE_AKTE,
+            'kategorie' => AssetCategory::Record,
         ]);
     }
 
@@ -181,28 +182,28 @@ final class ObjektFactory extends PersistentProxyObjectFactory
     {
         return $this->with([
             'barcode' => $this->generateBarcode('DTAS'),
-            'kategorie' => Objekt::KATEGORIE_ASSERVAT_DATENTRAEGER,
+            'kategorie' => AssetCategory::ExhibitHdd,
         ]);
     }
 
     public function destroyed(): self
     {
         return $this->with([
-            'status' => Objekt::STATUS_VERNICHTET,
+            'status' => AssetState::Destroyed,
         ]);
     }
 
     public function lost(): self
     {
         return $this->with([
-            'status' => Objekt::STATUS_VERLOREN,
+            'status' => AssetState::Lost,
         ]);
     }
 
     public function reservedBy(Nutzer $user): self
     {
         return $this->with([
-            'status' => Objekt::STATUS_RESERVIERT,
+            'status' => AssetState::Reserved,
             'reserviert_von' => $user,
         ]);
     }

@@ -1,0 +1,208 @@
+{#
+   // AM-System
+   // Copyright (C) 2019 Robert Krasowski
+   // This program was created during an internship at DigiTrace GmbH
+   // Read LIZENZ.txt for full notice
+
+   // This program is free software: you can redistribute it and/or modify
+   // it under the terms of the GNU General Public License as published by
+   // the Free Software Foundation, either version 3 of the License, or
+   // (at your option) any later version.
+
+   // This program is distributed in the hope that it will be useful,
+   // but WITHOUT ANY WARRANTY; without even the implied warranty of
+   // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   // GNU General Public License for more details.
+
+   // You should have received a copy of the GNU General Public License
+   // along with this program.  If not, see <http://www.gnu.org/licenses/>.
+   
+#}
+
+
+{% extends 'base.html.twig' %}
+{% block content1 %}
+    
+    {{ form_start(search) }}
+    <div class="row">
+        <div class="col-lg-4"> 
+            <h2>{{ 'asset.search.header' | trans}}</h2>
+        </div>
+        <div class="col-lg-8" style="margin-top:7px">
+            {{ form_row(search) }}
+        </div>
+    </div>
+    {{ form_end(search) }}
+
+    {{ include('messages.html.twig') }}
+
+    {# Include extended search form #}
+    <div id="es_form_container" style="display: none;">
+        {{ include('assets/extended_search.html.twig', {form: search}) }}
+    </div>
+
+
+    {{ form_start(selection) }}
+
+   
+    <table class="table table-striped">
+        
+        {% if pagination.getDirection == "desc" %} {% set arrow = '<span class="glyphicon glyphicon-arrow-down"></span>' %} 
+        {% elseif pagination.getDirection == "asc" %}  {% set arrow = '<span class="glyphicon glyphicon-arrow-up"></span>' %}  
+        {% endif %}
+        
+        <thead>
+        <tr>
+            <th class="col-md-2 col-sm-2">{{ knp_pagination_sortable(pagination,'asset.attr.barcode'|trans , 'asset.barcode') }}
+                {% if pagination.isSorted('asset.barcode') %}
+                {{ arrow | raw}}
+                {% endif %}
+            </th>
+            <th class="col-md-2 col-sm-2" >{{ knp_pagination_sortable(pagination, 'asset.attr.category'|trans, 'asset.category') }} 
+                {% if pagination.isSorted('asset.category') %}
+                {{ arrow | raw}}
+                {% endif %}
+            </th>
+            <th class="col-md-7 col-sm-7">{{ knp_pagination_sortable(pagination, 'asset.attr.name'|trans, 'asset.name') }} 
+                {% if pagination.isSorted('asset.name') %}
+                {{ arrow | raw}}
+                {% endif %}
+            </th>
+            <th class="col-md-1 col-sm-1">{{ 'asset.available' | trans }}</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for asset in pagination %}
+            <tr class="item-row {{ asset.isEditable ? '' : 'active' }}">
+                <td style='font-family: courier;font-size: large'>
+                    <div class="form-group">
+                        <div class="checkbox">
+                            <label for="{{ selection.assets.vars.id }}_{{ asset.barcode }}">
+                                <input type="checkbox" id="{{ selection.assets.vars.id }}_{{ asset.barcode }}" name="{{ selection.assets.vars.full_name }}[]" value="{{ asset.getBarcode }}">
+                                {% if asset.isEditable %}
+                                    {{ asset.getBarcode }}
+                                {% else %}
+                                    <s>{{ asset.getBarcode }}</s>
+                                {% endif %}
+                            </label>
+                        </div>
+                    </div>
+                </td>
+                
+                <td>
+                    <span class="label label-{{ asset.getCategory.bootstrapColor }}">
+                    {{ asset.getCategory | trans}}
+                    </span>
+                </td>
+            
+                <td><a href="{{ path('details_asset', {'id': asset.getBarcode}) }}">{{ asset.getName }} <a/></td>
+                
+            
+            {% if asset.reservedBy != null %}
+                <td> <span class="glyphicon glyphicon-alert"></span>{{ 'asset.search.reserved_by' | trans({'%user%': asset.reservedBy.getFullname}) }}</td>
+            {% elseif asset.isEditable == false %}
+                <td> <span class="glyphicon glyphicon-remove"></span> </td>
+            {% else %}
+                <td> <span class="glyphicon glyphicon-ok"></span> </td>
+            {% endif %}
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+   
+   <div class="row">
+        <div class="col-lg-6">
+                {# total items count #}
+            <div class="count">
+                {{ pagination.getTotalItemCount }} {{ 'form.entries_found' | trans }}
+            </div>
+            
+            {# display navigation #}
+            <div class="navigation">
+                {{ knp_pagination_render(pagination) }}
+            </div>
+        </div>
+        <div class="col-lg-6">
+            <div class="navbar-form navbar-right">
+                <div class="form-group">
+                    <label id="select_number_label" class="control-label required">
+                        {{ 'asset.select.edit_selected' | trans({'count': '0'}) }}
+                    </label>
+                    <button type="button" id="select_all" class="btn-default btn">{{ 'asset.select.all' | trans }}</button>
+                </div>
+                {{ form_widget(selection.action) }}
+                {{ form_row(selection.preview) }}
+            </div>
+        </div>
+    </div>
+
+    {{ form_widget(selection._token) }}
+    {{ form_end(selection, {'render_rest': false}) }}
+   
+   
+{% endblock %}
+
+
+
+{% block context %}
+    <a href="{{ path("add_asset") }}"><span class="glyphicon glyphicon-pencil"></span> {{ 'asset.actions.add' | trans }}</a><br>
+    <a href="{{ path("eas_faq") }}"><span class="glyphicon glyphicon-question-sign"></span> {{ 'asset.actions.faq' | trans }}</a> <br>
+    <a href='{{ path("asset_multi_edit")}}'> <span class="glyphicon glyphicon-pencil"></span> {{ 'action.chosen.object.change' | trans }}</a><br>
+      
+{% endblock %}
+
+{% block stylesheets %}
+{{ knp_pagination_rel_links(pagination) }}
+{% endblock %}
+
+{% block javascripts %}
+<script>
+    "use strict";
+
+    const multiActionSubmitSelector = '#{{ selection.preview.vars.id }}';
+
+    const label_text = '{{ 'asset.select.edit_selected' | trans({'count': '__count__'}) }}';
+
+    const Selection = (function(){
+        const updateCounter = function(){
+            const label = $("#select_number_label");
+            const count = $("tr.item-row input[type='checkbox']:checked").length;
+
+            // update label
+            label.text(label_text.replace(/__count__/g, count));
+            // disable/enable submit button
+            $(multiActionSubmitSelector).prop('disabled', count == 0);
+        } 
+
+        return {
+            init: function(){
+                // "select all" button handler
+                $("#select_all").on("click", function(e){
+                    $("tr.item-row input[type='checkbox']").prop("checked", true);
+                    updateCounter();
+                });
+
+                $("tr.item-row input[type='checkbox']").on("change", function(e){
+                    updateCounter();
+                    
+                });
+
+                $("tr.item-row").on("click", function(e){
+                    const tag = e.target.tagName.toLowerCase();
+                    if (tag == "input" || tag == "label" || tag == "a" || tag == "s") {
+                        return;
+                    }
+
+                    const element = $(this).find("input")
+                    element.prop("checked", !element.prop("checked"));
+                    updateCounter();
+                })
+            }
+        }
+    })();
+
+    $(function() {
+        Selection.init();
+    });
+</script>
+{% endblock %}

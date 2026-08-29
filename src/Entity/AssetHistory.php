@@ -1,316 +1,265 @@
 <?php
 
-// AM-System
-// Copyright (C) 2019 Robert Krasowski
-// This program was created during an internship at DigiTrace GmbH
-// Read LIZENZ.txt for full notice
-
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License for more details.
-
-// You should have received a copy of the GNU General Public License
-// along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
 namespace App\Entity;
 
+use App\Enum\AssetState as State;
+use App\Repository\AssetHistoryRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
-#[ORM\Entity]
+/**
+ * @author Robert Krasowski
+ * @author Ben Brooksnieder
+ */
+#[ORM\Entity(repositoryClass: AssetHistoryRepository::class)]
 #[ORM\Table(name: 'ams_Historie_Objekt')]
-class HistorieObjekt
+class AssetHistory
 {
-    #[ORM\Column(type: 'integer')]
     #[ORM\Id]
     #[ORM\GeneratedValue(strategy: 'AUTO')]
-    private $historie_id;
+    #[ORM\Column(name: 'historie_id')]
+    private int $id;
 
-    #[ORM\Column(type: 'string', length: 9)]
-    protected $barcode_id;
+    #[ORM\ManyToOne(targetEntity: Asset::class, inversedBy: 'histories', fetch: 'LAZY')]
+    #[ORM\JoinColumn(name: 'barcode_id', nullable: false, referencedColumnName: 'barcode_id')]
+    private ?Asset $asset = null;
 
-    #[ORM\Column(type: 'datetime')]
-    protected $zeitstempel;
+    #[ORM\Column(type: 'integer', enumType: State::class, name: 'status_id')]
+    private State $state;
 
-    #[ORM\Column(type: 'text', nullable: true)]
-    protected $verwendung;
+    #[ORM\Column(nullable: true, name: 'systemaktion')]
+    private ?bool $systemAction = false;
 
-    #[ORM\ManyToOne(targetEntity: 'Nutzer')]
-    #[ORM\JoinColumn(name: 'nutzer_id', referencedColumnName: 'id', nullable: false)]
-    protected $nutzer_id;
+    #[ORM\Column(type: Types::TEXT, nullable: true, name: 'verwendung')]
+    private ?string $usage = null;
 
-    #[ORM\ManyToOne(targetEntity: 'Nutzer')]
-    #[ORM\JoinColumn(name: 'reserviert_von', referencedColumnName: 'id', nullable: true)]
-    protected $reserviert_von;
+    #[ORM\ManyToOne(inversedBy: 'assetHistories')]
+    #[ORM\JoinColumn(nullable: false, name: 'nutzer_id')]
+    private ?Nutzer $modifiedBy = null;
 
-    #[ORM\ManyToOne(targetEntity: 'Fall')]
-    #[ORM\JoinColumn(name: 'fall_id', referencedColumnName: 'id')]
-    protected $fall_id;
+    #[ORM\ManyToOne(inversedBy: 'reservedAssetHistories')]
+    #[ORM\JoinColumn(nullable: true, name: 'reserviert_von')]
+    private ?Nutzer $reservedBy = null;
 
-    #[ORM\Column(type: 'integer')]
-    protected $status_id;
+    #[ORM\ManyToOne(inversedBy: 'assetHistories')]
+    #[ORM\JoinColumn(name: 'fall_id', nullable: true)]
+    private ?CaseFile $case = null;
 
-    #[ORM\ManyToOne(targetEntity: 'Objekt')]
-    #[ORM\JoinColumn(name: 'standort', referencedColumnName: 'barcode_id')]
-    protected $standort;
+    #[ORM\ManyToOne(inversedBy: 'storageHistories')]
+    #[ORM\JoinColumn(name: 'standort', referencedColumnName: 'barcode_id', nullable: true)]
+    private ?Asset $location = null;
 
-    #[ORM\Column(type: 'datetime')]
-    protected $zeitstempelderumsetzung;
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, name: 'zeitstempel')]
+    private ?\DateTimeInterface $lastUpdatedOn = null;
 
-    #[ORM\Column(type: 'boolean')]
-    protected $systemaktion = false;
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, name: 'zeitstempelderumsetzung')]
+    private ?\DateTimeInterface $lastUpdatePerformedOn = null;
 
-    // Das hier ist eine One-To-Many Relation, um die Images der gespeicherten
-    // Objekte vernuenftig speichern zu koennen.
-
-    #[ORM\ManyToMany(targetEntity: 'Objekt')]
+    #[ORM\ManyToMany(targetEntity: Asset::class, inversedBy: 'imageHistory')]
     #[ORM\JoinTable(name: 'ams_image_objekt')]
     #[ORM\JoinColumn(name: 'historie_id', referencedColumnName: 'historie_id')]
     #[ORM\InverseJoinColumn(name: 'barcode_id', referencedColumnName: 'barcode_id')]
-    private $images;
-
-    public function __construct($barcode_id)
-    {
-        $this->barcode_id = $barcode_id;
-
-        $this->images = new \Doctrine\Common\Collections\ArrayCollection();
-        $this->zeitstempel = new \DateTime();
-    }
+    private Collection $images;
 
     /**
-     * Set barcodeId.
-     *
-     * @param string $barcodeId
-     *
-     * @return HistorieObjekt
-     */
-    public function setBarcodeId($barcodeId)
-    {
-        $this->barcode_id = $barcodeId;
-
-        return $this;
-    }
-
-    /**
-     * Get barcodeId.
+     * Returns `getAsset()->__toString()`.
      *
      * @return string
      */
-    public function getBarcodeId()
+    public function __toString(): string
     {
-        return $this->barcode_id;
-    }
-
-    // WORKAROUND: TO FIX:
-    public function getBarcode()
-    {
-        return $this->barcode_id;
+        return (string) $this->asset->getBarcode();
     }
 
     /**
-     * Set zeitstempel.
+     * Generate AssetHistory entry based on current `$asset`'s state.
      *
-     * @return HistorieObjekt
+     * @param Asset $asset to generate history for
+     *
+     * @return AssetHistory
      */
-    public function setZeitstempel(\DateTime $zeitstempel)
+    public static function fromAsset(Asset $asset): AssetHistory
     {
-        $this->zeitstempel = $zeitstempel;
+        $entry = new self();
+        $entry->setAsset($asset);
+        $entry->setState($asset->getState());
+        $entry->setSystemAction($asset->isSystemAction());
+        $entry->setUsage($asset->getUsage());
+        $entry->setModifiedBy($asset->getModifiedBy());
+        $entry->setReservedBy($asset->getReservedBy());
+        $entry->setCase($asset->getCase());
+        $entry->setLocation($asset->getLocation());
+        $entry->setLastUpdatedOn($asset->getLastUpdatedOn());
+        $entry->setLastUpdatePerformedOn($asset->getLastUpdatePerformedOn());
+
+        foreach ($asset->getImages() as $image) {
+            $entry->addImage($image);
+        }
+
+        return $entry;
+    }
+
+    public function getBarcode(){
+        return $this->asset->getBarcode();
+    }
+
+    //
+    // =============== AUTO GENRATED GETTER AND SETTER ===============
+    //
+
+    public function __construct()
+    {
+        $this->images = new ArrayCollection();
+    }
+
+    public function getId(): int
+    {
+        return $this->id;
+    }
+
+    public function getAsset(): ?Asset
+    {
+        return $this->asset;
+    }
+
+    public function setAsset(?Asset $barcode): static
+    {
+        $this->asset = $barcode;
+
+        return $this;
+    }
+
+    public function getState(): State
+    {
+        return $this->state;
+    }
+
+    public function setState(State $state): static
+    {
+        $this->state = $state;
+
+        return $this;
+    }
+
+    public function isSystemAction(): ?bool
+    {
+        return $this->systemAction;
+    }
+
+    public function setSystemAction(?bool $systemAction): static
+    {
+        $this->systemAction = $systemAction;
+
+        return $this;
+    }
+
+    public function getUsage(): ?string
+    {
+        return $this->usage;
+    }
+
+    public function setUsage(?string $usage): static
+    {
+        $this->usage = $usage;
+
+        return $this;
+    }
+
+    public function getModifiedBy(): ?Nutzer
+    {
+        return $this->modifiedBy;
+    }
+
+    public function setModifiedBy(?Nutzer $modifiedBy): static
+    {
+        $this->modifiedBy = $modifiedBy;
+
+        return $this;
+    }
+
+    public function getReservedBy(): ?Nutzer
+    {
+        return $this->reservedBy;
+    }
+
+    public function setReservedBy(?Nutzer $reservedBy): static
+    {
+        $this->reservedBy = $reservedBy;
+
+        return $this;
+    }
+
+    public function getCase(): ?CaseFile
+    {
+        return $this->case;
+    }
+
+    public function setCase(?CaseFile $case): static
+    {
+        $this->case = $case;
+
+        return $this;
+    }
+
+    public function getLocation(): ?Asset
+    {
+        return $this->location;
+    }
+
+    public function setLocation(?Asset $location): static
+    {
+        $this->location = $location;
+
+        return $this;
+    }
+
+    public function getLastUpdatedOn(): ?\DateTimeInterface
+    {
+        return $this->lastUpdatedOn;
+    }
+
+    public function setLastUpdatedOn(\DateTimeInterface $lastUpdatedOn): static
+    {
+        $this->lastUpdatedOn = $lastUpdatedOn;
+
+        return $this;
+    }
+
+    public function getLastUpdatePerformedOn(): ?\DateTimeInterface
+    {
+        return $this->lastUpdatePerformedOn;
+    }
+
+    public function setLastUpdatePerformedOn(\DateTimeInterface $lastUpdatePerformedOn): static
+    {
+        $this->lastUpdatePerformedOn = $lastUpdatePerformedOn;
 
         return $this;
     }
 
     /**
-     * Get zeitstempel.
-     *
-     * @return \DateTime
+     * @return Collection<int, Asset>
      */
-    public function getZeitstempel()
-    {
-        return $this->zeitstempel;
-    }
-
-    /**
-     * Set zeitstempel.
-     *
-     * @param \DateTime $zeitstempel
-     *
-     * @return HistorieObjekt
-     */
-    public function setZeitstempelumsetzung($zeitstempel)
-    {
-        $this->zeitstempelderumsetzung = $zeitstempel;
-
-        return $this;
-    }
-
-    /**
-     * Get zeitstempel.
-     *
-     * @return \DateTime
-     */
-    public function getZeitstempelumsetzung()
-    {
-        return $this->zeitstempelderumsetzung;
-    }
-
-    /**
-     * Set verwendung.
-     *
-     * @param string $verwendung
-     *
-     * @return HistorieObjekt
-     */
-    public function setVerwendung($verwendung)
-    {
-        $this->verwendung = $verwendung;
-
-        return $this;
-    }
-
-    /**
-     * Get verwendung.
-     *
-     * @return string
-     */
-    public function getVerwendung()
-    {
-        return $this->verwendung;
-    }
-
-    /**
-     * Set nutzerId.
-     *
-     * @return HistorieObjekt
-     */
-    public function setNutzerId(Nutzer $nutzerId)
-    {
-        $this->nutzer_id = $nutzerId;
-
-        return $this;
-    }
-
-    /**
-     * Get nutzerId.
-     *
-     * @return Nutzer
-     */
-    public function getNutzerId()
-    {
-        return $this->nutzer_id;
-    }
-
-    /**
-     * Set reserviertVon.
-     *
-     * @return HistorieObjekt
-     */
-    public function setReserviertVon(?Nutzer $nutzerId = null)
-    {
-        $this->reserviert_von = $nutzerId;
-
-        return $this;
-    }
-
-    /**
-     * Get reserviertVon.
-     *
-     * @return Nutzer
-     */
-    public function getReserviertVon()
-    {
-        return $this->reserviert_von;
-    }
-
-    /**
-     * Set fallId.
-     *
-     * @return HistorieObjekt
-     */
-    public function setFall(?Fall $fallId = null)
-    {
-        $this->fall_id = $fallId;
-
-        return $this;
-    }
-
-    /**
-     * Get fallId.
-     *
-     * @return Fall
-     */
-    public function getFall()
-    {
-        return $this->fall_id;
-    }
-
-    /**
-     * Set statusId.
-     *
-     * @param int $id
-     *
-     * @return HistorieObjekt
-     */
-    public function setStatusId($id)
-    {
-        $this->status_id = $id;
-
-        return $this;
-    }
-
-    /**
-     * Get statusId.
-     *
-     * @return int
-     */
-    public function getStatusId()
-    {
-        return $this->status_id;
-    }
-
-    /**
-     * Set standort.
-     *
-     * @return HistorieObjekt
-     */
-    public function setStandort(?Objekt $standort = null)
-    {
-        $this->standort = $standort;
-
-        return $this;
-    }
-
-    /**
-     * Get standort.
-     *
-     * @return Objekt
-     */
-    public function getStandort()
-    {
-        return $this->standort;
-    }
-
-    public function setSystemaktion($status)
-    {
-        $this->systemaktion = $status;
-    }
-
-    public function GetSystemaktion()
-    {
-        return $this->systemaktion;
-    }
-
-    public function addImage(Objekt $object)
-    {
-        $this->images->add($object);
-    }
-
-    public function getImages()
+    public function getImages(): Collection
     {
         return $this->images;
+    }
+
+    public function addImage(Asset $image): static
+    {
+        if (!$this->images->contains($image)) {
+            $this->images->add($image);
+        }
+
+        return $this;
+    }
+
+    public function removeImage(Asset $image): static
+    {
+        $this->images->removeElement($image);
+
+        return $this;
     }
 }

@@ -1,0 +1,148 @@
+{#
+   // AM-System
+   // Copyright (C) 2019 Robert Krasowski
+   // This program was created during an internship at DigiTrace GmbH
+   // Read LIZENZ.txt for full notice
+
+   // This program is free software: you can redistribute it and/or modify
+   // it under the terms of the GNU General Public License as published by
+   // the Free Software Foundation, either version 3 of the License, or
+   // (at your option) any later version.
+
+   // This program is distributed in the hope that it will be useful,
+   // but WITHOUT ANY WARRANTY; without even the implied warranty of
+   // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   // GNU General Public License for more details.
+
+   // You should have received a copy of the GNU General Public License
+   // along with this program.  If not, see <http://www.gnu.org/licenses/>.
+   
+#}
+{% extends 'base.html.twig' %}
+{% block content1 %}
+    <h2>{{ 'asset.add.header' | trans}}</h2>
+
+    {{ include('messages.html.twig') }}
+
+    {{ form_start(form) }}
+    
+
+    <div class="row row-equal-height ">
+        <div class="col-lg-8 col-xs-12">
+            <div class="row">
+                <div class="col-lg-6 col-xs-12">
+                    {{ form_row(form.barcode) }}
+                    {{ form_row(form.name) }}
+                </div>
+                
+                <div class="col-lg-6 col-xs-12">
+                    {{ form_row(form.category) }}
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-lg-6 col-xs-12">
+                    {{ form_row(form.lastUpdatePerformedOn) }}
+                </div>
+                
+                <div class="col-lg-6 col-xs-12">
+                    {{ form_row(form.storageOverride) }}
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-lg-6 col-xs-12">
+                    {{ form_row(form.usage) }}
+                </div>
+                
+                <div class="col-lg-6 col-xs-12">
+                    {{ form_row(form.note) }}
+                </div>
+            </div>
+
+            <div class="divider">{{ 'entity.drive' | trans}}</div>
+
+            {{ form_row(form.drive) }}
+        </div>
+        <div class="col-lg-4 col-xs-12 table-column ">
+            {{ form_row(form.case) }}
+
+        </div>
+    </div>
+    <div class="form-footer">
+        {{ form_widget(form.save) }}
+        {{ form_widget(form.save_and_new) }}
+        {{ form_widget(form.save_and_keep) }}
+    </div>
+    
+    {{ form_end(form) }}
+    
+{% endblock %}
+
+{% block stylesheets %}
+{% endblock %}
+
+
+{% block javascripts %}
+<script>
+    const AddAsset = (function(){
+        const formSelector = '#{{ form.vars.id }}';
+        const driveSelector = '[name*="{{ form.drive.vars.full_name }}"]';
+        const barcodeSelector = '#{{ form.barcode.vars.id }}';
+        const categorySelector = '#{{ form.category.vars.id }}';
+        const storageOverrideSelector = '#{{ form.storageOverride.vars.id }}';
+
+        const auto_text = '{{ 'asset.add.form.storage_override_opt.auto' | trans }}';
+        const enabled_text = '{{ 'asset.add.form.storage_override_opt.enabled' | trans }}';
+        const disabled_text = '{{ 'asset.add.form.storage_override_opt.disabled' | trans }}';
+
+        const setDriveFormEnable = function(enabled) {
+            $(driveSelector).each(function(_) {
+                $(this).attr('disabled', enabled ? null : 'disabled');
+            })
+        }
+
+        const setStorageOverrideEnable = function(enabled) {
+            $(storageOverrideSelector).each(function(_) {
+                $(this).attr('disabled', enabled ? null : 'disabled');
+                if (!enabled) {
+                    $(this).val(2);
+                }
+            })
+        }
+
+        const categoryUpdate = function(e){
+            const option = $(this).find(':selected');
+            const prefix = option.data('prefix');
+            const drive = option.data('drive');
+            
+            // set DT prefix
+            const barcode = $(barcodeSelector);
+            const val = barcode.val()
+            const new_val = prefix + val.substring(4)
+            barcode.val(new_val)
+
+            // enable/disable drive form
+            setDriveFormEnable(drive);
+
+            // enable/disbale storage override form
+            setStorageOverrideEnable(!drive)
+
+            // storage override hint
+            const auto_option = $(`${storageOverrideSelector} > [value="0"]`)
+
+            const text = `${auto_text} (${option.data('storage') ? enabled_text : disabled_text})`;
+            auto_option.text(text);
+        }
+
+        return {
+            init: function(){
+                $(categorySelector).on("change", categoryUpdate); 
+            }
+        }
+    })();
+
+    $(function() {
+        AddAsset.init();
+    });
+</script>
+{% endblock %}
+

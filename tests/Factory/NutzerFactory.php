@@ -85,7 +85,7 @@ final class NutzerFactory extends PersistentProxyObjectFactory
      * Sets password to "test"
      * @return NutzerFactory
      */
-    public function testPassword(): self
+    public function testPassword(): NutzerFactory
     {
         // "test" as hashed password
         return $this->with(['password' => '$2y$13$aHIe6aZt8yN7EWSJ7zLEzeed2SntSUaz7YSgp3X2Y2S6zz358Pyv2']);

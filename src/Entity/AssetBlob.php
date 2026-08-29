@@ -1,131 +1,92 @@
 <?php
-   // AM-System
-   // Copyright (C) 2019 Robert Krasowski
-   // This program was created during an internship at DigiTrace GmbH
-   // Read LIZENZ.txt for full notice
-
-   // This program is free software: you can redistribute it and/or modify
-   // it under the terms of the GNU General Public License as published by
-   // the Free Software Foundation, either version 3 of the License, or
-   // (at your option) any later version.
-
-   // This program is distributed in the hope that it will be useful,
-   // but WITHOUT ANY WARRANTY; without even the implied warranty of
-   // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-   // GNU General Public License for more details.
-
-   // You should have received a copy of the GNU General Public License
-   // along with this program.  If not, see <http://www.gnu.org/licenses/>.
-   
 
 namespace App\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
-use App\Controller\helper;
 use Symfony\Component\Validator\Constraints as Assert;
 
+/**
+ * @author Robert Krasowski
+ * @author Ben Brooksnieder
+ */
 #[ORM\Entity]
-#[ORM\Table(name: "ams_ObjektBlob")]
-class ObjektBlob
+#[ORM\Table(name: 'ams_ObjektBlob')]
+class AssetBlob
 {
-    
-    /**
-     * Set Barcode_ID
-     *
-     * @param Objekt $o
-     */
-    public function __construct($o) {
-        $this->objekt = $o;
-    }
-
-    
-    
-    #[ORM\OneToOne(targetEntity: "Objekt",inversedBy: "objektBlob")]
+    #[ORM\ManyToOne(inversedBy: 'assetBlob', cascade: ['persist', 'remove'])]
     #[ORM\Id]
-    #[ORM\JoinColumn(name:"barcode_id",referencedColumnName:"barcode_id",nullable: false)]
-    protected $objekt;
-    
-   
-    
-    #[ORM\Column(type: "text",nullable: true)]
-    #[Assert\File(mimeTypes: [ "image/jpeg" ])]
-    protected $bild;
-    
-    
-    #[ORM\Column(type:"string",nullable:true)]
-    #[Assert\File(mimeTypes: [ "image/jpeg" ])]
-    private $bildPfad;
-    
-    
-    /**
-     * Get barcodeId
-     *
-     * @return string
-     */
-    public function getBarcode()
-    {
-        return $this->objekt->getBarcodeId();
-    }
-  
-    public function __toString()
-    {
-      return $this->getBarcode(); // if you have a name property you can do $this->getName();
-    }
-    
-    
+    #[ORM\JoinColumn(name: 'barcode_id', referencedColumnName: 'barcode_id')]
+    private Asset $asset;
 
-     /**
-     * Set Pic as Resource
-     *
-     * @param blob $id
-     * @return Objekt
-     */
-    public function setPic($Id)
+    #[ORM\Column(type: 'text', nullable: true, name: 'bild')]
+    #[Assert\File(mimeTypes: ['image/jpeg'])]
+    protected ?string $picture;
+
+    #[ORM\Column(type: 'string', nullable: true, name: 'bild_pfad')]
+    #[Assert\File(mimeTypes: ['image/jpeg'])]
+    private ?string $path;
+
+    public function __construct(Asset $asset)
     {
-        if($Id == "" || $Id == null){
-            $this->bild = null;
-        }
-        else{
-            $strm = fopen($Id,"rb");
-            $this->bild = base64_encode(stream_get_contents($strm));
-        }
-        return $this;
+        $this->asset = $asset;
     }
 
-    /**
-     * Get Pic as Resource
-     *
-     * @return string
-     */
-    public function getPic()
+    public function getAsset(): Asset
     {
-        return $this->bild;
+        return $this->asset;
     }
-    
-    
-     /**
-     * Set Picpath
-     *
-     * @param string $id
-     *
-     * @return Objekt
-     */
-    public function setPicpath($Id)
+
+    public function setAsset(?Asset $asset): static
     {
-        $this->bildPfad = $Id;
+        // unset the owning side of the relation if necessary
+        if (null === $asset && null !== $this->asset) {
+            $this->asset->setBlob(null);
+        }
+
+        // set the owning side of the relation if necessary
+        if (null !== $asset && $asset->getBlob() !== $this) {
+            $asset->setBlob($this);
+        }
+
+        $this->asset = $asset;
 
         return $this;
     }
 
     /**
-     * Get Picpath
+     * Set picture.
      *
-     * @return string
+     * @param mixed $streamId
      */
-    public function getPicpath()
+    public function setPicture(?string $streamId): AssetBlob
     {
-        return $this->bildPfad;
+        if (empty($streamId)) {
+            $this->picture = null;
+        } else {
+            $strm = fopen($streamId, 'rb');
+            $this->picture = base64_encode(stream_get_contents($strm));
+        }
+
+        return $this;
     }
-    
-    
+
+    /**
+     * Get Pic as Resource.
+     */
+    public function getPicture(): ?string
+    {
+        return $this->picture;
+    }
+
+    public function getPath(): ?string
+    {
+        return $this->path;
+    }
+
+    public function setPath($path): static
+    {
+        $this->path = $path;
+
+        return $this;
+    }
 }

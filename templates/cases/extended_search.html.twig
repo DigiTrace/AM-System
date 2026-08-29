@@ -1,0 +1,112 @@
+<script>
+    "use strict";
+
+    // init when dom ready
+    $(function() {
+        const EAS = ExtendedSearch(
+            "#{{ form.vars.attr.id }}",
+            {{ form.vars.single_regex | raw }}g,
+            {{ form.vars.multi_regex | raw }}g,
+            [
+                ['caseid', 'i'],
+                ['confidentiality', 'c'],
+                ['description', 'd'],
+                ['active', 'a'],
+                ['open', 'o'],
+            ]
+        );
+        EAS.init();
+    });
+</script>
+
+{% set CaseSecrecy = enum("App\\Enum\\CaseSecrecy") %}
+<form id="es_form" action="#" class="well">
+    <div id="ecs-form-segment" data-index="0">
+
+        {# caseid #}
+        <label class="es-label" for="es_caseid">{{ 'es.case.desc.caseid'| trans }}:</label>
+        <div class="btn-group" data-toggle="buttons">
+            <label class="btn btn-default es-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'es.operator.eq'|trans}}">
+                <input type="radio" name="caseid.operator" value=""> =
+            </label>
+            <label class="btn btn-default es-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'es.operator.neq'|trans}}">
+                <input type="radio" name="caseid.operator" value="!" > ≠
+            </label>
+        </div>
+        <div class="es-input-cell">
+            <input class="es-input form-control" type="text" name="caseid" id="es_caseid"> 
+        </div>
+
+        {# confidentiality #}
+        <label class="es-label" for="es_confidentiality">{{'es.case.desc.confidentiality'|trans}}:</label>
+        <div class="btn-group" data-toggle="buttons">
+            <label class="btn btn-default es-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'es.operator.eq'|trans}}">
+                <input type="radio" name="confidentiality.operator" value=""> =
+            </label>
+            <label class="btn btn-default es-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'es.operator.neq'|trans}}">
+                <input type="radio" name="confidentiality.operator" value="!" > ≠
+            </label>
+        </div>
+        <div class="es-input-cell">
+            <select class="es-input form-control es_confidentiality" name="confidentiality" multiple="multiple" size="6" id="es_confidentiality" style="height: 100%;">
+                {% for confidentiality in CaseSecrecy.cases %}
+                    <option value="{{confidentiality.value}}">{{ confidentiality.toTranslatableString | trans }} </option>
+                {% endfor %}
+            </select>
+        </div>
+
+
+        {# description #}
+        <label class="es-label" for="es_description">{{ 'es.case.desc.description'| trans }}:</label>
+        <div class="btn-group" data-toggle="buttons">
+            <label class="btn btn-default es-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'es.operator.eq'|trans}}">
+                <input type="radio" name="description.operator" value=""> =
+            </label>
+            <label class="btn btn-default es-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'es.operator.neq'|trans}}">
+                <input type="radio" name="description.operator" value="!" > ≠
+            </label>
+        </div>
+        <div class="es-input-cell">
+            <input class="es-input form-control" type="text" name="description" id="es_description"> 
+        </div>
+
+        {# open #}
+        <label class="es-label" for="es_open">{{ 'es.case.desc.open'| trans }}:</label>
+        <div class="btn-group" data-toggle="buttons">
+            <label class="btn btn-default es-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'es.operator.eq'|trans}}">
+                <input type="radio" name="open.operator" value=""> =
+            </label>
+            <label class="btn btn-default es-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'es.operator.neq'|trans}}">
+                <input type="radio" name="open.operator" value="!" > ≠
+            </label>
+            <label class="btn btn-default es-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'es.operator.date.before'|trans}}">
+                <input type="radio" name="open.operator" value="<" > &lt;
+            </label>
+            <label class="btn btn-default es-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'es.operator.date.after'|trans}}">
+                <input type="radio" name="open.operator" value=">" > &gt;
+            </label>
+        </div>
+        <div class="es-input-cell">
+            <input class="es-input form-control" type="date" name="open" id="es_open"> 
+        </div>
+
+
+        {# active #}
+        <label class="es-label" style="grid-column: 1 / span 2;">{{ 'es.case.desc.active'| trans }}:</label>
+        <div class="btn-group" data-toggle="buttons">
+            <label class="btn btn-default es-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'es.operator.yes'|trans}}">
+                <input type="radio" name="active.operator" value="*" > ✓
+            </label>
+            <label class="btn btn-default es-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'es.operator.no'|trans}}">
+                <input type="radio" name="active.operator" value="-" > ✕
+            </label>
+        </div>
+
+        <input type="submit" hidden />
+    </div>
+    <div class="es-footer">
+        <button type="button" class="btn-primary btn" id="es_add_query">{{ 'es.form.add_query'| trans }}</button>
+        <button type="submit" class="btn-default btn">{{ 'es.form.search'| trans }}</button>
+        <button type="button" class="btn-default btn" onclick="$('#es_form_container').slideToggle(250)" >{{ 'es.form.hide'| trans }}</button>
+    </div>
+</form>

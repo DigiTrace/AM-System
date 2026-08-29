@@ -23,41 +23,41 @@
 
 namespace App\Controller;
 
-use App\Entity\Fall;
+use App\Entity\Asset;
+use App\Entity\CaseFile;
 use App\Entity\Nutzer;
-use App\Entity\Objekt;
-use Doctrine\Persistence\ManagerRegistry;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
-use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Routing\Attribute\Route;
 
 /**
- * 
+ * @author Ben Brooksnieder
  */
-class DefaultController extends AbstractController
+class DefaultController extends BaseController
 {
     /**
      * Show dashboard with information about recent cases and reserved objects.
      */
     #[Route('/', name: 'homepage')]
-    public function index(Request $request, ManagerRegistry $doctrine)
+    public function index(Request $request, EntityManagerInterface $entityManager, Security $security)
     {
         // get user
-        $user = $this->get('security.token_storage')->getToken()->getUser();
+        $user = $security->getUser();
 
         // get all reserved objects
-        $repository = $doctrine->getRepository(Objekt::class);
-        $reservedObjects = $repository->findAllReservedByUser($user);
+        $repository = $entityManager->getRepository(Asset::class);
+        $reservedAssets = $repository->findAllReservedByUser($user);
 
         // get open cases
-        $repository = $doctrine->getRepository(Fall::class);
+        $repository = $entityManager->getRepository(CaseFile::class);
         $cases = $repository->findAllOpen(10);
 
         return $this->render('default/index.html.twig', [
-            'reservedObjects' => $reservedObjects,
+            'reservedAssets' => $reservedAssets,
             'recentCases' => $cases,
         ]);
     }
@@ -75,10 +75,10 @@ class DefaultController extends AbstractController
      * Change language view and logic.
      */
     #[Route('/profil/change-language', name: 'change_language')]
-    public function changeLanguage(Request $request, RequestStack $requestStack)
+    public function changeLanguage(Request $request, RequestStack $requestStack, EntityManagerInterface $entityManager, Security $security)
     {
         // get user
-        $user = $this->get('security.token_storage')->getToken()->getUser();
+        $user = $security->getUser();
 
         // create form to select from available languages
         $form = $this->createFormBuilder(null, [])
@@ -97,12 +97,10 @@ class DefaultController extends AbstractController
         if ($form->isSubmitted()
                 && $form->isValid()) {
             // set language
-            $em = $this->getDoctrine()->getManager();
-
-            $nutzer = $em->getRepository(Nutzer::class)->find($user);
+            $nutzer = $entityManager->getRepository(Nutzer::class)->find($user);
 
             $nutzer->SetLanguage($form->getData()['language']);
-            $em->flush();
+            $entityManager->flush();
 
             $session = $requestStack->getSession();
 

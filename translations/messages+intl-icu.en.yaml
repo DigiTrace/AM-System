@@ -1,52 +1,504 @@
-not_implemented_yet: 'Not implemented yet: {function}'
-eas:
-  desc:
-    category: 'Category'
-    status: 'Status'
-    barcode: 'Barcode'
-    name: 'Name'
-    description: 'Description'
-    history_description: 'Former description'
-    user: 'User'
-    history_user: 'Former user'
+amsystem: 'Evidence asset management system'
+contextmenu: 'Menu'
+applicationof: 'Application by'
+alertbeforesubmit: 'Do you really want to perform this action? This can not be undone.'
+report_from: 'Report created on {time}'
+yes: 'Yes'
+no: 'No'
+nav:
+  home: 'Dashboard'
+  cases: 'Cases'
+  assets: 'Assets'
+  scan: 'Scan asset'
+  
+# general form labels/messages
+form:
+  actions: &FORM_ACTIONS 'Actions'
+  apply: &FORM_APPLY 'Apply'
+  cancel: &FORM_CANCEL 'Cancel'
+  close: &FORM_CLOSE 'Close'
+  reset: &FORM_RESET 'Reset'
+  save: &FORM_SAVE 'Save'
+  search: &FORM_SEARCH 'Search'
+  add: &FORM_ADD 'Add'
+  remove: &FORM_REMOVE 'Remove'
+  entries_found: 'entries found'
+  list:
+    all: 'all'
+    summary: 'Show {current} of {total} total entries'
+    empty: 'No entries found for query'
+    null_element: 'Select none'
+  picture:
+    upload: 'Upload picture'
+    is_public: 'Is picture public (can be reused by others)?'
+    select_public: 'Select public picture'
+
+export:
+  docx:
+    header: 'Docx export from AM-System'
+
+# user translations
+user:
+  user: &USER_USER 'User'
+  attr:
+    username: &USER_USERNAME 'Username'
+    fullname: &USER_FULLNAME 'Full name'
+    email: &USER_EMAIL 'Email'
+  not_found: 'User not found'
+  overview: 'User Overview' # former "summary"
+
+  page:
+    index: 'Hello {user}!'
+    password: 'Change password'
+  form:
+    username: *USER_USERNAME
+    fullname: *USER_FULLNAME
+    email: *USER_EMAIL
+    password: &USER_FORM_PASSWORD 'Password'
+    old_password: 'Current password'
+    new_password: 'New password'
+    new_password_repeat: 'Repeat new password'
+    notify_case_creation: 'Notify case creation'
+    actions: *FORM_ACTIONS
+    state: 'State'
+    state_enabled: 'Enabled'
+    state_disabled: 'Disabled'
+    state_subscribed: 'Subscribed'
+    state_unsubscribed: 'Unsubscribed'
+    enabled: 'User was enabled.'
+    disabled: 'User was disabled.'
+    subscribed: 'User subscribed to case creation notfiy.'
+    unsubscribed: 'User unsubscribed from case creation notfiy.'
+    apply: *FORM_APPLY
+    reset: *FORM_RESET
+    save: *FORM_SAVE
+    edit_profile: 'Edit profile information:'
+    edit_successful: 'Profile updated succesfully'
+    change_password: '' # left empty
+    password_change_successful: 'Password succesfully changed'
+    error:
+      incorrect_password: 'Incorrect password.'
+      passwords_not_matching: 'Provided new passwords do not match.'
+      duplicate: 'Profile could not be updated. New values collide with existing users.'
+
+  actions:
+    add: 'Add new user'
+    show: 'Show user overview'
+    profile: 'Show profile'
+    edit_profile: 'Edit profile'
+    change_language: 'Change language'
+    change_password: 'Change password'
+    deactivate: 'Deactivate user(He cant login anymore)'
+    activate: 'Reactivate user'
+    subscribe_case: 'Notify user on case creation'
+    unsubscribe_case: 'Do not notify user on case creation'
+
+security:
+  username: &SECRURITY_USERNAME *USER_USERNAME
+  fullname: &SECRURITY_FULLNAME *USER_FULLNAME
+  email: *USER_EMAIL
+  password: *USER_FORM_PASSWORD
+  add_user: 'Add user'
+  duplicate_user: 'Provided user information matches existing one.'
+  user_added: 'User succesfully added.'
+  login:
+    username: *SECRURITY_USERNAME
+    fullname: *SECRURITY_FULLNAME
+    password: *USER_FORM_PASSWORD
+    remember_me: 'Remember me'
+    submit: 'Login'
+  logout: 'Logout'
+
+entity:
+  asset: 'Asset'
+  drive: 'Drive'
+  case: 'Case'
+
+# enum values
+enum:
+  asset_category:
+    exhibit: 'Evidence asset'
+    equipment: 'Equipment'
+    container: 'Container'
+    hdd: 'HDD'
+    record: 'Record'
+    exhibit_hdd: 'HDD evidence asset'
+
+  asset_state:
+    added: 'Added to system'
+    cleaned: 'Zeroed'
+    destroyed: 'Destroyed'
+    taken_to_customer: 'Taken to customer'
+    handover_person: 'Handed over to a person'
     reserved: 'Reserved'
-    history_reserved: 'Formerly reserved'
-    location: 'Location'
-    history_location: 'Former location'
-    case: 'Case'
-    history_case: 'Former case'
-    caseactive: 'Is assigned case active?'
-    note: 'Note'
-    type: 'Drive type'
-    form_factor: 'Drive form factor'
-    size: 'Drive size'
-    manufacturer: 'Manufacturer'
-    model: 'Model'
-    product_number: 'Product number'
-    serial_number: 'Serial number'
-    connector: 'Connector'
-    date: 'Last updated'
-    date_end: 'Last updated before'
+    lost: 'Lost'
+    stored_in_container: 'Added to container'
+    pulled_out_of_container: 'Pulled out of container'
+    assigned_case: 'Assigned to case'
+    removed_from_case: 'Removed from case'
+    unbind_reservation: 'Reservation revoked'
+    used: 'In use'
+    edited: 'Edited'
+    saved_image: 'Image of evidence asset'
+
+  case_secrecy:
+    public: 'Public'
+    internal: 'Internal'
+    confidential: 'Confidential'
+    secret: 'Secret'
+
+asset:
+  available: 'Available'
+  attr:
+    barcode: &ASSET_BARCODE 'Barcode'
+    name: &ASSET_NAME 'Name'
+    category: &ASSET_CATEGORY 'Category'
+    state: &ASSET_STATE 'State'
+    usage: &ASSET_USAGE 'Usage'
+    note: &ASSET_NOTE 'Note'
+    modified_by: &ASSET_MODIFIED_BY 'Modified by'
+    reserved_by: &ASSET_RESERVED_BY 'Reserved by'
+    case: &ASSET_CASE 'Case'
+    location: &ASSET_LOCATION 'Location'
+    images: &ASSET_IMAGES 'Images'
+    last_updated_on: &ASSET_LAST_UPDATED_ON 'Last updated on'
+    last_update_performed_on: &ASSET_LAST_UPDATE_PERFORMED_ON 'Last update performed on'
+
+  add:
+    header: 'Add new Asset'
+
+    form:
+      barcode: *ASSET_BARCODE
+      name: *ASSET_NAME
+      category: *ASSET_CATEGORY
+      state: *ASSET_STATE
+      usage: *ASSET_USAGE
+      note: *ASSET_NOTE
+      due_date: Date of receipt
+      storage_override: 'Function as storage'
+      storage_override_opt:
+        auto: 'Auto'
+        enabled: 'Yes'
+        disabled: 'No' 
+      case_search: 'Assigned case'
+      no_case: 'Assign no case'
+      
+      help:
+        due_date: 'When asset was/will be added to inventory'
+        storage_override: 'Assets can have custom storage behaviour if required'
+        case_search: 'Search for case names or case IDs'
+
+      error:
+        duplicate: 'Asset with barcode already exists'
+
+      save: 'Save asset'
+      save_and_new: 'Save asset and add another'
+      save_and_keep: 'Save asset and add similar'
+      success: 'Asset successfully added'
+
+  select:
+    edit_selected: 'Alter all {count} selected elements'
+    all: 'Select all'
+
+  search:
+    header: 'Asset overview'
+    reserved_by: 'Reserved by {user}' 
+
+  scanner:
+    header: 'Asset search via barcode'
+    info: 'After typing the barcode, you will be redirected to the details page.'
+    form: 'Please scan the barcode of the asset with a barcode scanner'
+
+  details:
+    header: 'Details to'
+    summary: 'Summary'
+    case: 'Assigned case'
+    contains_images: 'Saved images of'
+    imaged_on: 'Is imaged on'
+    modified_by: 'Last modified by'
+    addtional_information: 'Additional information'
+    drive_properties: 'Drive properties'
+    stored_assets: 'Stored assets'
+    no_stored_assets: 'No stored assets'
+    image_locations: 'Current image locations'
+    no_image_locations: 'No images created'
+    saved_images: 'Saved images of'
+    no_saved_images: 'No saved images'
+    history: 'Asset history'
+    no_history: 'No asset history yet'
+
+  edit:
+    header: 'Edit asset {asset}'
+    drive: 'Drive properties'
+    form:
+      name: *ASSET_NAME
+      usage: *ASSET_USAGE
+      note: *ASSET_NOTE
+      save: 'Apply changes'
+    no_changes_made: 'No changes made'
+    success: 'Asset succesfully edited'
+    info: 'The change of the asset will be logged in the history. The last actions date of execution will be used due to technical reasons. If the asset is involved in a case or something similar, the current status will not be altered.'
+
+
+  action:
+    header: 'Modify asset'
+    transition: 'Change asset state'
+    success: 'Asset succesfully modified'
+
+    form: 
+      usage:
+        optional: 'New usage of asset (optional)'
+        required: 'New usage of asset (required)'
+      due_date: 'Change due'
+      asset_search: 'Search assets'
+      case_search: 'Search cases'
+      location_search: 'Search storages'
+      image_target_search: 'Search image targets'
+      save: 'Change asset'
+      help:
+        asset_search: 'Select asset'
+        case_search: 'Select case to assign'
+        location_search: 'Select available storage location'
+        image_target_search: 'Select possible targets to store drive image on'
+      action: 'Select action'
+
+    neutralize:
+      not_hdd: 'Asset is not a HDD'
+      already_neutralized: 'Asset is already neutralized'
+      success: 'Asset succesfully neutralized'
+      info: 'During this action, the asset will be zeroed, pulled out of a container and removed from case. Only required actions will be used.'
+
+    destroy:
+      warning: 'When an asset has been declared as destroyed or lost, it cant be altered afterwards.'
+
+    handover:
+      info: 'Please state, which person or authority recieved the asset'
+
+    lost:
+      info: "This isn't suppose to happen, we are professionals!"
+      warning: 'When an asset has been declared as destroyed or lost, it cant be altered afterwards.'
+
+    store:
+      same_container: 'Asset is already stored in container'
+
+    remove_container:
+      info: 'Please state, why you want to pull the asset out of the container'
+
+    unassing_case:
+      info: 'Please state, why you want to remove the asset of the Case'
+
+    add_image:
+      select_source: 'Choose source for image creation from the listed assets. Then click on add image to create new HDD image.'
+      not_applicable: 'Add image action is not applicable'
+      success: 'Succesfully added an image to a drive'
+
+  multi_action:
+    header: 'Alter multiple assets'
+    remove_item: *FORM_REMOVE
+    add_item: *FORM_ADD
+    storage: 'Select storage location'
+    case: 'Select case to assign'
+    items: 'Select assets to alter'
+    selected: 'Selected assets'
+    violations: 'Violations'
+    success: 'Succesfully updated assets'
+
+
+  upload_pic:
+    header: 'Assign picture to asset {asset}'
+    no_public_pictures: 'No public pictures available'
+    usage_public: 'Added public picture'
+    usage_private: 'Added private picture'
+    usage_selected: 'Selected public picture'
+    success: 'Picture succesfully uploaded'
+    info: 'Choose a picture or upload ones. Please consider while uploading a picture, that the maximum size of the picture has to be 10MB. Also the format has to be JPEG.'
+    error:
+      quality: 'Image quality is too high'
+      not_saved: 'Unknown error, picture could not be saved.'
+
   error:
-    caseactive:
-      invalid: 'Only bool values are allowed for caseactive'
-    category:
-      invalid: 'Invalid category number: {category}'
-    date:
-      invalid: 'Invalid date: {date}'
-    query:
-      empty: 'Empty query'
-    segment:
-      empty: 'No matching tags in "{segment}"'
-      invalid: 'No valid tags in "{segment}"'
-    tag:
-      unknown: 'Unknown tag: {tag}'
+    not_found: 'Asset not found'
+
+  actions:
+    add: 'Add new asset'
+    faq: 'Extended asset search FAQ'
+    print: 'Print details'
+    zero: 'Zero asset'
+    customer: 'Take to customer'
+    neutralize: 'Neutralize asset'
+    save_hdd_image: 'Create drive image'
+    destroy: 'Destroy asset'
+    handover: 'Handover asset to person'
+    lost: 'Mark asset as lost'
+    used: 'Mark asset as in use'
+    reserve: 'Reserve asset'
+    unreserve: 'Revoke reservation'
+    store: 'Store asset in container'
+    move: 'Move asset to different container'
+    remove_container: 'Remove asset from container'
+    assign_case: 'Assign asset to case'
+    unassign_case: 'Unassign asset from case'
+    edit: 'Edit asset properties'
+    upload_picture: 'Upload picture'
+    
+
+drive:
+  attr:
+    barcode: &DRIVE_BARCODE *ASSET_BARCODE
+    form_factor: &DRIVE_FORM_FACTOR 'Form factor'
+    type: &DRIVE_TYPE 'Type'
+    size: &DRIVE_SIZE 'Size'
+    manufacturer: &DRIVE_MANUFACTURER 'Manufacturer'
+    model: &DRIVE_MODEL 'Model'
+    serial_number: &DRIVE_SERIAL_NUMBER 'Serial number'
+    product_number: &DRIVE_PRODUCT_NUMBER 'Product number'
+    connector: &DRIVE_CONNECTOR 'Connector'
+
+  form:
+    form_factor: *DRIVE_FORM_FACTOR
+    type: *DRIVE_TYPE
+    size: *DRIVE_SIZE
+    manufacturer: *DRIVE_MANUFACTURER
+    model: *DRIVE_MODEL
+    serial_number: *DRIVE_SERIAL_NUMBER
+    product_number: *DRIVE_PRODUCT_NUMBER
+    connector: *DRIVE_CONNECTOR
+
+    help:
+      form_factor: '2.5/3.5/...'
+      type: 'internal/external'
+      size: 'Custom size, in GB'
+      size_dropdown: 'In GB'
+      connector: 'USB/ATA/SATA/...'
+
+case:
+  attr:
+    case_id: &CASE_ID 'Case ID'
+    active: &CASE_ACTIVE 'Active'
+    secrecy: &CASE_SECRECY 'Secrecy'
+    description: &CASE_DESCRIPTION 'Description'
+    opened_on: &CASE_OPENED_ON 'Opened on'
+    closed_on: &CASE_CLOSED_ON 'Closed on'
+
+  form:
+    case_id: *CASE_ID
+    active: *CASE_ACTIVE
+    secrecy: *CASE_SECRECY
+    description: *CASE_DESCRIPTION
+    opened_on: *CASE_OPENED_ON
+    closed_on: *CASE_CLOSED_ON
+    save: *FORM_SAVE
+
+  add:
+    header: 'Add new case'
+    success: 'Succesfully added new case'
+
+  search:
+    header: 'Case overview'
+
+  edit:
+    header: 'Edit case {case}'
+    success: 'Succesfully edited case'
+
+  details:
+    header: 'Details of case {case}'
+    summary: 'Summary'
+    active: 'Case active'
+    opened_on: 'Case open since'
+    associated_assets: 'Associated assets'
+    former_associated_assets: 'Former associated assets'
+
+  download_word:
+    details: 'Details about case {case}'
+    listed_assets: 'Currently listed assets'
+    involved_assets: 'Assets, which were involved with this case'
+    report_by: 'Report generate on {date} by {user}'
+
+  error:
+    not_found: 'Case not found'
+
+  actions:
+    add: 'Add new case'
+    faq: 'Extended case search FAQ'
+    print: 'Print details'
+    edit: 'Edit case'
+    download_word: 'Download as word document'
+
+dashboard:
+  header: 'Dashboard'
+  open_cases: 'Open cases'
+  reserved_assets: 'Reserved assets'
+
+
+es:
+  asset:
+    desc:
+      barcode: *ASSET_BARCODE
+      category: *ASSET_CATEGORY
+      state: *ASSET_STATE
+      name: *ASSET_NAME
+      usage: *ASSET_USAGE
+      history_usage: 'Former usage'
+      user: 'User'
+      history_user: 'Former user'
+      reserved: 'Reserved'
+      history_reserved: 'Formerly reserved'
+      location: 'Location'
+      history_location: 'Former location'
+      case: 'Case'
+      history_case: 'Former case'
+      caseactive: 'Is assigned case active?'
+      note: 'Note'
+      type: 'Drive type'
+      form_factor: 'Drive form factor'
+      size: 'Drive size'
+      manufacturer: 'Manufacturer'
+      model: 'Model'
+      product_number: 'Product number'
+      serial_number: 'Serial number'
+      connector: 'Connector'
+      date: 'Last updated'
+      date_end: 'Last updated before'
+
+    error:
+      caseactive:
+        invalid: 'Only bool values are allowed for caseactive'
+      category:
+        invalid: 'Invalid category number: {category}'
+      date:
+        invalid: 'Invalid date: {date}'
+      query:
+        empty: 'Empty query'
+      segment:
+        empty: 'No matching tags in "{segment}"'
+        invalid: 'No valid tags in "{segment}"'
+    drive_section: 'Drive properties'
+
+  case:
+    desc:
+      caseid: *CASE_ID
+      confidentiality: *CASE_SECRECY
+      description: *CASE_DESCRIPTION
+      open: *CASE_OPENED_ON
+      active: *CASE_ACTIVE
+    
+    error:
+      invalid_secrecy: 'Invalid confidentiality: "{secrecy}"'
+        
+  error:
+    unknown_tag: 'Unknown tag: "{tag}"'
+    empty_query: 'Query is empty'
+    invalid_date: 'Invalid date: "{date}"'
+    empty_segment: 'Empty search term: "{segment}"'
+    invalid_segment: 'Invalid search term: "{segment}"'
+
+
   form:
     add_query: 'Add new subquery'
-    drive_section: 'Drive properties'
     search: 'Search'
     show: 'Extended search'
     hide: 'Hide form'
+
   operator:
     any: is set
     date:
@@ -60,5 +512,26 @@ eas:
     no: 'no'
     none: is not set
     yes: 'yes'
-    
 
+email:
+  case_creation:
+    subject: 'Case "{case}" was added to the AM-System '
+    body: |
+      Dear {recipient},
+      A case with the ID "{case}" was added to the AM-System by user {user}.
+      See {link}.
+
+      Kind regards
+      AM-System
+
+  case_alteration:
+    subject: 'Case "{case}" was altered in the AM-System '
+    body: |
+      Dear {recipient},
+      The case with the ID "{case}" was altered in the AM-System by user {user}.
+      See {link}.
+
+      Kind regards
+      AM-System
+
+not_implemented_yet: 'Not implemented yet: {function}'

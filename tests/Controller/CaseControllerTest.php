@@ -2,30 +2,32 @@
 
 namespace App\Tests\Controller;
 
-use App\Repository\FallRepository;
+use App\Repository\CaseRepository;
 use App\Tests\_support\BaseWebTestCase;
-use App\Tests\Factory\FallFactory;
+use App\Tests\Factory\CaseFactory;
+use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\Depends;
 
 /**
  * @author Ben Brooksnieder
  */
 class CaseControllerTest extends BaseWebTestCase
 {
-    public function genericUrlProvider()
+    public static function genericUrlProvider()
     {
         yield ['/faelle'];
         yield ['/faelle/faq'];
         yield ['/fall/anlegen'];
     }
 
-    public function detailUrlProvider()
+    public static function detailUrlProvider()
     {
         yield ['/fall/%s/anzeigen/'];
         yield ['/fall/%s/aktualisieren/'];
         yield ['/fall/%s/downloadWord/'];
     }
 
-    public function validCaseProvider()
+    public static function validCaseProvider()
     {
         yield [['id' => 'XIVv2', 'desc' => '(TEST)Computersabotage']];
         yield [['id' => 'TLG', 'desc' => '(TEST)Einbruch im Hochsicherheitstrakt beim HIER BEKANNTE FIRMA EINTRAGEN. Laptop mit HIER WICHTIGE DATENBESTAND EINFÜGEN Daten entwendet']];
@@ -34,16 +36,14 @@ class CaseControllerTest extends BaseWebTestCase
         yield [['id' => 'Schmidt AG', 'desc' => '(TEST)Pentest des Front Webservers']];
     }
 
-    public function invalidCaseProvider()
+    public static function invalidCaseProvider()
     {
         yield 'empty ID' => [['id' => '', 'desc' => 'Fall ohne ID darf es nicht geben']];
-        yield 'empty description' => [['id' => 'Fall ohne Beschreibung darf es nicht geben', 'desc' => '']];
+        yield 'empty description' => [['id' => 'Fall ohne description darf es nicht geben', 'desc' => '']];
     }
 
-    /**
-     * @dataProvider genericUrlProvider
-     * @dataProvider detailUrlProvider
-     */
+    #[DataProvider("genericUrlProvider")]
+    #[DataProvider("detailUrlProvider")]
     public function testProtectedUrls($url)
     {
         $client = static::createClient();
@@ -52,9 +52,7 @@ class CaseControllerTest extends BaseWebTestCase
         $this->assertResponseRedirects('http://localhost/login', 302);
     }
 
-    /**
-     * @dataProvider genericUrlProvider
-     */
+    #[DataProvider("genericUrlProvider")]
     public function testGenericUrls($url)
     {
         $client = static::createClient();
@@ -63,23 +61,19 @@ class CaseControllerTest extends BaseWebTestCase
         $this->assertResponseIsSuccessful();
     }
 
-    /**
-     * @dataProvider detailUrlProvider
-     */
+    #[DataProvider("detailUrlProvider")]
     public function testDetailUrls($url)
     {
-        $factory = FallFactory::new();
+        $client = static::createClient();
+        $factory = CaseFactory::new();
         $case = $factory->active()->create();
 
-        $client = static::createClient();
         $this->loginUser($client)->request('GET', sprintf($url, $case->getCaseId()));
 
         $this->assertResponseIsSuccessful();
     }
 
-    /**
-     * @dataProvider validCaseProvider
-     */
+    #[DataProvider("validCaseProvider")]
     public function testAddCaseValid($params)
     {
         // setup
@@ -87,31 +81,29 @@ class CaseControllerTest extends BaseWebTestCase
         $crawler = $this->loginUser($client)->request('GET', '/fall/anlegen');
 
         // make form request
-        $form = $crawler->selectButton('add_new_case')->form();
+        $form = $crawler->selectButton('case[save]')->form();
         $client->submit($form, [
-            'form[case_id]' => $params['id'],
-            'form[beschreibung]' => $params['desc'],
+            'case[caseId]' => $params['id'],
+            'case[description]' => $params['desc'],
         ]);
-        $this->assertResponseRedirects("/faelle");
+        $this->assertResponseRedirects();
         $client->followRedirect();
         
 
         // look into hmtl whether case was rendered and processed correctly
-        $this->assertSelectorTextContains("tr:contains('{$params['id']}')", $params['desc']);
+        $this->assertSelectorTextContains("tr:contains('case.attr.case_id')", $params['id']);
+        $this->assertSelectorTextContains("tr:contains('case.attr.description')", $params['desc']);
 
-        $this->seeInDatabase(FallRepository::class, [
-            'case_id' => $params['id'],
-            'beschreibung' => $params['desc'],
+        $this->seeInDatabase(CaseRepository::class, [
+            'caseId' => $params['id'],
+            'description' => $params['desc'],
         ]);
 
         return $client;
     }
 
-    /**
-     * @dataProvider invalidCaseProvider
-     *
-     * @depends testAddCaseValid
-     */
+    #[Depends("testAddCaseValid")]
+    #[DataProvider("invalidCaseProvider")]
     public function testAddCaseInvalid($params)
     {
         // setup
@@ -119,23 +111,21 @@ class CaseControllerTest extends BaseWebTestCase
         $crawler = $this->loginUser($client)->request('GET', '/fall/anlegen');
 
         // make form request
-        $form = $crawler->selectButton('add_new_case')->form();
+        $form = $crawler->selectButton('case[save]')->form();
         $client->submit($form, [
-            'form[case_id]' => $params['id'],
-            'form[beschreibung]' => $params['desc'],
+            'case[caseId]' => $params['id'],
+            'case[description]' => $params['desc'],
         ]);
         $this->assertResponseIsSuccessful();
         $this->assertSelectorExists('span.glyphicon-exclamation-sign');
-        $this->dontSeeInDatabase(FallRepository::class, [
-            'case_id' => $params['id'],
-            'beschreibung' => $params['desc'],
+        $this->dontSeeInDatabase(CaseRepository::class, [
+            'caseId' => $params['id'],
+            'description' => $params['desc'],
         ]);
         return $client;
     }
 
-    /**
-     * @depends testAddCaseInvalid
-     */
+    #[Depends("testAddCaseInvalid")]
     public function testAddCaseDuplicate()
     {
         // setup
@@ -149,18 +139,18 @@ class CaseControllerTest extends BaseWebTestCase
 
         // make second entry
         $crawler = $client->request('GET', '/fall/anlegen');
-        $form = $crawler->selectButton('add_new_case')->form();
+        $form = $crawler->selectButton('case[save]')->form();
         $client->submit($form, [
-            'form[case_id]' => $params['id'],
-            'form[beschreibung]' => $params['desc'],
+            'case[caseId]' => $params['id'],
+            'case[description]' => $params['desc'],
         ]);
 
         $this->assertResponseIsSuccessful();
-        $this->assertSelectorTextContains('div.alert-danger', 'used');
+        $this->assertSelectorTextContains('span.help-block', 'case.error.duplicate');
 
-        $this->seeInDatabase(FallRepository::class, [
-            'case_id' => $params['id'],
-            'beschreibung' => $params['desc'],
+        $this->seeInDatabase(CaseRepository::class, [
+            'caseId' => $params['id'],
+            'description' => $params['desc'],
         ], 1);
 
         return $client;

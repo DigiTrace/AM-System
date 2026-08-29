@@ -1,54 +1,504 @@
+amsystem: 'Asservatenmanagement System'
+contextmenu: 'Menü'
+applicationof: 'Eine Anwendung der'
+alertbeforesubmit: 'Möchten Sie diese Aktion wirklich ausführen? Die Aktion kann nicht rückgängig gemacht werden.'
+report_from: 'Bericht erstellt am {time} Uhr'
+yes: 'Ja'
+no: 'Nein'
+nav:
+  home: 'Dashboard'
+  cases: 'Fälle'
+  assets: 'Objekte'
+  scan: 'Objekte scannen'
+  
+# general form labels/messages
+form:
+  actions: &FORM_ACTIONS 'Aktionen'
+  apply: &FORM_APPLY 'Anwenden'
+  cancel: &FORM_CANCEL 'Abbrechen'
+  close: &FORM_CLOSE 'Schließen'
+  reset: &FORM_RESET 'Zurücksetzen'
+  save: &FORM_SAVE 'Speichern'
+  search: &FORM_SEARCH 'Suchen'
+  add: &FORM_ADD 'Hinzufügen'
+  remove: &FORM_REMOVE 'Entfernen'
+  entries_found: 'Einträge gefunden'
+  list:
+    all: 'allen'
+    summary: 'Zeige {current} von insgesamt {total} Einträgen'
+    empty: 'Keine Einträge gefunden für diese Anfrage'
+    null_element: 'Nichts auswählen'
+  picture:
+    upload: 'Bild hochladen'
+    is_public: 'Bild öffentlich (kann von anderen wiederverwendet werden)?'
+    select_public: 'Verfügbares Bild auswählen'
 
-not_implemented_yet: 'Noch nicht implementiert: {function}'
-# Extended Asset Search
-eas:
-  desc:
-    category: 'Kategorie'
-    status: 'Status'
-    barcode: 'Barcode'
-    name: 'Name'
-    description: 'Verwendung'
-    history_description: 'Ehem. Verwendung'
-    user: 'Nutzer'
-    history_user: 'Ehem. Nutzer'
+export:
+  docx:
+    header: 'Docx Export vom AM-System'
+
+# user translations
+user:
+  user: &USER_USER 'Nutzer'
+  attr:
+    username: &USER_USERNAME 'Username'
+    fullname: &USER_FULLNAME 'Vollständiger Name'
+    email: &USER_EMAIL 'E-Mail'
+  not_found: 'Nutzer konnte nicht gefunden werden.'
+  overview: 'Nutzerübersicht' # former "summary"
+
+  page:
+    index: 'Hallo {user}!'
+    password: 'Passwort ändern'
+  form:
+    username: *USER_USERNAME
+    fullname: *USER_FULLNAME
+    email: *USER_EMAIL
+    password: &USER_FORM_PASSWORD 'Passwort'
+    old_password: 'Aktuelles Passwort'
+    new_password: 'Neues Passwort'
+    new_password_repeat: 'Neues Passwort wiederholen'
+    notify_case_creation: 'Benachrichtigung bei Fall-Erstellung'
+    actions: *FORM_ACTIONS
+    state: 'Status'
+    state_enabled: 'Aktiv'
+    state_disabled: 'Inaktiv'
+    state_subscribed: 'Abboniert'
+    state_unsubscribed: 'Deabboniert'
+    enabled: 'Nutzer wurde aktiviert.'
+    disabled: 'Nutzer wurde deaktiviert.'
+    subscribed: 'Nutzer hat Benachrichtigungen für Fall-Erstellung aktiviert.'
+    unsubscribed: 'Nutzer hat Benachrichtigungen für Fall-Erstellung deaktiviert.'
+    apply: *FORM_APPLY
+    reset: *FORM_RESET
+    save: *FORM_SAVE
+    edit_profile: 'Editiere Profilinformationen:'
+    edit_successful: 'Profil erfolgreich aktualisiert'
+    change_password: '' # left empty
+    password_change_successful: 'Passwort erfolgreich geändert'
+    error:
+      incorrect_password: 'Flasches Passwort.'
+      passwords_not_matching: 'Passwörter stimmen nicht überein.'
+      duplicate: 'Profil konnte nicht aktualisiert werden. Neue Werte kollidieren mit existierenden Nutzern.'
+
+  actions:
+    add: 'Neuen Nutzer hinzufügen'
+    show: 'Nutzerübersicht'
+    profile: 'Eigenes Profil'
+    edit_profile: 'Profil bearbeiten'
+    change_language: 'Sprache ändern'
+    change_password: 'Passwort ändern'
+    deactivate: 'Nutzer deaktivieren'
+    activate: 'Nutzer reaktivieren'
+    subscribe_case: 'Nutzer bei Fall-Erstellung benachrichtigen.'
+    unsubscribe_case: 'Nutzer bei Fall-Erstellung nicht benachrichtigen.'
+
+security:
+  username: &SECRURITY_USERNAME *USER_USERNAME
+  fullname: &SECRURITY_FULLNAME *USER_FULLNAME
+  email: *USER_EMAIL
+  password: *USER_FORM_PASSWORD
+  add_user: 'Nutzer hinzufügen'
+  duplicate_user: 'Daten kollidieren mit bereits bestehenden Nutzerprofil.'
+  user_added: 'Nutzer erfolgreich hinzugefügt.'
+  login:
+    username: *SECRURITY_USERNAME
+    fullname: *SECRURITY_FULLNAME
+    password: *USER_FORM_PASSWORD
+    remember_me: 'Eingeloggt bleiben'
+    submit: 'Anmelden'
+  logout: 'Abmelden'
+
+entity:
+  asset: 'Objekt'
+  drive: 'Datenträger'
+  case: 'Fall'
+
+# enum values
+enum:
+  asset_category:
+    exhibit: 'Asservat'
+    equipment: 'Ausrüstung'
+    container: 'Behälter'
+    hdd: 'Datenträger'
+    record: 'Akte'
+    exhibit_hdd: 'Datenträgerasservat'
+
+  asset_state:
+    added: 'Zum System hinzugefügt'
+    cleaned: 'Genullt'
+    destroyed: 'Vernichtet'
+    taken_to_customer: 'Zum Kunden gebracht'
+    handover_person: 'An eine Person übergeben'
     reserved: 'Reserviert'
-    history_reserved: 'Ehem. reserviert'
-    location: 'Standort'
-    history_location: 'Ehem. Standort'
-    case: 'Fall'
-    history_case: 'Ehem. Fall'
-    caseactive: 'Ist zugewiesener Fall aktiv?'
-    note: 'Notiz'
-    type: 'Bauart'
-    form_factor: 'Formfaktor'
-    size: 'Speichergröße'
-    manufacturer: 'Hersteller'
-    model: 'Modell'
-    product_number: 'Produktnummer'
-    serial_number: 'Seriennummer'
-    connector: 'Anschluss'
-    date: 'Zuletzt aktualisiert'
-    date_end: 'Zuletzt aktualisiert vor'
+    lost: 'Verloren'
+    stored_in_container: 'Einem Behälter hinzugefügt'
+    pulled_out_of_container: 'Aus dem Behälter entfernt'
+    assigned_case: 'Einem Fall hinzugefügt'
+    removed_from_case: 'Aus dem Fall entfernt'
+    unbind_reservation: 'Reservierung aufgehoben'
+    used: 'In Verwendung'
+    edited: 'Bearbeitet'
+    saved_image: 'Asservatenimage gespeichert'
+
+  case_secrecy:
+    public: 'Öffentlich'
+    internal: 'Intern'
+    confidential: 'Vertraulich'
+    secret: 'Geheim'
+
+asset:
+  available: 'Verfügbar'
+  attr:
+    barcode: &ASSET_BARCODE 'Barcode'
+    name: &ASSET_NAME 'Name'
+    category: &ASSET_CATEGORY 'Kategorie'
+    state: &ASSET_STATE 'Status'
+    usage: &ASSET_USAGE 'Verwendung'
+    note: &ASSET_NOTE 'Notiz'
+    modified_by: &ASSET_MODIFIED_BY 'Geändert von'
+    reserved_by: &ASSET_RESERVED_BY 'Reserviert von'
+    case: &ASSET_CASE 'Fall'
+    location: &ASSET_LOCATION 'Standort'
+    images: &ASSET_IMAGES 'Images'
+    last_updated_on: &ASSET_LAST_UPDATED_ON 'Letztes Update am'
+    last_update_performed_on: &ASSET_LAST_UPDATE_PERFORMED_ON 'Letztes Update durchgeführt am'
+
+  add:
+    header: 'Neues Objekt hinzufügen'
+
+    form:
+      barcode: *ASSET_BARCODE
+      name: *ASSET_NAME
+      category: *ASSET_CATEGORY
+      state: *ASSET_STATE
+      usage: *ASSET_USAGE
+      note: *ASSET_NOTE
+      due_date: 'Datum des Erhalts'
+      storage_override: 'Als Behälter verwendbar'
+      storage_override_opt:
+        auto: 'Automatisch'
+        enabled: 'Ja'
+        disabled: 'Nein' 
+      case_search: 'Zugewiesener Fall'
+      no_case: 'Keinen Fall zuweisen'
+      
+      help:
+        due_date: 'Wann wurde das Objekt dem Inventar hinzugefügt.'
+        storage_override: 'Objekte können zusätzlich als Behälter fungieren.'
+        case_search: 'Suche nach Fallnamen oder Fall-ID.'
+
+      error:
+        duplicate: 'Ein Objekt mit diesem Barcode existiert bereits.'
+
+      save: 'Objekt speichern'
+      save_and_new: 'Objekt speichern und weiteres hinzufügen'
+      save_and_keep: 'Objekt speichern und ähnliches hinufügen'
+      success: 'Objekt erfolgreich hinzugefügt.'
+
+
+  select:
+    edit_selected: 'Alle {count} ausgewählten Objekte ändern'
+    all: 'Alle auswählen'
+
+  search:
+    header: 'Objektübersicht'
+    reserved_by: 'Reserviert von {user}' 
+
+  scanner:
+    header: 'Objektsuche via Barcode'
+    info: 'Nach Eintragen des Barcodes wird automatisch zum Objekt weitergeleitet.'
+    form: 'Objekt mit dem angeschlossen Barcodescanner scannen'
+
+  details:
+    header: 'Details zu'
+    summary: 'Übersicht'
+    case: 'Zugewiesener Fall'
+    contains_images: 'Speichert Images von'
+    imaged_on: 'Image wurde gesichert auf'
+    modified_by: 'Zuletzt bearbeitet von'
+    addtional_information: 'Zusätzliche Informationen'
+    drive_properties: 'Datenträgereigenschaften'
+    stored_assets: 'Behälterübersicht'
+    no_stored_assets: 'Keine Objekte in diesen Behälter'
+    image_locations: 'Aktuelle Image-Speicherorte'
+    no_image_locations: 'Keine Images erstellt'
+    saved_images: 'Speichert Images von'
+    no_saved_images: 'Keine Images gespeichert'
+    history: 'Objekthistorie'
+    no_history: 'Keine Objekthistorie'
+
+  edit:
+    header: 'Editiere Objekt {asset}'
+    drive: 'Datenträgereigenschaften'
+    form:
+      name: *ASSET_NAME
+      usage: *ASSET_USAGE
+      note: *ASSET_NOTE
+      save: 'Änderungen übernehmen'
+    no_changes_made: 'Keine Änderungen gemacht.'
+    success: 'Objekt erfolgreich bearbeitet.'
+    info: 'Bei einer Änderung eines Objektes wird in der Historie hinterlegt, was sich verändert hat. Desweiteren wird aus technischen Gründen der Zeitpunkt der Umsetzung übernommen, um den zeitlichen Verlauf annähnernd nachzubilden. Einträge wie Fallzugehörigkeit, Lage etc. werden bei diesem Eintrag ignoriert. Das Objekt verbleibt im selben Zustand, bis auf die geänderten Daten.'
+
+
+  action:
+    header: 'Objektaktion'
+    transition: 'Statusänderung'
+    success: 'Objektaktion erfolgreich'
+
+    form: 
+      usage:
+        optional: 'Neue Verwendung des Objekts (optional)'
+        required: 'Neue Verwendung des Objekts'
+      due_date: 'Änderung fällig bis'
+      asset_search: 'Suche Objekte'
+      case_search: 'Suche Fälle'
+      location_search: 'Suche Behälter'
+      image_target_search: 'Suche Datenimage Zieldatenträger'
+      save: 'Aktion durchführen'
+      help:
+        asset_search: 'Wähle Datenträger aus.'
+        case_search: 'Wähle Fall aus, der dem Objekt zugewiesen werden soll.'
+        location_search: 'Wähle Behälter aus, in dem das Objekt gelagert werden soll.'
+        image_target_search: 'Wähle Datenträger aus, auf denen das Datenimage gespeichert werden soll.'
+      action: 'Wähle Aktion'
+
+    neutralize:
+      not_hdd: 'Objekt ist kein Datenträger'
+      already_neutralized: 'Asset is already neutralized'
+      success: 'Asset succesfully neutralized'
+      info: 'During this action, the asset will be zeroed, pulled out of a container and removed from case. Only required actions will be used.'
+
+    destroy:
+      warning: 'Wenn ein Objekt als zerstört oder verloren deklariert ist, kann es anschließend nicht mehr modifiziert werden.'
+
+    handover:
+      info: 'Bitte notiere, wer das Objekt erhalten history_usage'
+
+    lost:
+      info: "Das sollte nicht passieren, wir sind Profis!"
+      warning: 'Wenn ein Objekt als zerstört oder verloren deklariert ist, kann es anschließend nicht mehr modifiziert werden..'
+
+    store:
+      same_container: 'Objekt ist bereits in diesem Behälter'
+
+    remove_container:
+      info: 'Bitte notiere, warum das Objekt aus dem Behälter geholt werden soll'
+
+    unassing_case:
+      info: 'Bitte notiere, warum das Objekt nicht mehr mit dem Fall assoziert werden soll'
+
+    add_image:
+      select_source: 'Wähle zuerst mögliche Quellobjekte für das Datenimage aus der Liste. Anschließend wähle "Datenimage erstellen" aus, um ein Datenimage zu erstellen.'
+      not_applicable: 'Datenimage hinzufügen ist nicht anwendbar'
+      success: 'Datenimage erfolgreich erstellt'
+
+
+  multi_action:
+    header: 'Mehrere Objekte ändern'
+    remove_item: *FORM_REMOVE
+    add_item: *FORM_ADD
+    storage: 'Wähle Behälter'
+    case: 'Wähle zugegörigen Fall'
+    items: 'Wähle Objekte zum Ändern'
+    selected: 'Ausgewählte Objekte'
+    violations: 'Fehler'
+    success: 'Objekte erfolgreich aktualisiert'
+
+  upload_pic:
+    header: 'Wähle Profilbild für Objekt {asset}'
+    no_public_pictures: 'Keine Bilder verfügbar'
+    usage_public: 'Vorhandenes Bild als Profilbild ausgewählt'
+    usage_private: 'Eigenes Profilbild hochgeladen'
+    usage_selected: 'Vorhandenes Bild ausgewählt'
+    success: 'Bild erfolgreich hochgeladen'
+    info: 'Wählen Sie ein Bild aus oder laden ein Bild hoch. Bei Hochladen eines eigenen Bildes sollte beachtet werden, dass ein Bild im JPEG Format vorliegt und eine Größe von 10MB nicht überschreitet.'
+    error:
+      quality: 'Bildqualität zu hoch.'
+      not_saved: 'Bild konnte nicht verarbeitet werden.'
+
   error:
-    caseactive:
-      invalid: 'Für caseactive sind nur boolische Werte erlaubt'
-    category:
-      invalid: 'Ungültige Kategorienummer: {category}'
-    date:
-      invalid: 'Ungültiges Datum: {date}'
-    query:
-      empty: 'Leere Anfrage'
-    segment:
-      empty: 'Keine Suchkriterien gefunden in "{segment}"'
-      invalid: 'Keine gültigen Suchkriterien in "{segment}"'
-    tag:
-      unknown: 'Unbekanntes Suchkriterium: {tag}'
+    not_found: 'Objekt konnte nicht gefunden werden.'
+
+  actions:
+    add: 'Objekt hinzufügen'
+    faq: 'Erweitere Objektsuche-FAQ'
+    print: 'Details drucken'
+    zero: 'Nullen'
+    customer: 'Zum Kunden gebracht'
+    neutralize: 'Neutralisieren'
+    save_hdd_image: 'Datenimage erstellen'
+    destroy: 'Vernichten'
+    handover: 'Einer Person übergeben'
+    lost: 'Als verloren markieren'
+    used: 'Als verwendet markieren'
+    reserve: 'Reservieren'
+    unreserve: 'Reservierung aufheben'
+    store: 'In einem Behälter lagern'
+    move: 'In einen anderen Behälter lagern'
+    remove_container: 'Aus einem Behälter holen'
+    assign_case: 'Einen Fall zuweisen'
+    unassign_case: 'Fallzuweisung aufheben'
+    edit: 'Details editieren'
+    upload_picture: 'Profilbild hochladen'
+
+drive:
+  attr:
+    barcode: &DRIVE_BARCODE *ASSET_BARCODE
+    form_factor: &DRIVE_FORM_FACTOR 'Formfaktor'
+    type: &DRIVE_TYPE 'Typ'
+    size: &DRIVE_SIZE 'Größe'
+    manufacturer: &DRIVE_MANUFACTURER 'Hersteller'
+    model: &DRIVE_MODEL 'Modell'
+    serial_number: &DRIVE_SERIAL_NUMBER 'Seriennummer'
+    product_number: &DRIVE_PRODUCT_NUMBER 'Produktnummer'
+    connector: &DRIVE_CONNECTOR 'Anschluss'
+
+  form:
+    form_factor: *DRIVE_FORM_FACTOR
+    type: *DRIVE_TYPE
+    size: *DRIVE_SIZE
+    manufacturer: *DRIVE_MANUFACTURER
+    model: *DRIVE_MODEL
+    serial_number: *DRIVE_SERIAL_NUMBER
+    product_number: *DRIVE_PRODUCT_NUMBER
+    connector: *DRIVE_CONNECTOR
+
+    help:
+      form_factor: '2,5/3,5/...'
+      type: 'intern/extern'
+      size: 'Eigene Größe, in GB'
+      size_dropdown: 'In GB'
+      connector: 'USB/ATA/SATA/...'
+
+case:
+  attr:
+    case_id: &CASE_ID 'Fall-ID'
+    active: &CASE_ACTIVE 'Aktiv'
+    secrecy: &CASE_SECRECY 'Vertraulichkeitsstufe'
+    description: &CASE_DESCRIPTION 'Beschreibung'
+    opened_on: &CASE_OPENED_ON 'Geöffnet am'
+    closed_on: &CASE_CLOSED_ON 'Geschlossen am'
+
+  form:
+    case_id: *CASE_ID
+    active: *CASE_ACTIVE
+    secrecy: *CASE_SECRECY
+    description: *CASE_DESCRIPTION
+    opened_on: *CASE_OPENED_ON
+    closed_on: *CASE_CLOSED_ON
+    save: *FORM_SAVE
+
+  add:
+    header: 'Neuen Fall hinzufügen'
+    success: 'Neuen Fall erfolgreich hinzugefügt.'
+
+  search:
+    header: 'Fallübersicht'
+
+  edit:
+    header: 'Editiere Fall {case}'
+    success: 'Fall erfolgreich editiert.'
+
+  details:
+    header: 'Details Fall {case}'
+    summary: 'Übersicht'
+    active: 'Fall aktiv'
+    opened_on: 'Fall offen seit'
+    associated_assets: 'Zugewiesene Objekte'
+    former_associated_assets: 'Ehemalig zugewiesene Objekte'
+
+  download_word:
+    details: 'Details about case {case}'
+    listed_assets: 'Currently listed assets'
+    involved_assets: 'Assets, which were involved with this case'
+    report_by: 'Report generate on {date} by {user}'
+
+  error:
+    not_found: 'Fall konnte nicht gefunden werden.'
+
+  actions:
+    add: 'Fall hinzufügen'
+    faq: 'Erweiterte Fallsuche-FAQ'
+    print: 'Details drucken'
+    edit: 'Fall editieren'
+    download_word: 'Fall exportieren als Word (DOCX)'
+
+dashboard:
+  header: 'Dashboard'
+  open_cases: 'Open cases'
+  reserved_assets: 'Reserved assets'
+
+es:
+  asset:
+    desc:
+      barcode: *ASSET_BARCODE
+      category: *ASSET_CATEGORY
+      state: *ASSET_STATE
+      name: *ASSET_NAME
+      usage: *ASSET_USAGE
+      history_usage: 'Ehem. Verwendung'
+      user: 'Nutzer'
+      history_user: 'Ehem. Nutzer'
+      reserved: 'Reserviert'
+      history_reserved: 'Ehem. reserviert'
+      location: 'Standort'
+      history_location: 'Ehem. Standort'
+      case: 'Fall'
+      history_case: 'Ehem. Fall'
+      caseactive: 'Ist zugewiesener Fall aktiv?'
+      note: 'Notiz'
+      type: 'Bauart'
+      form_factor: 'Formfaktor'
+      size: 'Speichergröße'
+      manufacturer: 'Hersteller'
+      model: 'Modell'
+      product_number: 'Produktnummer'
+      serial_number: 'Seriennummer'
+      connector: 'Anschluss'
+      date: 'Zuletzt aktualisiert'
+      date_end: 'Zuletzt aktualisiert vor'
+
+    error:
+      caseactive:
+        invalid: 'Für caseactive sind nur boolische Werte erlaubt'
+      category:
+        invalid: 'Ungültige Kategorienummer: {category}'
+      date:
+        invalid: 'Ungültiges Datum: {date}'
+      query:
+        empty: 'Leere Anfrage'
+      segment:
+        empty: 'Keine Suchkriterien gefunden in "{segment}"'
+        invalid: 'Keine gültigen Suchkriterien in "{segment}"'
+
+    drive_section: 'Datenträgereigenschaften'
+
+  case:
+    desc:
+      caseid: *CASE_ID
+      confidentiality: *CASE_SECRECY
+      description: *CASE_DESCRIPTION
+      open: *CASE_OPENED_ON
+      active: *CASE_ACTIVE
+    
+    error:
+      invalid_secrecy: 'Ungültgie Vertraulichkeitsstufe: "{secrecy}"'
+        
+  error:
+    unknown_tag: 'Unbekanntes Suchkriterium: "{tag}"'
+    empty_query: 'Leere Anfrage'
+    invalid_date: 'Ungültiges Datumsformat: "{date}"'
+    empty_segment: 'Leerer Suchterm: "{segment}"'
+    invalid_segment: 'Ungültiger Suchterm: "{segment}"'
+    
   form:
     add_query: 'Weiteren Suchterm hinufügen'
     drive_section: 'Datenträgereigenschaften'
     search: 'Suchen'
     show: 'Erweiterte Suche'
     hide: 'Einklappen'
+
   operator:
     any: 'gesetzt'
     date:
@@ -62,3 +512,26 @@ eas:
     no: 'nein'
     none: 'nicht gesetzt'
     yes: 'ja'
+
+email:
+  case_creation:
+    subject: 'Neuer Fall "{case}" wurde dem AM-System hinzugefügt'
+    body: |
+      Hallo {recipient},
+      Es wurde ein Fall mit der ID "{case}" vom Nutzer {user} dem AM-System hinzugefügt.
+      Siehe {link}.
+
+      Viele Grüße
+      AM-System
+
+  case_alteration:
+    subject: 'Fall "{case}" wurde im AM-System geändert'
+    body: |
+      Hallo {recipient},
+      Der Fall mit der ID "{case}" wurde vom Nutzer {user} im AM-System geändert.
+      Siehe {link}.
+
+      Viele Grüße
+      AM-System
+
+not_implemented_yet: 'Noch nicht implementiert: {function}'

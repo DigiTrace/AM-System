@@ -20,9 +20,10 @@
 namespace App\Tests\Controller;
 
 use App\Tests\_support\BaseWebTestCase;
-use App\Tests\Factory\FallFactory;
+use App\Tests\Factory\CaseFactory;
 use App\Tests\Factory\NutzerFactory;
-use App\Tests\Factory\ObjektFactory;
+use App\Tests\Factory\AssetFactory;
+use PHPUnit\Framework\Attributes\DataProvider;
 
 /**
  * @author Ben Brooksnieder
@@ -36,13 +37,13 @@ class DefaultControllerTest extends BaseWebTestCase
     /**
      * @see \App\Tests\Story\DefaultUserStory
      */
-    public function correctLoginCredentialsProvider()
+    public static function correctLoginCredentialsProvider()
     {
         yield ['name' => 'admin', 'password' => 'test'];
         yield ['name' => 'user', 'password' => 'test'];
     }
 
-    public function invalidLoginCredentialsProvider()
+    public static function invalidLoginCredentialsProvider()
     {
         yield ['name' => 'berti', 'password' => 'test'];
         yield ['name' => 'user', 'password' => '123456!'];
@@ -52,9 +53,7 @@ class DefaultControllerTest extends BaseWebTestCase
     // ================ TESTS ================
     //
 
-    /**
-     * @dataProvider correctLoginCredentialsProvider
-     */
+    #[DataProvider("correctLoginCredentialsProvider")]
     public function testLoginWithCorrectCredentials($name, $password){
         $client = static::createClient();
         
@@ -69,9 +68,7 @@ class DefaultControllerTest extends BaseWebTestCase
         $this->assertSelectorTextContains('#myNavbar', $name);
     }
 
-    /**
-     * @dataProvider invalidLoginCredentialsProvider
-     */
+    #[DataProvider("invalidLoginCredentialsProvider")]
     public function testLoginWithIncorrectCredentials($name, $password){
         $client = static::createClient();
         
@@ -107,29 +104,41 @@ class DefaultControllerTest extends BaseWebTestCase
 
     public function testDashboard()
     {
+        $client = static::createClient();
         // setup
-        $objektFactory = ObjektFactory::new();
-        $caseFactory = FallFactory::new();
+        $assetFactory = AssetFactory::new();
+        $caseFactory = CaseFactory::new();
         $userFactory = NutzerFactory::new();
 
         // create cases
-        $open = $caseFactory->active()->createMany(3);
-        $closed = $caseFactory->inactive()->createMany(3);
+        /**
+         * @var \App\Entity\CaseFile[]
+         */
+        $open = $caseFactory->active()->many(3)->create();
+        /**
+         * @var \App\Entity\CaseFile[]
+         */
+        $closed = $caseFactory->inactive()->many(3)->create();
 
-        // create objects
-        $reserved = $objektFactory
+        // create assets
+        /**
+         * @var \App\Entity\Asset[]
+         */
+        $reserved = $assetFactory
             ->reservedBy($userFactory->find(['username' =>'user'])->_real())
-            ->createMany(3);
-        $unreserved = $objektFactory->createMany(3);
+            ->many(3)->create();
+        /**
+         * @var \App\Entity\Asset[]
+         */
+        $unreserved = $assetFactory->many(3)->create();
 
         // do request
-        $client = static::createClient();
         $this->loginUser($client)->request('GET', 'http://localhost/');
 
         // test whether open cases are displayed
         foreach ($open as $case) {
             $this->assertSelectorTextContains('#open_cases', $case->getCaseId());
-            $this->assertSelectorTextContains('#open_cases', $case->getBeschreibung());
+            $this->assertSelectorTextContains('#open_cases', $case->getDescription());
         }
         // test whether closed cases are not displayed
         foreach ($closed as $case) {
@@ -137,14 +146,14 @@ class DefaultControllerTest extends BaseWebTestCase
         }
 
         // test whether reserved objects are displayed
-        foreach ($reserved as $obj) {
-            $this->assertSelectorTextContains('#reserved_objekts', $obj->getBarcode());
-            $this->assertSelectorTextContains('#reserved_objekts', $obj->getKategorieName());
-            $this->assertSelectorTextContains('#reserved_objekts', $obj->getName());
+        foreach ($reserved as $asset) {
+            $this->assertSelectorTextContains('#reserved_objekts', $asset->getBarcode());
+            $this->assertSelectorTextContains('#reserved_objekts', $asset->getCategory()->toTranslatableString());
+            $this->assertSelectorTextContains('#reserved_objekts', $asset->getName());
         }
         // test whether not-reserved objects are displayed
-        foreach ($unreserved as $obj) {
-            $this->assertSelectorTextNotContains('#reserved_objekts', $obj->getBarcode());
+        foreach ($unreserved as $asset) {
+            $this->assertSelectorTextNotContains('#reserved_objekts', $asset->getBarcode());
         }
     }
 }

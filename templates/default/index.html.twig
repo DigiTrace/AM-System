@@ -23,21 +23,21 @@
 
 {% block content1 %}
 
-    <h2>{{ 'start.page'|trans }}</h2>
+    <h2>{{ 'dashboard.header'|trans }}</h2>
     
     {# Show tables side-by-side #}
     <div class="row">
         {# Open cases table #}
         <div class="col-lg-6">
-            <h4>{{ 'start.open_cases'|trans }}</h4>
+            <h3>{{ 'dashboard.open_cases'|trans }}</h3>
 
             <table class="table" id="open_cases">    
                 <thead>
                     <tr>
-                        <th class="col-md-2 col-sm-2">{{ 'case_id'|trans }}</th>
-                        <th class="col-md-1 col-sm-1">{{ 'case_dos'|trans }}</th>
-                        <th class="col-md-7 col-sm-7">{{ 'case_desc'|trans }}</th>
-                        <th class="col-md-2 col-sm-2">{{ 'desc_timestamp'|trans }}</th>
+                        <th class="col-md-2 col-sm-2">{{ 'case.attr.case_id' | trans }}</th>
+                        <th class="col-md-1 col-sm-1">{{ 'case.attr.secrecy' | trans }}</th>
+                        <th class="col-md-7 col-sm-7">{{ 'case.attr.description' | trans }}</th>
+                        <th class="col-md-2 col-sm-2">{{ 'case.attr.opened_on' | trans }}</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -45,24 +45,12 @@
                     <tr>
                         <td>{{ case.getCaseId }}</td>
                         <td>
-                        {% if case.getDOS != ""%}
-                            <span 
-                                {% if case.getDOS == "DOS_PUBLIC"%}
-                                    class="label label-success"
-                                {% elseif case.getDOS == "DOS_INTERNAL"%}
-                                    class="label label-primary"
-                                {% elseif case.getDOS == "DOS_CONFIDENTIAL"%}
-                                    class="label label-warning"
-                                {% elseif case.getDOS == "DOS_SECRET"%}
-                                    class="label label-danger"
-                            {% endif %}
-                            >
-                                {{ case.getDOS | trans}}   
+                            <span class="label label-{{ case.getSecrecy.bootstrapColor }}">
+                            {{ case.getSecrecy | trans}}
                             </span>
-                        {% endif %}
                         </td>
-                        <td><a href="{{ path('detail_case', {'id': case.getCaseId}) }}">{{ case.getBeschreibung | nl2br}}</a></td>
-                        <td>{{ case.getZeitstempel|date('d.m.y H:i') }}</td>
+                        <td><a href="{{ path('detail_case', {'id': case.getCaseId}) }}">{{ case.getDescription | nl2br}}</a></td>
+                        <td>{{ case.getOpenedOn|date('d.m.y H:i') }}</td>
                     </tr>
                 {% else %}
                 {% endfor %}
@@ -72,27 +60,31 @@
 
         {# Reserved objects table #}
         <div class="col-lg-6">
-            <h4>{{ 'start.reserved_objects'|trans }}</h4>
+            <h3>{{ 'dashboard.reserved_assets' | trans }}</h3>
 
             <table class="table" id="reserved_objekts">
                 <thead>
                     <tr>
-                        <th class="col-md-2 col-sm-2">{{ 'desc.oid'|trans }}</th>
-                        <th class="col-md-2 col-sm-2">{{ 'desc.category'|trans }}</th>
-                        <th class="col-md-7 col-sm-7">{{ 'desc.name'|trans }}</th>
-                        <th class="col-md-1 col-sm-1">{{ 'table.action'|trans }}</th>
+                        <th class="col-md-2 col-sm-2">{{ 'asset.attr.barcode'|trans }}</th>
+                        <th class="col-md-2 col-sm-2">{{ 'asset.attr.category'|trans }}</th>
+                        <th class="col-md-7 col-sm-7">{{ 'asset.attr.name'|trans }}</th>
+                        <th class="col-md-1 col-sm-1">{{ 'form.actions'|trans }}</th>
                     </tr>
                 </thead>
                 <tbody>
-                {% for objekt in reservedObjects %}  
+                {% for asset in reservedAssets %}  
                     <tr>
-                        <td style='font-family: courier;font-size: large'>{{ objekt.getBarcode }}</td>
-                        <td >{{ categorytemp[objekt.getKategorie]|trans }}</td>
+                        <td style='font-family: courier;font-size: large'>{{ asset.getBarcode }}</td>
                         <td>
-                            <a href='{{ path('detail_object', {'id': objekt.getBarcode}) }}'>{{ objekt.getName }}<a/>
+                            <span class="label label-{{ asset.getCategory.bootstrapColor }}">
+                                {{ asset.getCategory | trans}}
+                            </span>
                         </td>
                         <td>
-                            <a href='{{ path("unreserve_object", {'id': objekt.getBarcode })}}' data-toggle="tooltip" data-placement="top" title="{{ 'action.unbind.reserved'|trans }}">
+                            <a href='{{ path('details_asset', {'id': asset.getBarcode}) }}'>{{ asset.getName }}<a/>
+                        </td>
+                        <td>
+                            <a href='{{ path("unreserve_asset", {'id': asset.getBarcode })}}' data-toggle="tooltip" data-placement="top" title="{{ 'asset.actions.unreserve' | trans }}">
                                 <span class="glyphicon glyphicon-remove"></span>
                             </a>
                         </td>
@@ -105,14 +97,14 @@
 {% endblock %}
 
 {% block context %}
-    <a href='{{ path('NutzerPasswordAenderung') }}'>{{ 'action.change.password'|trans }}</a><br>
-    <a href='{{ path('Nutzerprofil') }}'>{{ 'action.show.profile'|trans }}</a><br>
-    <a href='{{ path('NutzerAenderung') }}'>{{ 'action.edit.profile'|trans }}</a><br>
+    <a href='{{ path('NutzerPasswordAenderung') }}'>{{ 'user.actions.change_password'|trans }}</a><br>
+    <a href='{{ path('Nutzerprofil') }}'>{{ 'user.actions.profile'|trans }}</a><br>
+    <a href='{{ path('NutzerAenderung') }}'>{{ 'user.actions.edit_profile'|trans }}</a><br>
     {% if is_granted('ROLE_ADMIN') %}
-             <a href='{{ path('Nutzerhinzufuegen') }}'>{{ 'action.add.user'|trans }} </a><br>
-             <a href='{{ path('usersummary') }}'>{{ 'action.show.users'|trans }} </a><br>
+             <a href='{{ path('Nutzerhinzufuegen') }}'>{{ 'user.actions.add'|trans }} </a><br>
+             <a href='{{ path('usersummary') }}'>{{ 'user.actions.show'|trans }} </a><br>
     {% endif %}
-    <a href='{{ path('change_language') }}'>{{ 'action.change.language'|trans }} </a><br>
+    <a href='{{ path('change_language') }}'>{{ 'user.actions.change_language'|trans }} </a><br>
 {% endblock %}
 
 

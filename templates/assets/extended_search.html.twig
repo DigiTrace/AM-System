@@ -1,0 +1,525 @@
+<script>
+    "use strict";
+
+    // init when dom ready
+    $(function() {
+        const EAS = ExtendedSearch(
+            "#{{ form.vars.attr.id }}",
+            {{ form.vars.single_regex | raw }}g,
+            {{ form.vars.multi_regex |raw }}g,
+            [
+                ['category', 'c'],
+                ['state', 's'],
+                ['barcode', 'b'],
+                ['name', 'n'],
+                ['note', 'note'],
+                ['usage', 'desc'],
+                ['history_usage', 'hdesc'],
+                ['user', 'u'],
+                ['history_user', 'hu'],
+                ['reserved', 'r'],
+                ['history_reserved', 'hr'],
+                ['location', 'l'],
+                ['history_location', 'hl'],
+                ['case', 'case'],
+                ['history_case', 'hcase'],
+                ['caseactive', 'caseactive'],
+                ['type', 'type'],
+                ['form_factor', 'ff'],
+                ['size', 'size'],
+                ['manufacturer', 'prod'],
+                ['model', 'modell'],
+                ['product_number', 'pn'],
+                ['serial_number', 'sn'],
+                ['connector', 'connector'],
+                ['date', 'd'],
+                ['end_date', 'ed'],
+            ]
+        );
+        EAS.init();
+    });
+</script>
+
+{% set AssetCategory = enum("App\\Enum\\AssetCategory") %}
+{% set AssetState = enum("App\\Enum\\AssetState") %}
+<form id="es_form" action="#" class="well">
+    <div id="eas-form-segment" data-index="0">
+        {# category #}
+        <label class="es-label" for="es_category">{{'es.asset.desc.category'|trans}}:</label>
+        <div class="btn-group" data-toggle="buttons">
+            <label class="btn btn-default es-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'es.operator.eq'|trans}}">
+                <input type="radio" name="category.operator" value=""> =
+            </label>
+            <label class="btn btn-default es-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'es.operator.neq'|trans}}">
+                <input type="radio" name="category.operator" value="!" > ≠
+            </label>
+        </div>
+        <div class="es-input-cell">
+            <select class="es-input form-control es_category" name="category" multiple="multiple" size="6" id="es_category" style="height: 100%;">
+                {% for category in AssetCategory.cases %}
+                    <option value="{{category.value}}">{{ category.toTranslatableString | trans }} </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        {# state #}
+        <label class="es-label" for="es_state">{{'es.asset.desc.state'|trans}}:</label>
+        <div class="btn-group" data-toggle="buttons">
+            <label class="btn btn-default es-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'es.operator.eq'|trans}}">
+                <input type="radio" name="state.operator" value=""> =
+            </label>
+            <label class="btn btn-default es-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'es.operator.neq'|trans}}">
+                <input type="radio" name="state.operator" value="!" > ≠
+            </label>
+        </div>
+        <div class="es-input-cell">
+            <select class="es-input form-control es_state" name="state" multiple="multiple" size="6" id="es_state" style="height: 100%;">
+            {% for state in AssetState.cases %}
+                    <option value="{{state.value}}">{{ state.toTranslatableString | trans }} </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        {# barcode #}
+        <label class="es-label" for="es_barcode">{{ 'es.asset.desc.barcode'| trans }}:</label>
+        <div class="btn-group" data-toggle="buttons">
+            <label class="btn btn-default es-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'es.operator.eq'|trans}}">
+                <input type="radio" name="barcode.operator" value=""> =
+            </label>
+            <label class="btn btn-default es-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'es.operator.neq'|trans}}">
+                <input type="radio" name="barcode.operator" value="!" > ≠
+            </label>
+        </div>
+        <div class="es-input-cell">
+            <input class="es-input form-control" type="text" name="barcode" id="es_barcode"> 
+        </div>
+
+        {# name #}
+        <label class="es-label" for="es_name">{{ 'es.asset.desc.name'| trans }}:</label>
+        <div class="btn-group" data-toggle="buttons">
+            <label class="btn btn-default es-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'es.operator.eq'|trans}}">
+                <input type="radio" name="name.operator" value=""> =
+            </label>
+            <label class="btn btn-default es-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'es.operator.neq'|trans}}">
+                <input type="radio" name="name.operator" value="!" > ≠
+            </label>
+        </div>
+        <div class="es-input-cell">
+            <input class="es-input form-control" type="text" name="name" id="es_name"> 
+        </div>
+        
+        {# usage #}
+        <label class="es-label" for="es_usage">{{ 'es.asset.desc.usage'| trans }}:</label>
+        <div class="btn-group" data-toggle="buttons">
+            <label class="btn btn-default es-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'es.operator.eq'|trans}}">
+                <input type="radio" name="usage.operator" value=""> =
+            </label>
+            <label class="btn btn-default es-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'es.operator.neq'|trans}}">
+                <input type="radio" name="usage.operator" value="!" > ≠
+            </label>
+        </div>
+        <div class="es-input-cell">
+            <input class="es-input form-control" type="text" name="usage" id="es_usage"> 
+        </div>
+        
+        {# history_usage #}
+        <label class="es-label" for="es_history_usage">{{ 'es.asset.desc.history_usage'| trans }}:</label>
+        <div class="btn-group" data-toggle="buttons">
+            <label class="btn btn-default es-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'es.operator.eq'|trans}}">
+                <input type="radio" name="history_usage.operator" value=""> =
+            </label>
+            <label class="btn btn-default es-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'es.operator.neq'|trans}}">
+                <input type="radio" name="history_usage.operator" value="!" > ≠
+            </label>
+        </div>
+        <div class="es-input-cell">
+            <input class="es-input form-control" type="text" name="history_usage" id="es_history_usage"> 
+        </div>
+                
+        {# user #}
+        <label class="es-label" for="es_user">{{ 'es.asset.desc.user'| trans }}:</label>
+        <div class="btn-group" data-toggle="buttons">
+            <label class="btn btn-default es-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'es.operator.eq'|trans}}">
+                <input type="radio" name="user.operator" value=""> =
+            </label>
+            <label class="btn btn-default es-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'es.operator.neq'|trans}}">
+                <input type="radio" name="user.operator" value="!" > ≠
+            </label>
+        </div>
+        <div class="es-input-cell">
+            <input class="es-input form-control" type="text" name="user" id="es_user"> 
+        </div>
+        
+        {# history_user #}
+        <label class="es-label" for="es_history_user">{{ 'es.asset.desc.history_user'| trans }}:</label>
+        <div class="btn-group" data-toggle="buttons">
+            <label class="btn btn-default es-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'es.operator.eq'|trans}}">
+                <input type="radio" name="history_user.operator" value=""> =
+            </label>
+            <label class="btn btn-default es-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'es.operator.neq'|trans}}">
+                <input type="radio" name="history_user.operator" value="!" > ≠
+            </label>
+        </div>
+        <div class="es-input-cell">
+            <input class="es-input form-control" type="text" name="history_user" id="es_history_user"> 
+        </div>
+        
+        {# reserved #}
+        <label class="es-label" for="es_reserved">{{ 'es.asset.desc.reserved'| trans }}:</label>
+        <div class="btn-group" data-toggle="buttons">
+            <label class="btn btn-default es-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'es.operator.eq'|trans}}">
+                <input type="radio" name="reserved.operator" value=""> =
+            </label>
+            <label class="btn btn-default es-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'es.operator.neq'|trans}}">
+                <input type="radio" name="reserved.operator" value="!" > ≠
+            </label>
+            <label class="btn btn-default es-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'es.operator.any'|trans}}">
+                <input type="radio" name="reserved.operator" value="*" > ✓
+            </label>
+            <label class="btn btn-default es-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'es.operator.none'|trans}}">
+                <input type="radio" name="reserved.operator" value="-" > ✕
+            </label>
+        </div>
+        <div class="es-input-cell">
+            <input class="es-input form-control" type="text" name="reserved" id="es_reserved"> 
+        </div>
+        
+        {# history_reserved #}
+        <label class="es-label" for="es_history_reserved">{{ 'es.asset.desc.history_reserved'| trans }}:</label>
+        <div class="btn-group" data-toggle="buttons">
+            <label class="btn btn-default es-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'es.operator.eq'|trans}}">
+                <input type="radio" name="history_reserved.operator" value=""> =
+            </label>
+            <label class="btn btn-default es-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'es.operator.neq'|trans}}">
+                <input type="radio" name="history_reserved.operator" value="!" > ≠
+            </label>
+            <label class="btn btn-default es-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'es.operator.any'|trans}}">
+                <input type="radio" name="history_reserved.operator" value="*" > ✓
+            </label>
+            <label class="btn btn-default es-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'es.operator.none'|trans}}">
+                <input type="radio" name="history_reserved.operator" value="-" > ✕
+            </label>
+        </div>
+        <div class="es-input-cell">
+            <input class="es-input form-control" type="text" name="history_reserved" id="es_history_reserved"> 
+        </div>
+        
+        {# location #}
+        <label class="es-label" for="es_location">{{ 'es.asset.desc.location'| trans }}:</label>
+        <div class="btn-group" data-toggle="buttons">
+            <label class="btn btn-default es-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'es.operator.eq'|trans}}">
+                <input type="radio" name="location.operator" value=""> =
+            </label>
+            <label class="btn btn-default es-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'es.operator.neq'|trans}}">
+                <input type="radio" name="location.operator" value="!" > ≠
+            </label>
+            <label class="btn btn-default es-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'es.operator.any'|trans}}">
+                <input type="radio" name="location.operator" value="*" > ✓
+            </label>
+            <label class="btn btn-default es-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'es.operator.none'|trans}}">
+                <input type="radio" name="location.operator" value="-" > ✕
+            </label>
+        </div>
+        <div class="es-input-cell">
+            <input class="es-input form-control" type="text" name="location" id="es_location"> 
+        </div>
+        
+        {# history_location #}
+        <label class="es-label" for="es_history_location">{{ 'es.asset.desc.history_location'| trans }}:</label>
+        <div class="btn-group" data-toggle="buttons">
+            <label class="btn btn-default es-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'es.operator.eq'|trans}}">
+                <input type="radio" name="history_location.operator" value=""> =
+            </label>
+            <label class="btn btn-default es-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'es.operator.neq'|trans}}">
+                <input type="radio" name="history_location.operator" value="!" > ≠
+            </label>
+            <label class="btn btn-default es-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'es.operator.any'|trans}}">
+                <input type="radio" name="history_location.operator" value="*" > ✓
+            </label>
+            <label class="btn btn-default es-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'es.operator.none'|trans}}">
+                <input type="radio" name="history_location.operator" value="-" > ✕
+            </label>
+        </div>
+        <div class="es-input-cell">
+            <input class="es-input form-control" type="text" name="history_location" id="es_history_location"> 
+        </div>
+        
+        {# case #}
+        <label class="es-label" for="es_case">{{ 'es.asset.desc.case'| trans }}:</label>
+        <div class="btn-group" data-toggle="buttons">
+            <label class="btn btn-default es-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'es.operator.eq'|trans}}">
+                <input type="radio" name="case.operator" value=""> =
+            </label>
+            <label class="btn btn-default es-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'es.operator.neq'|trans}}">
+                <input type="radio" name="case.operator" value="!" > ≠
+            </label>
+            <label class="btn btn-default es-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'es.operator.any'|trans}}">
+                <input type="radio" name="case.operator" value="*" > ✓
+            </label>
+            <label class="btn btn-default es-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'es.operator.none'|trans}}">
+                <input type="radio" name="case.operator" value="-" > ✕
+            </label>
+        </div>
+        <div class="es-input-cell">
+            <input class="es-input form-control" type="text" name="case" id="es_case"> 
+        </div>
+        
+        {# history_case #}
+        <label class="es-label" for="es_history_case">{{ 'es.asset.desc.history_case'| trans }}:</label>
+        <div class="btn-group" data-toggle="buttons">
+            <label class="btn btn-default es-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'es.operator.eq'|trans}}">
+                <input type="radio" name="history_case.operator" value=""> =
+            </label>
+            <label class="btn btn-default es-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'es.operator.neq'|trans}}">
+                <input type="radio" name="history_case.operator" value="!" > ≠
+            </label>
+            <label class="btn btn-default es-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'es.operator.any'|trans}}">
+                <input type="radio" name="history_case.operator" value="*" > ✓
+            </label>
+            <label class="btn btn-default es-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'es.operator.none'|trans}}">
+                <input type="radio" name="history_case.operator" value="-" > ✕
+            </label>
+        </div>
+        <div class="es-input-cell">
+            <input class="es-input form-control" type="text" name="history_case" id="es_history_case"> 
+        </div>
+        
+        {# caseactive #}
+        <label class="es-label" style="grid-column: 1 / span 2;">{{ 'es.asset.desc.caseactive'| trans }}</label>
+        <div class="btn-group" data-toggle="buttons">
+            <label class="btn btn-default es-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'es.operator.yes'|trans}}">
+                <input type="radio" name="caseactive.operator" value="*" > ✓
+            </label>
+            <label class="btn btn-default es-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'es.operator.no'|trans}}">
+                <input type="radio" name="caseactive.operator" value="-" > ✕
+            </label>
+        </div>
+
+        {# note #}
+        <label class="es-label" for="es_note">{{ 'es.asset.desc.note'| trans }}:</label>
+        <div class="btn-group" data-toggle="buttons">
+            <label class="btn btn-default es-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'es.operator.eq'|trans}}">
+                <input type="radio" name="note.operator" value=""> =
+            </label>
+            <label class="btn btn-default es-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'es.operator.neq'|trans}}">
+                <input type="radio" name="note.operator" value="!" > ≠
+            </label>
+        </div>
+        <div class="es-input-cell">
+            <input class="es-input form-control" type="text" name="note" id="es_note"> 
+        </div>
+        
+
+
+        {# date #}
+        <label class="es-label" for="es_date">{{ 'es.asset.desc.date'| trans }}:</label>
+        <div class="btn-group" data-toggle="buttons">
+            <label class="btn btn-default es-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'es.operator.eq'|trans}}">
+                <input type="radio" name="date.operator" value=""> =
+            </label>
+            <label class="btn btn-default es-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'es.operator.neq'|trans}}">
+                <input type="radio" name="date.operator" value="!" > ≠
+            </label>
+            <label class="btn btn-default es-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'es.operator.date.before'|trans}}">
+                <input type="radio" name="date.operator" value="<" > &lt;
+            </label>
+            <label class="btn btn-default es-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'es.operator.date.after'|trans}}">
+                <input type="radio" name="date.operator" value=">" > &gt;
+            </label>
+            <label class="btn btn-default es-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'es.operator.date.range'|trans}}" style="padding-left: 9px;">
+                <input type="radio" name="date.operator" value=">=" id="es_date_range_operator"> &lt;&gt;
+            </label>
+        </div>
+        <div class="es-input-cell">
+            <input class="es-input form-control" type="date" name="date" id="es_date"> 
+        </div>
+   
+
+        {# end date #}
+        <label for="es-date-end" class="es-label es-date-end" style="grid-column: 4 / span 2; display: none">{{ 'es.asset.desc.date_end'| trans }}:</label>
+        <div class="es-input-cell es-date-end" style="display: none;" >
+            <input class="es-input form-control" type="date" id="es-date-end" name="end_date"> 
+            <input type="text" name="end_date.operator" value="<=" hidden>
+        </div>
+        <span class="es-date-end-placeholder" style="grid-column: 4 / span 3;"></span>
+
+        {# ------------------------------- Drive properties ------------------------------- #}
+
+        <div class="es-divider">
+            {{ 'es.asset.drive_section' | trans }}
+        </div>
+
+        {# type #}
+        <label class="es-label" for="es_type">{{ 'es.asset.desc.type'| trans }}:</label>
+        <div class="btn-group" data-toggle="buttons">
+            <label class="btn btn-default es-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'es.operator.eq'|trans}}">
+                <input type="radio" name="type.operator" value=""> =
+            </label>
+            <label class="btn btn-default es-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'es.operator.neq'|trans}}">
+                <input type="radio" name="type.operator" value="!" > ≠
+            </label>
+            <label class="btn btn-default es-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'es.operator.any'|trans}}">
+                <input type="radio" name="type.operator" value="*" > ✓
+            </label>
+            <label class="btn btn-default es-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'es.operator.none'|trans}}">
+                <input type="radio" name="type.operator" value="-" > ✕
+            </label>
+        </div>
+        <div class="es-input-cell">
+            <input class="es-input form-control" type="text" name="type" id="es_type"> 
+        </div>
+        
+        {# form_factor #}
+        <label class="es-label" for="es_form_factor">{{ 'es.asset.desc.form_factor'| trans }}:</label>
+        <div class="btn-group" data-toggle="buttons">
+            <label class="btn btn-default es-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'es.operator.eq'|trans}}">
+                <input type="radio" name="form_factor.operator" value=""> =
+            </label>
+            <label class="btn btn-default es-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'es.operator.neq'|trans}}">
+                <input type="radio" name="form_factor.operator" value="!" > ≠
+            </label>
+            <label class="btn btn-default es-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'es.operator.any'|trans}}">
+                <input type="radio" name="form_factor.operator" value="*" > ✓
+            </label>
+            <label class="btn btn-default es-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'es.operator.none'|trans}}">
+                <input type="radio" name="form_factor.operator" value="-" > ✕
+            </label>
+        </div>
+        <div class="es-input-cell">
+            <input class="es-input form-control" type="text" name="form_factor" id="es_form_factor"> 
+        </div>
+        
+        {# size #}
+        <label class="es-label" for="es_size">{{ 'es.asset.desc.size'| trans }}:</label>
+        <div class="btn-group" data-toggle="buttons">
+            <label class="btn btn-default es-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'es.operator.eq'|trans}}">
+                <input type="radio" name="size.operator" value=""> =
+            </label>
+            <label class="btn btn-default es-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'es.operator.neq'|trans}}">
+                <input type="radio" name="size.operator" value="!" > ≠
+            </label>
+            <label class="btn btn-default es-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'es.operator.any'|trans}}">
+                <input type="radio" name="size.operator" value="*" > ✓
+            </label>
+            <label class="btn btn-default es-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'es.operator.none'|trans}}">
+                <input type="radio" name="size.operator" value="-" > ✕
+            </label>
+            <label class="btn btn-default es-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'es.operator.lt'|trans}}">
+                <input type="radio" name="size.operator" value="<" > &lt;
+            </label>
+            <label class="btn btn-default es-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'es.operator.gt'|trans}}">
+                <input type="radio" name="size.operator" value=">" > &gt;
+            </label>
+        </div>
+        <div class="es-input-cell">
+            <input class="es-input form-control" type="text" name="size" id="es_size"> 
+        </div>
+        
+        {# manufacturer #}
+        <label class="es-label" for="manufacturer">{{ 'es.asset.desc.manufacturer'| trans }}:</label>
+        <div class="btn-group" data-toggle="buttons">
+            <label class="btn btn-default es-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'es.operator.eq'|trans}}">
+                <input type="radio" name="manufacturer.operator" value=""> =
+            </label>
+            <label class="btn btn-default es-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'es.operator.neq'|trans}}">
+                <input type="radio" name="manufacturer.operator" value="!" > ≠
+            </label>
+            <label class="btn btn-default es-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'es.operator.any'|trans}}">
+                <input type="radio" name="manufacturer.operator" value="*" > ✓
+            </label>
+            <label class="btn btn-default es-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'es.operator.none'|trans}}">
+                <input type="radio" name="manufacturer.operator" value="-" > ✕
+            </label>
+        </div>
+        <div class="es-input-cell">
+            <input class="es-input form-control" type="text" name="manufacturer" id="manufacturer"> 
+        </div>
+        
+        {# model #}
+        <label class="es-label" for="es_model">{{ 'es.asset.desc.model'| trans }}:</label>
+        <div class="btn-group" data-toggle="buttons">
+            <label class="btn btn-default es-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'es.operator.eq'|trans}}">
+                <input type="radio" name="model.operator" value=""> =
+            </label>
+            <label class="btn btn-default es-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'es.operator.neq'|trans}}">
+                <input type="radio" name="model.operator" value="!" > ≠
+            </label>
+            <label class="btn btn-default es-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'es.operator.any'|trans}}">
+                <input type="radio" name="model.operator" value="*" > ✓
+            </label>
+            <label class="btn btn-default es-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'es.operator.none'|trans}}">
+                <input type="radio" name="model.operator" value="-" > ✕
+            </label>
+        </div>
+        <div class="es-input-cell">
+            <input class="es-input form-control" type="text" name="model" id="es_model"> 
+        </div>
+        
+        {# product_number #}
+        <label class="es-label" for="es_product_number">{{ 'es.asset.desc.product_number'| trans }}:</label>
+        <div class="btn-group" data-toggle="buttons">
+            <label class="btn btn-default es-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'es.operator.eq'|trans}}">
+                <input type="radio" name="product_number.operator" value=""> =
+            </label>
+            <label class="btn btn-default es-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'es.operator.neq'|trans}}">
+                <input type="radio" name="product_number.operator" value="!" > ≠
+            </label>
+            <label class="btn btn-default es-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'es.operator.any'|trans}}">
+                <input type="radio" name="product_number.operator" value="*" > ✓
+            </label>
+            <label class="btn btn-default es-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'es.operator.none'|trans}}">
+                <input type="radio" name="product_number.operator" value="-" > ✕
+            </label>
+        </div>
+        <div class="es-input-cell">
+            <input class="es-input form-control" type="text" name="product_number" id="es_product_number"> 
+        </div>
+
+        {# serial_number #}
+        <label class="es-label" for="es_serial_number">{{ 'es.asset.desc.serial_number'| trans }}:</label>
+        <div class="btn-group" data-toggle="buttons">
+            <label class="btn btn-default es-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'es.operator.eq'|trans}}">
+                <input type="radio" name="serial_number.operator" value=""> =
+            </label>
+            <label class="btn btn-default es-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'es.operator.neq'|trans}}">
+                <input type="radio" name="serial_number.operator" value="!" > ≠
+            </label>
+            <label class="btn btn-default es-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'es.operator.any'|trans}}">
+                <input type="radio" name="serial_number.operator" value="*" > ✓
+            </label>
+            <label class="btn btn-default es-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'es.operator.none'|trans}}">
+                <input type="radio" name="serial_number.operator" value="-" > ✕
+            </label>
+        </div>
+        <div class="es-input-cell">
+            <input class="es-input form-control" type="text" name="serial_number" id="es_serial_number"> 
+        </div>
+
+        {# connector #}
+        <label class="es-label" for="es_connector">{{ 'es.asset.desc.connector'| trans }}:</label>
+        <div class="btn-group" data-toggle="buttons">
+            <label class="btn btn-default es-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'es.operator.eq'|trans}}">
+                <input type="radio" name="connector.operator" value=""> =
+            </label>
+            <label class="btn btn-default es-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'es.operator.neq'|trans}}">
+                <input type="radio" name="connector.operator" value="!" > ≠
+            </label>
+            <label class="btn btn-default es-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'es.operator.any'|trans}}">
+                <input type="radio" name="connector.operator" value="*" > ✓
+            </label>
+            <label class="btn btn-default es-operator-btn" data-toggle="tooltip" data-placement="top" title="{{ 'es.operator.none'|trans}}">
+                <input type="radio" name="connector.operator" value="-" > ✕
+            </label>
+        </div>
+        <div class="es-input-cell">
+            <input class="es-input form-control" type="text" name="connector" id="es_connector"> 
+        </div>
+
+        <input type="submit" hidden />
+    </div>
+    <div class="es-footer">
+        <button type="button" class="btn-primary btn" id="es_add_query">{{ 'es.form.add_query'| trans }}</button>
+        <button type="submit" class="btn-default btn">{{ 'es.form.search'| trans }}</button>
+        <button type="button" class="btn-default btn" onclick="$('#es_form_container').slideToggle(250)" >{{ 'es.form.hide'| trans }}</button>
+    </div>
+</form>

@@ -1,0 +1,113 @@
+{#
+   // AM-System
+   // Copyright (C) 2019 Robert Krasowski
+   // This program was created during an internship at DigiTrace GmbH
+   // Read LIZENZ.txt for full notice
+
+   // This program is free software: you can redistribute it and/or modify
+   // it under the terms of the GNU General Public License as published by
+   // the Free Software Foundation, either version 3 of the License, or
+   // (at your option) any later version.
+
+   // This program is distributed in the hope that it will be useful,
+   // but WITHOUT ANY WARRANTY; without even the implied warranty of
+   // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   // GNU General Public License for more details.
+
+   // You should have received a copy of the GNU General Public License
+   // along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+#}
+
+{% extends 'base.html.twig' %}
+{% form_theme form 'bootstrap_3_layout.html.twig' %}
+{% block content1 %}
+
+    {{ form_start(form) }}
+    <div class="row">
+        <div class="col-sm-4">
+            <h2>{{ 'case.search.header' | trans }}</h2>
+        </div>
+        <div class="col-sm-8" style="margin-top:7px">
+            {{ form_row(form) }}
+        </div>
+    </div>
+    {{ form_end(form) }}
+    
+    {{ include('messages.html.twig') }}
+
+    {# Include extended search form #}
+    <div id="es_form_container" style="display: none;">
+        {{ include('cases/extended_search.html.twig', {form: form}) }}
+    </div>
+
+    <table class="table">
+
+        {% if pagination.getDirection == "desc" %} {% set arrow = '<span class="glyphicon glyphicon-arrow-down"></span>' %}
+        {% elseif pagination.getDirection == "asc" %}  {% set arrow = '<span class="glyphicon glyphicon-arrow-up"></span>' %}
+        {% endif %}
+
+        <thead>
+            <tr>
+                <th class="col-md-2 col-sm-2">{{ knp_pagination_sortable(pagination, 'case.attr.case_id'|trans, 'caseFile.caseId') }}
+                    {% if pagination.isSorted('caseFile.caseId') %}
+                    {{ arrow | raw}}
+                    {% endif %}
+                </th>
+                <th class="col-md-1 col-sm-1">{{ 'case.attr.secrecy' | trans }}</th>
+                <th class="col-md-7 col-sm-7">{{ 'case.attr.description' | trans }}</th>
+                <th class="col-md-2 col-sm-2">{{ knp_pagination_sortable(pagination, 'case.attr.opened_on'|trans, 'caseFile.openedOn') }}
+                    {% if pagination.isSorted('caseFile.openedOn') %}
+                    {{ arrow | raw}}
+                    {% endif %}
+                </th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for case in pagination %}
+            <tr {{ case.isActive ? '' : 'class="active"' }}>
+                <td>
+                {% if case.isActive %}
+                    {{ case.getCaseId }}
+                {% else %}
+                    <s>{{ case.getCaseId }}</s>
+                {% endif %}
+                </td>
+                <td>
+                    <span class="label label-{{ case.getSecrecy.bootstrapColor }}">
+                    {{ case.getSecrecy | trans}}
+                    </span>
+                </td>
+                <td><a href="{{ path('detail_case', {'id': case.getCaseId}) }}">{{ case.getDescription | nl2br}}</a></td>
+                <td>{{ case.getOpenedOn|date('d.m.y H:i') }}</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+
+
+{# total items count #}
+<div class="count">
+    {{ pagination.getTotalItemCount }} {{ 'form.entries_found' | trans }}
+</div>
+
+{# display navigation #}
+<div class="navigation">
+    {{ knp_pagination_render(pagination) }}
+</div>
+
+{% endblock %}
+
+{% block context %}
+    <a href="{{ path("add_case") }}"><span class="glyphicon glyphicon-pencil"></span> {{ 'case.actions.add' | trans }} </a><br>
+    <a href="{{ path("search_cases_faq") }}"><span class="glyphicon glyphicon-question-sign"></span> {{ 'case.actions.faq' | trans }}</a> <br>
+{% endblock %}
+
+{% block stylesheets %}
+{{ knp_pagination_rel_links(pagination) }}
+{% endblock %}
+
+{% block searchbar %}
+
+{% endblock %}

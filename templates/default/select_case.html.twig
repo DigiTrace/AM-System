@@ -41,8 +41,8 @@
             {% for fall in letztefaelle %}
             <tr style="cursor:pointer" onclick="window.location.href='{{ path('add_to_case', {'caseid': fall.getCaseId,'objectid': objektid}) }}'">
                 <td>{{ fall.getCaseId }}</td>
-                <td>{{ fall.getBeschreibung }}</td>
-                <td>{{ fall.getZeitstempel|date('d.m.y H:i') }}</td>
+                <td>{{ fall.getDescription }}</td>
+                <td>{{ fall.getOpenedOn|date('d.m.y H:i') }}</td>
             </tr>
             {% endfor %}
 
@@ -71,8 +71,8 @@
             {% for fall in faelle %}
             <tr style="cursor:pointer" onclick="window.location.href='{{ path('add_to_case', {'caseid': fall.getCaseId,'objectid': objektid}) }}'">
                 <td>{{ fall.getCaseId }}</td>
-                <td>{{ fall.getBeschreibung }}</td>
-                <td>{{ fall.getZeitstempel|date('d.m.y H:i') }}</td>
+                <td>{{ fall.getDescription }}</td>
+                <td>{{ fall.getOpenedOn|date('d.m.y H:i') }}</td>
             </tr>
             {% endfor %}
 

@@ -2,15 +2,18 @@
 
 namespace App\Tests\Service;
 
-use App\Entity\Objekt;
+use App\Enum\AssetState as State;
 use App\Service\ExtendedAssetSearch;
-use App\Tests\Factory\DatentraegerFactory;
-use App\Tests\Factory\FallFactory;
+use App\Tests\Factory\DriveFactory;
+use App\Tests\Factory\CaseFactory;
 use App\Tests\Factory\NutzerFactory;
-use App\Tests\Factory\ObjektFactory;
+use App\Tests\Factory\AssetFactory;
 use DateTime;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use ReflectionClass;
+use Zenstruck\Foundry\Test\Factories;
+use Zenstruck\Foundry\Test\ResetDatabase;
 use function PHPUnit\Framework\assertArrayHasKey;
 use function PHPUnit\Framework\assertCount;
 use function PHPUnit\Framework\assertEmpty;
@@ -19,7 +22,6 @@ use function PHPUnit\Framework\assertSameSize;
 
 class ExtendedAssetSearchTest extends KernelTestCase
 {
-
     // helper function
     private function getInstance(): ExtendedAssetSearch
     {
@@ -33,10 +35,10 @@ class ExtendedAssetSearchTest extends KernelTestCase
     }
     
     /**
-     * Helper function to assert that two sets have the same objects in relation to $method attribute.
+     * Helper function to assert that two sets have the same assets in relation to $method attribute.
      * 
-     * @param array  $expected Set of expected objects
-     * @param array  $result   Set of result objects
+     * @param array  $expected Set of expected assets
+     * @param array  $result   Set of result assets
      * @param string $method   Method to call
      * @return void
      */
@@ -52,24 +54,24 @@ class ExtendedAssetSearchTest extends KernelTestCase
         foreach ($result as $element) {
             // test all expected items to find match
             $barcode = $element->getBarcode();
-            assertArrayHasKey($barcode, $set, "Object $barcode was not expected to be found.");
+            assertArrayHasKey($barcode, $set, "Asset $barcode was not expected to be found.");
             $value = $element->$method();
-            // test primitive or object
+            // test primitive or asset
             if (is_object($value)){
-                // test for user objetcs
+                // test for modifiedby objetcs
                 if(method_exists($set[$barcode], 'getId')){
-                    assertEquals($set[$barcode]->getId(), $value->getId(), "Asserting $method objects have same ids has failed for object $barcode.");
+                    assertEquals($set[$barcode]->getId(), $value->getId(), "Asserting $method assets have same ids has failed for asset $barcode.");
                 }
-                // ... or regular objects
+                // ... or regular assets
                 else if(method_exists($set[$barcode], 'getBarcode')) {
-                    assertEquals($set[$barcode]->getBarcode(), $value->getBarcode(), "Asserting $method objects have same barcodes has failed for object $barcode.");
+                    assertEquals($set[$barcode]->getBarcode(), $value->getBarcode(), "Asserting $method assets have same barcodes has failed for asset $barcode.");
                 }
                 else {
                     assertEquals($set[$barcode], $value);
                 }
             }
             else {
-                assertEquals($set[$barcode], $value, "Asserting $method property is equal has failed for object $barcode.");
+                assertEquals($set[$barcode], $value, "Asserting $method property is equal has failed for asset $barcode.");
             }
             // remove found element from result set
             unset($set[$barcode]);
@@ -79,7 +81,7 @@ class ExtendedAssetSearchTest extends KernelTestCase
     }
 
     /**
-     * Test query with extended asset search and verify in object to $method
+     * Test query with extended asset search and verify in asset to $method
      * @param \App\Service\ExtendedAssetSearch $search
      * @param array $queries
      * @param array $expected
@@ -88,7 +90,9 @@ class ExtendedAssetSearchTest extends KernelTestCase
      */
     private function testQuery(ExtendedAssetSearch $search, array $queries, array $expected, string $method){
         foreach ($queries as $q) {
-            $res = $search->generateSearchQuery($q)->execute();
+            $builder = $search->generateSearchQuery($q);
+            $query = $builder->getQuery();
+            $res = $query->execute();
 
             if(empty($expected)){
                 assertEmpty($res, "query '$q' did not return empty result");
@@ -99,7 +103,7 @@ class ExtendedAssetSearchTest extends KernelTestCase
         }
     }
 
-    public function matchProvider(){
+    public static function matchProvider(){
         // [query, #matches single, #matches mult]
         yield ['test', 0, 0];
         yield ['name:heinz', 1, 0];
@@ -113,9 +117,7 @@ class ExtendedAssetSearchTest extends KernelTestCase
         yield ['c:[Asservat|Datentraeger] name:"HDD" || c:2 s:2', 3, 1];
     }
 
-    /**
-     * @dataProvider matchProvider
-     */
+    #[DataProvider("matchProvider")]
     public function testMatchValue($query, $single, $mult){
 
         $obj = $this->getInstance();
@@ -131,7 +133,7 @@ class ExtendedAssetSearchTest extends KernelTestCase
         assertCount($mult, $res);
     }
 
-    public function keyValueProvider() {
+    public static function keyValueProvider() {
         // [query, single key-val pairs, mult key-val pairs]
         yield [
             '!s:1 c:0 name:"Heinz " barcode:\'DTHW32310\' c:[0|1] name:["Franz F."|\'Günther D.\'| possible]', 
@@ -153,9 +155,7 @@ class ExtendedAssetSearchTest extends KernelTestCase
         ]];
     }
 
-    /**
-     * @dataProvider keyValueProvider
-     */
+    #[DataProvider("keyValueProvider")]
     public function testMatchKeyValue($query, $single, $mult){
         $obj = $this->getInstance();
 
@@ -180,7 +180,7 @@ class ExtendedAssetSearchTest extends KernelTestCase
         }
     }
 
-    public function queryValueProvider() {
+    public static function queryValueProvider() {
         // [query, parsed values]
         yield [
             '!s:1 c:0 name:"Heinz" barcode:\'DTHW32310\' !c:[0|1] name:["Franz F."|\'Günther D.\'|possible]', 
@@ -202,9 +202,7 @@ class ExtendedAssetSearchTest extends KernelTestCase
         ];
     }
 
-    /**
-     * @dataProvider queryValueProvider
-     */
+    #[DataProvider("queryValueProvider")]
     public function testGetQueryValues($query, $values) {
         $obj = $this->getInstance();
         $method = (new ReflectionClass(ExtendedAssetSearch::class))->getMethod('getQueryValues');
@@ -213,7 +211,7 @@ class ExtendedAssetSearchTest extends KernelTestCase
         assertEquals($values, $res);
     }
 
-    public function extendedSearchCheckProvider() {
+    public static function extendedSearchCheckProvider() {
         // [query, isExtended]
         yield ['suche', false];
         yield ['komplizierter suchterm', false];
@@ -221,9 +219,7 @@ class ExtendedAssetSearchTest extends KernelTestCase
         yield ['dasist:einekomplexesuche', true];
     }
 
-    /**
-     * @dataProvider extendedSearchCheckProvider
-     */
+    #[DataProvider("extendedSearchCheckProvider")]
     public function testIsExtended($query, $isExtended){
         $search = $this->getInstance();
         assertEquals($isExtended, $search->isExtendedQuery($query));
@@ -235,7 +231,7 @@ class ExtendedAssetSearchTest extends KernelTestCase
 
     public function testCategoryQuery() {
         $search = $this->getInstance();
-        $factory = ObjektFactory::new();
+        $factory = AssetFactory::new();
 
         // create assets with category 1 and not 1
         $samples = [
@@ -257,35 +253,35 @@ class ExtendedAssetSearchTest extends KernelTestCase
         $this->testQuery($search, [
             'c:1', 'k:1', 'cat:1', 'kat:1', 'category:1', 'kategorie:1',
             '!c:[0|2|3|4|5]', '!k:[0|2|3|4|5]', '!cat:[0|2|3|4|5]', '!kat:[0|2|3|4|5]', '!category:[0|2|3|4|5]', '!kategorie:[0|2|3|4|5]',
-        ], [$samples[3], $samples[2]], 'getKategorie');
+        ], [$samples[3], $samples[2]], 'getCategory');
 
         // test multiple 
         $this->testQuery($search, [
             'c:[2|3]', 'c:2 || c:3'
-        ], [$samples[4], $samples[5], $samples[6], $samples[7]], 'getKategorie');
+        ], [$samples[4], $samples[5], $samples[6], $samples[7]], 'getCategory');
     }
 
     public function testStateQuery() {
         $search = $this->getInstance();
-        $factory = ObjektFactory::new();
+        $factory = AssetFactory::new();
 
         // create assets with state 4 and 0
         $samples = [
-            $factory->exhibit()->create(['barcode' => 'DTAS00001', 'status' => Objekt::STATUS_EINGETRAGEN]),                // 0
-            $factory->exhibit()->create(['barcode' => 'DTAS00002', 'status' => Objekt::STATUS_EINGETRAGEN]),                // 1
-            $factory->exhibitHdd()->create(['barcode' => 'DTAS00005', 'status' => Objekt::STATUS_AN_PERSON_UEBERGEBEN]),    // 2
-            $factory->exhibitHdd()->create(['barcode' => 'DTAS00006', 'status' => Objekt::STATUS_AN_PERSON_UEBERGEBEN]),    // 3
+            $factory->exhibit()->create(['barcode' => 'DTAS00001', 'state' => State::Added]),                // 0
+            $factory->exhibit()->create(['barcode' => 'DTAS00002', 'state' => State::Added]),                // 1
+            $factory->exhibitHdd()->create(['barcode' => 'DTAS00005', 'state' => State::HandoverPerson]),    // 2
+            $factory->exhibitHdd()->create(['barcode' => 'DTAS00006', 'state' => State::HandoverPerson]),    // 3
         ];
         
         $this->testQuery($search, [
-            's:4', 'status:4',
+            's:4', 'state:4',
             '!s:[0|1|2|3|5|6|7|8|9|10|11|12|13|14]',
-        ], [$samples[2], $samples[3]], 'getStatus');
+        ], [$samples[2], $samples[3]], 'getState');
     }
 
     public function testBarcodeQuery() {
         $search = $this->getInstance();
-        $factory = ObjektFactory::new();
+        $factory = AssetFactory::new();
 
         $samples = [
             $factory->exhibit()->create(['barcode' => 'DTAS00001']),        // 0
@@ -317,7 +313,7 @@ class ExtendedAssetSearchTest extends KernelTestCase
 
     public function testNameQuery() {
         $search = $this->getInstance();
-        $factory = ObjektFactory::new();
+        $factory = AssetFactory::new();
 
         $samples = [
             $factory->exhibit()->create(['barcode' => 'DTAS00001', 'name' => 'Albert']),    // 0
@@ -335,164 +331,164 @@ class ExtendedAssetSearchTest extends KernelTestCase
         ], [$samples[2], $samples[3]], 'getName');
     }
 
-    public function testDescriptionQuery() {
+    public function testUsageQuery() {
         $search = $this->getInstance();
-        $factory = ObjektFactory::new();
+        $factory = AssetFactory::new();
 
         $samples = [
-            $factory->exhibit()->create(['barcode' => 'DTAS00001', 'verwendung' => 'Dies ist ein text mit leerzeichen']),
-            $factory->exhibit()->create(['barcode' => 'DTAS00002', 'verwendung' => 'Komische Zahlen 23123!']),
-            $factory->exhibitHdd()->create(['barcode' => 'DTAS00005', 'verwendung' => '']),
-            $factory->exhibitHdd()->create(['barcode' => 'DTAS00006', 'verwendung' => 'xyz']),
+            $factory->exhibit()->create(['barcode' => 'DTAS00001', 'usage' => 'Dies ist ein text mit leerzeichen']),
+            $factory->exhibit()->create(['barcode' => 'DTAS00002', 'usage' => 'Komische Zahlen 23123!']),
+            $factory->exhibitHdd()->create(['barcode' => 'DTAS00005', 'usage' => '']),
+            $factory->exhibitHdd()->create(['barcode' => 'DTAS00006', 'usage' => 'xyz']),
         ];
         
         $this->testQuery($search, [
             'desc:xyz', 'description:"xyz"'
-        ], [$samples[3]], 'getVerwendung');
+        ], [$samples[3]], 'getUsage');
 
         $this->testQuery($search, [
             'desc:"Dies ist ein text mit leerzeichen"'
-        ], [$samples[0]], 'getVerwendung');
+        ], [$samples[0]], 'getUsage');
 
         $this->testQuery($search, [
             'desc:"123!"'
-        ], [$samples[1]], 'getVerwendung');
+        ], [$samples[1]], 'getUsage');
 
         $this->testQuery($search, [
             '!desc:" "'
-        ], [$samples[2], $samples[3]], 'getVerwendung');
+        ], [$samples[2], $samples[3]], 'getUsage');
     }
 
-    public function testFormerDescriptionQuery() {
-        $this->markTestIncomplete();
+    public function testFormerUsageQuery() {
+        $this->markTestIncomplete('Not yet implemented');
     }
 
-    public function testUserQuery() {
+    public function testModifiedByQuery() {
         $search = $this->getInstance();
-        $factory = ObjektFactory::new();
+        $factory = AssetFactory::new();
 
-        $userFactory = NutzerFactory::new();
-        $alice = $userFactory->enabled()->testPassword()->with([
+        $NutzerFactory = NutzerFactory::new();
+        $alice = $NutzerFactory->enabled()->testPassword()->with([
             'username' => 'alice',
             'fullname' => 'alice',
             'email' => 'alice@localhost',
         ])->create()->_real();
-        $bob = $userFactory->enabled()->testPassword()->with([
+        $bob = $NutzerFactory->enabled()->testPassword()->with([
             'username' => 'bob',
             'fullname' => 'bob',
             'email' => 'bob@localhost',
         ])->create()->_real();
 
         $samples = [
-            $factory->exhibit()->create(['barcode' => 'DTAS00001', 'nutzer' => $alice]),
-            $factory->exhibit()->create(['barcode' => 'DTAS00002', 'nutzer' => $alice]),
-            $factory->exhibitHdd()->create(['barcode' => 'DTAS00005', 'nutzer' => $bob]),
-            $factory->exhibitHdd()->create(['barcode' => 'DTAS00006', 'nutzer' => $bob]),
+            $factory->exhibit()->create(['barcode' => 'DTAS00001', 'modifiedby' => $alice]),
+            $factory->exhibit()->create(['barcode' => 'DTAS00002', 'modifiedby' => $alice]),
+            $factory->exhibitHdd()->create(['barcode' => 'DTAS00005', 'modifiedby' => $bob]),
+            $factory->exhibitHdd()->create(['barcode' => 'DTAS00006', 'modifiedby' => $bob]),
         ];
         
         $this->testQuery($search, [
             'u:alice', '!u:bob'
-        ], [$samples[0], $samples[1]], 'getNutzer');
+        ], [$samples[0], $samples[1]], 'getModifiedBy');
         
         $this->testQuery($search, [
             '!u:alice', 'u:bob'
-        ], [$samples[2], $samples[3]], 'getNutzer');
+        ], [$samples[2], $samples[3]], 'getModifiedBy');
     }
 
-    public function testFormerUserQuery() {
-        $this->markTestIncomplete();
+    public function testFormerModifiedByQuery() {
+        $this->markTestIncomplete('Not yet implemented');
     }
 
-    public function testReservedQuery() {
+    public function testReservedByQuery() {
         $search = $this->getInstance();
-        $factory = ObjektFactory::new();
+        $factory = AssetFactory::new();
 
-        $userFactory = NutzerFactory::new();
-        $alice = $userFactory->enabled()->testPassword()->with([
+        $NutzerFactory = NutzerFactory::new();
+        $alice = $NutzerFactory->enabled()->testPassword()->with([
             'username' => 'alice',
             'fullname' => 'alice',
             'email' => 'alice@localhost',
         ])->create()->_real();
-        $bob = $userFactory->enabled()->testPassword()->with([
+        $bob = $NutzerFactory->enabled()->testPassword()->with([
             'username' => 'bob',
             'fullname' => 'bob',
             'email' => 'bob@localhost',
         ])->create()->_real();
 
         $samples = [
-            $factory->exhibit()->create(['barcode' => 'DTAS00001', 'status' => Objekt::STATUS_RESERVIERT, 'reserviert_von' => $alice]),
-            $factory->exhibit()->create(['barcode' => 'DTAS00002', 'status' => Objekt::STATUS_RESERVIERT, 'reserviert_von' => $bob]),
-            $factory->equipment()->create(['barcode' => 'DTHW00001', 'status' => Objekt::STATUS_RESERVIERUNG_AUFGEHOBEN]),
-            $factory->equipment()->create(['barcode' => 'DTHW00002', 'status' => Objekt::STATUS_RESERVIERUNG_AUFGEHOBEN]),
+            $factory->exhibit()->create(['barcode' => 'DTAS00001', 'state' => State::Reserved, 'reservedBy' => $alice]),
+            $factory->exhibit()->create(['barcode' => 'DTAS00002', 'state' => State::Reserved, 'reservedBy' => $bob]),
+            $factory->equipment()->create(['barcode' => 'DTHW00001', 'state' => State::UnbindReservation]),
+            $factory->equipment()->create(['barcode' => 'DTHW00002', 'state' => State::UnbindReservation]),
             $factory->container()->create(['barcode' => 'DTHW00003']),
             $factory->container()->create(['barcode' => 'DTHW00004']),
         ];
         
         $this->testQuery($search, [
             'r:t'
-        ], [$samples[0], $samples[1]], 'getreserviertVon');
+        ], [$samples[0], $samples[1]], 'getReservedBy');
 
         $this->testQuery($search, [
             'r:f'
-        ], [$samples[2], $samples[3], $samples[4], $samples[5]], 'getreserviertVon');
+        ], [$samples[2], $samples[3], $samples[4], $samples[5]], 'getReservedBy');
         
         $this->testQuery($search, [
             'r:alice',
-        ], [$samples[0]], 'getreserviertVon');
+        ], [$samples[0]], 'getReservedBy');
         
         $this->testQuery($search, [
             'r:bob',
-        ], [$samples[1]], 'getreserviertVon');
+        ], [$samples[1]], 'getReservedBy');
         
         // empty results
         $this->testQuery($search, [
             'r:andreas',
-        ], [], 'getreserviertVon');
+        ], [], 'getReservedBy');
     }
 
     public function testFormerReservedQuery() {
-        $this->markTestIncomplete();
+        $this->markTestIncomplete('Not yet implemented');
     }
 
     public function testLocationQuery() {
         $search = $this->getInstance();
-        $factory = ObjektFactory::new();
+        $factory = AssetFactory::new();
 
         $container = [
             $factory->container()->create(['barcode' => 'DTHW00003']),
             $factory->container()->create(['barcode' => 'DTHW00004']),
         ];
         $samples = [
-            $factory->hdd()->create(['barcode' => 'DTHD00001', 'status' => Objekt::STATUS_IN_EINEM_BEHAELTER_GELEGT, 'standort' => $container[0]]),
-            $factory->hdd()->create(['barcode' => 'DTHD00002', 'status' => Objekt::STATUS_IN_EINEM_BEHAELTER_GELEGT, 'standort' => $container[0]]),
-            $factory->record()->create(['barcode' => 'DTAS00003', 'status' => Objekt::STATUS_IN_EINEM_BEHAELTER_GELEGT, 'standort' => $container[1]]),
-            $factory->record()->create(['barcode' => 'DTAS00004', 'status' => Objekt::STATUS_IN_EINEM_BEHAELTER_GELEGT, 'standort' => $container[1]]),
+            $factory->hdd()->create(['barcode' => 'DTHD00001', 'state' => State::StoredInContainer, 'location' => $container[0]]),
+            $factory->hdd()->create(['barcode' => 'DTHD00002', 'state' => State::StoredInContainer, 'location' => $container[0]]),
+            $factory->record()->create(['barcode' => 'DTAS00003', 'state' => State::StoredInContainer, 'location' => $container[1]]),
+            $factory->record()->create(['barcode' => 'DTAS00004', 'state' => State::StoredInContainer, 'location' => $container[1]]),
         ];
         
         // test all
         $this->testQuery($search, [
             'l:t', 'location:t', 'l:[DTHW00003|DTHW00004]', 'l:DTHW'
-        ], $samples, 'getStandort');
+        ], $samples, 'getLocation');
         
         // test container
         $this->testQuery($search, [
             'l:f', 
-        ], $container, 'getStandort');
+        ], $container, 'getLocation');
         
         // test single
         $this->testQuery($search, [
             'l:"DTHW00003"'
-        ], [$samples[0], $samples[1]], 'getStandort');
+        ], [$samples[0], $samples[1]], 'getLocation');
     }
     
     public function testFormerLocationQuery() {
-        $this->markTestIncomplete();
+        $this->markTestIncomplete('Not yet implemented');
     }
 
     public function testCaseQuery() {
         $search = $this->getInstance();
-        $factory = ObjektFactory::new();
-        $caseFactory = FallFactory::new();
+        $factory = AssetFactory::new();
+        $caseFactory = CaseFactory::new();
 
         $cases = [
             $caseFactory->active()->create(['case_id' => 'Fall 1']),
@@ -500,8 +496,8 @@ class ExtendedAssetSearchTest extends KernelTestCase
         ];
 
         $samples = [
-            $factory->hdd()->create(['barcode' => 'DTHD00001', 'status' => Objekt::STATUS_EINEM_FALL_HINZUGEFUEGT, 'fall' => $cases[0]]),
-            $factory->hdd()->create(['barcode' => 'DTHD00002', 'status' => Objekt::STATUS_AUS_DEM_BEHAELTER_ENTFERNT, 'fall' => $cases[1]]),
+            $factory->hdd()->create(['barcode' => 'DTHD00001', 'state' => State::AssignedCase, 'case' => $cases[0]]),
+            $factory->hdd()->create(['barcode' => 'DTHD00002', 'state' => State::PulledOutOfContainer, 'case' => $cases[1]]),
             $factory->record()->create(['barcode' => 'DTAS00003']),
             $factory->record()->create(['barcode' => 'DTAS00004']),
         ];
@@ -509,27 +505,27 @@ class ExtendedAssetSearchTest extends KernelTestCase
         // test set
         $this->testQuery($search, [
             'case:t', 'case:["Fall 1"|"Fall 2"]', 'case:Fall'
-        ], [$samples[0], $samples[1]], 'getFall');
+        ], [$samples[0], $samples[1]], 'getCase');
         
         // test not set
         $this->testQuery($search, [
             'case:f' 
-        ], [$samples[2], $samples[3]], 'getFall');
+        ], [$samples[2], $samples[3]], 'getCase');
         
         // test single
         $this->testQuery($search, [
             'case:"Fall 1"', '!case:"Fall 2"'
-        ], [$samples[0]], 'getFall');
+        ], [$samples[0]], 'getCase');
     }
     
     public function testFormerCaseQuery() {
-        $this->markTestIncomplete();
+        $this->markTestIncomplete('Not yet implemented');
     }
 
     public function testCaseActiveQuery() {
         $search = $this->getInstance();
-        $factory = ObjektFactory::new();
-        $caseFactory = FallFactory::new();
+        $factory = AssetFactory::new();
+        $caseFactory = CaseFactory::new();
 
         $cases = [
             $caseFactory->active()->create(['case_id' => 'Aktiv 1']),
@@ -537,8 +533,8 @@ class ExtendedAssetSearchTest extends KernelTestCase
         ];
 
         $samples = [
-            $factory->hdd()->create(['barcode' => 'DTHD00001', 'status' => Objekt::STATUS_EINEM_FALL_HINZUGEFUEGT, 'fall' => $cases[0]]),
-            $factory->hdd()->create(['barcode' => 'DTHD00002', 'status' => Objekt::STATUS_AUS_DEM_BEHAELTER_ENTFERNT, 'fall' => $cases[1]]),
+            $factory->hdd()->create(['barcode' => 'DTHD00001', 'state' => State::AssignedCase, 'case' => $cases[0]]),
+            $factory->hdd()->create(['barcode' => 'DTHD00002', 'state' => State::PulledOutOfContainer, 'case' => $cases[1]]),
             $factory->record()->create(['barcode' => 'DTAS00003']),
             $factory->record()->create(['barcode' => 'DTAS00004']),
         ];
@@ -546,82 +542,82 @@ class ExtendedAssetSearchTest extends KernelTestCase
         // test active
         $this->testQuery($search, [
             'caseactive:t'
-        ], [$samples[0]], 'getFall');
+        ], [$samples[0]], 'getCase');
         
         // test not set
         $this->testQuery($search, [
             'caseactive:f' 
-        ], [$samples[1]], 'getFall');
+        ], [$samples[1]], 'getCase');
     }
 
     public function testNoteQuery() {
         $search = $this->getInstance();
-        $factory = ObjektFactory::new();
+        $factory = AssetFactory::new();
 
         $samples = [
-            $factory->exhibit()->create(['barcode' => 'DTAS00001', 'notiz' => 'Dies ist ein text mit leerzeichen']),
-            $factory->exhibit()->create(['barcode' => 'DTAS00002', 'notiz' => 'Komische Zahlen 23123!']),
-            $factory->exhibitHdd()->create(['barcode' => 'DTAS00005', 'notiz' => '']),
-            $factory->exhibitHdd()->create(['barcode' => 'DTAS00006', 'notiz' => 'xyz']),
+            $factory->exhibit()->create(['barcode' => 'DTAS00001', 'note' => 'Dies ist ein text mit leerzeichen']),
+            $factory->exhibit()->create(['barcode' => 'DTAS00002', 'note' => 'Komische Zahlen 23123!']),
+            $factory->exhibitHdd()->create(['barcode' => 'DTAS00005', 'note' => '']),
+            $factory->exhibitHdd()->create(['barcode' => 'DTAS00006', 'note' => 'xyz']),
         ];
         
         $this->testQuery($search, [
             'info:xyz', 'note:"xyz"'
-        ], [$samples[3]], 'getNotiz');
+        ], [$samples[3]], 'getNote');
 
         $this->testQuery($search, [
             'note:"Dies ist ein text mit leerzeichen"'
-        ], [$samples[0]], 'getNotiz');
+        ], [$samples[0]], 'getNote');
 
         $this->testQuery($search, [
             'note:"123!"'
-        ], [$samples[1]], 'getNotiz');
+        ], [$samples[1]], 'getNote');
 
         $this->testQuery($search, [
             '!note:" "'
-        ], [$samples[2], $samples[3]], 'getNotiz');
+        ], [$samples[2], $samples[3]], 'getNote');
     }
 
     public function testDateQuery() {
         $search = $this->getInstance();
-        $factory = ObjektFactory::new();
+        $factory = AssetFactory::new();
 
         // create assets with category 1 and not 1
         $samples = [
-            $factory->exhibit()->create(['barcode' => 'DTAS00001', 'zeitstempel' => DateTime::createFromFormat('Y-m-d', '2010-03-14')]),
-            $factory->exhibit()->create(['barcode' => 'DTAS00002', 'zeitstempel' => DateTime::createFromFormat('Y-m-d', '2011-03-14')]),
-            $factory->equipment()->create(['barcode' => 'DTHW00001', 'zeitstempel' => DateTime::createFromFormat('Y-m-d', '2012-03-14')]),
-            $factory->equipment()->create(['barcode' => 'DTHW00002', 'zeitstempel' => DateTime::createFromFormat('Y-m-d', '2013-03-14')]),
-            $factory->container()->create(['barcode' => 'DTHW00003', 'zeitstempel' => DateTime::createFromFormat('Y-m-d', '2014-03-14')]),
-            $factory->container()->create(['barcode' => 'DTHW00004', 'zeitstempel' => DateTime::createFromFormat('Y-m-d', '2015-03-14')]),
-            $factory->hdd()->create(['barcode' => 'DTHD00001', 'zeitstempel' => DateTime::createFromFormat('Y-m-d', '2016-03-14')]),
-            $factory->hdd()->create(['barcode' => 'DTHD00002', 'zeitstempel' => DateTime::createFromFormat('Y-m-d', '2017-03-14')]),
-            $factory->record()->create(['barcode' => 'DTAS00003', 'zeitstempel' => DateTime::createFromFormat('Y-m-d', '2018-03-14')]),
-            $factory->record()->create(['barcode' => 'DTAS00004', 'zeitstempel' => DateTime::createFromFormat('Y-m-d', '2019-03-14')]),
-            $factory->exhibitHdd()->create(['barcode' => 'DTAS00005', 'zeitstempel' => DateTime::createFromFormat('Y-m-d', '2020-03-14')]),
-            $factory->exhibitHdd()->create(['barcode' => 'DTAS00006', 'zeitstempel' => DateTime::createFromFormat('Y-m-d', '2021-03-14')]),
+            $factory->exhibit()->create(['barcode' => 'DTAS00001', 'lastupdatedon' => DateTime::createFromFormat('Y-m-d', '2010-03-14')]),
+            $factory->exhibit()->create(['barcode' => 'DTAS00002', 'lastupdatedon' => DateTime::createFromFormat('Y-m-d', '2011-03-14')]),
+            $factory->equipment()->create(['barcode' => 'DTHW00001', 'lastupdatedon' => DateTime::createFromFormat('Y-m-d', '2012-03-14')]),
+            $factory->equipment()->create(['barcode' => 'DTHW00002', 'lastupdatedon' => DateTime::createFromFormat('Y-m-d', '2013-03-14')]),
+            $factory->container()->create(['barcode' => 'DTHW00003', 'lastupdatedon' => DateTime::createFromFormat('Y-m-d', '2014-03-14')]),
+            $factory->container()->create(['barcode' => 'DTHW00004', 'lastupdatedon' => DateTime::createFromFormat('Y-m-d', '2015-03-14')]),
+            $factory->hdd()->create(['barcode' => 'DTHD00001', 'lastupdatedon' => DateTime::createFromFormat('Y-m-d', '2016-03-14')]),
+            $factory->hdd()->create(['barcode' => 'DTHD00002', 'lastupdatedon' => DateTime::createFromFormat('Y-m-d', '2017-03-14')]),
+            $factory->record()->create(['barcode' => 'DTAS00003', 'lastupdatedon' => DateTime::createFromFormat('Y-m-d', '2018-03-14')]),
+            $factory->record()->create(['barcode' => 'DTAS00004', 'lastupdatedon' => DateTime::createFromFormat('Y-m-d', '2019-03-14')]),
+            $factory->exhibitHdd()->create(['barcode' => 'DTAS00005', 'lastupdatedon' => DateTime::createFromFormat('Y-m-d', '2020-03-14')]),
+            $factory->exhibitHdd()->create(['barcode' => 'DTAS00006', 'lastupdatedon' => DateTime::createFromFormat('Y-m-d', '2021-03-14')]),
         ];
         
         // test simple single date queries
         $this->testQuery($search, [
             'd:14.03.2012', 'mdate:14.03.12', '!d:[<14.03.2012|>14.03.2012]'
-        ], [$samples[2]], 'getZeitstempel');
+        ], [$samples[2]], 'getLastUpdatedOn');
 
         // test simple date range queries
         $this->testQuery($search, [
             'd:>13.03.2021', 'mdate:>03/13/2021', '!d:<14.03.21', 'ed:>=2021-03-14'
-        ], [$samples[11]], 'getZeitstempel');
+        ], [$samples[11]], 'getLastUpdatedOn');
 
         // test complex date range queries
         $this->testQuery($search, [
             'd:>03/13/2012 d:<03/15/14', 'mdate:>13.03.2012 mdate:<15.03.2014', 'date:>=14.03.2012 ed:<=14.03.2014'
-        ], [$samples[2], $samples[3], $samples[4]], 'getZeitstempel');
+        ], [$samples[2], $samples[3], $samples[4]], 'getLastUpdatedOn');
     }
 
     public function testDriveTypeQuery() {
         $search = $this->getInstance();
-        $factory = ObjektFactory::new();
-        $driveFactory = DatentraegerFactory::new();
+        $factory = AssetFactory::new();
+        $driveFactory = DriveFactory::new();
 
         $equipment = [
             $factory->equipment()->create(['barcode' => 'DTHW00001']),
@@ -638,10 +634,10 @@ class ExtendedAssetSearchTest extends KernelTestCase
         ];
 
         $drives = [
-            $driveFactory->create(['barcode' => 'DTHD00001', 'bauart' => 'intern']),
-            $driveFactory->create(['barcode' => 'DTHD00002', 'bauart' => 'intern']),
-            $driveFactory->create(['barcode' => 'DTAS00003', 'bauart' => 'extern']),
-            $driveFactory->create(['barcode' => 'DTAS00004', 'bauart' => 'extern']),
+            $driveFactory->create(['asset' => $samples[0]->_real(), 'type' => 'intern']),
+            $driveFactory->create(['asset' => $samples[1]->_real(), 'type' => 'intern']),
+            $driveFactory->create(['asset' => $samples[2]->_real(), 'type' => 'extern']),
+            $driveFactory->create(['asset' => $samples[3]->_real(), 'type' => 'extern']),
         ];
 
         $factory->enableAutomaticDriveGeneration();
@@ -664,8 +660,8 @@ class ExtendedAssetSearchTest extends KernelTestCase
 
     public function testDriveFormFactorQuery() {
         $search = $this->getInstance();
-        $factory = ObjektFactory::new();
-        $driveFactory = DatentraegerFactory::new();
+        $factory = AssetFactory::new();
+        $driveFactory = DriveFactory::new();
 
         $equipment = [
             $factory->equipment()->create(['barcode' => 'DTHW00001']),
@@ -682,10 +678,10 @@ class ExtendedAssetSearchTest extends KernelTestCase
         ];
 
         $drives = [
-            $driveFactory->create(['barcode' => 'DTHD00001', 'formfaktor' => '2,5']),
-            $driveFactory->create(['barcode' => 'DTHD00002', 'formfaktor' => '2,5']),
-            $driveFactory->create(['barcode' => 'DTAS00003', 'formfaktor' => '3,5']),
-            $driveFactory->create(['barcode' => 'DTAS00004', 'formfaktor' => '3,5']),
+            $driveFactory->create(['asset' => $samples[0]->_real(), 'formFactor' => '2,5']),
+            $driveFactory->create(['asset' => $samples[1]->_real(), 'formFactor' => '2,5']),
+            $driveFactory->create(['asset' => $samples[2]->_real(), 'formFactor' => '3,5']),
+            $driveFactory->create(['asset' => $samples[3]->_real(), 'formFactor' => '3,5']),
         ];
 
         $factory->enableAutomaticDriveGeneration();
@@ -708,8 +704,8 @@ class ExtendedAssetSearchTest extends KernelTestCase
 
     public function testDriveSizeQuery() {
         $search = $this->getInstance();
-        $factory = ObjektFactory::new();
-        $driveFactory = DatentraegerFactory::new();
+        $factory = AssetFactory::new();
+        $driveFactory = DriveFactory::new();
 
         $equipment = [
             $factory->equipment()->create(['barcode' => 'DTHW00001']),
@@ -726,10 +722,10 @@ class ExtendedAssetSearchTest extends KernelTestCase
         ];
 
         $drives = [
-            $driveFactory->create(['barcode' => 'DTHD00001', 'groesse' => '100']),
-            $driveFactory->create(['barcode' => 'DTHD00002', 'groesse' => '150']),
-            $driveFactory->create(['barcode' => 'DTAS00003', 'groesse' => '200']),
-            $driveFactory->create(['barcode' => 'DTAS00004', 'groesse' => '250']),
+            $driveFactory->create(['asset' => $samples[0]->_real(), 'size' => '100']),
+            $driveFactory->create(['asset' => $samples[1]->_real(), 'size' => '150']),
+            $driveFactory->create(['asset' => $samples[2]->_real(), 'size' => '200']),
+            $driveFactory->create(['asset' => $samples[3]->_real(), 'size' => '250']),
         ];
 
         $factory->enableAutomaticDriveGeneration();
@@ -757,8 +753,8 @@ class ExtendedAssetSearchTest extends KernelTestCase
 
     public function testDriveManufacturerQuery() {
         $search = $this->getInstance();
-        $factory = ObjektFactory::new();
-        $driveFactory = DatentraegerFactory::new();
+        $factory = AssetFactory::new();
+        $driveFactory = DriveFactory::new();
 
         $equipment = [
             $factory->equipment()->create(['barcode' => 'DTHW00001']),
@@ -775,10 +771,10 @@ class ExtendedAssetSearchTest extends KernelTestCase
         ];
 
         $drives = [
-            $driveFactory->create(['barcode' => 'DTHD00001', 'hersteller' => 'albert']),
-            $driveFactory->create(['barcode' => 'DTHD00002', 'hersteller' => 'ügürü']),
-            $driveFactory->create(['barcode' => 'DTAS00003', 'hersteller' => 'übürü']),
-            $driveFactory->create(['barcode' => 'DTAS00004', 'hersteller' => 'niemand']),
+            $driveFactory->create(['asset' => $samples[0]->_real(), 'manufacturer' => 'albert']),
+            $driveFactory->create(['asset' => $samples[1]->_real(), 'manufacturer' => 'ügürü']),
+            $driveFactory->create(['asset' => $samples[2]->_real(), 'manufacturer' => 'übürü']),
+            $driveFactory->create(['asset' => $samples[3]->_real(), 'manufacturer' => 'niemand']),
         ];
 
         $factory->enableAutomaticDriveGeneration();
@@ -807,12 +803,12 @@ class ExtendedAssetSearchTest extends KernelTestCase
 
     public function testDriveModelQuery() {
         $search = $this->getInstance();
-        $factory = ObjektFactory::new();
-        $driveFactory = DatentraegerFactory::new();
+        $factory = AssetFactory::new();
+        $driveFactory = DriveFactory::new();
 
-        $equipment = [
-            $factory->equipment()->create(['barcode' => 'DTHW00001']),
-            $factory->equipment()->create(['barcode' => 'DTHW00002']),
+        $records = [
+            $factory->record()->create(['barcode' => 'DTHW00011']),
+            $factory->record()->create(['barcode' => 'DTHW00022']),
         ];
 
         $factory->disableAutomaticDriveGeneration();
@@ -825,34 +821,36 @@ class ExtendedAssetSearchTest extends KernelTestCase
         ];
 
         $drives = [
-            $driveFactory->create(['barcode' => 'DTHD00001', 'modell' => 'A']),
-            $driveFactory->create(['barcode' => 'DTHD00002', 'modell' => 'A']),
-            $driveFactory->create(['barcode' => 'DTAS00003', 'modell' => 'B']),
-            $driveFactory->create(['barcode' => 'DTAS00004', 'modell' => 'C']),
+            $driveFactory->create(['asset' => $samples[0]->_real(), 'model' => 'A']),
+            $driveFactory->create(['asset' => $samples[1]->_real(), 'model' => 'A']),
+            $driveFactory->create(['asset' => $samples[2]->_real(), 'model' => 'B']),
+            $driveFactory->create(['asset' => $samples[3]->_real(), 'model' => 'C']),
         ];
 
         $factory->enableAutomaticDriveGeneration();
 
         // test all
         $this->testQuery($search, [
-            'modell:t',
+            'model:t',
         ], $samples, 'getBarcode');
 
+        # todo fix very weird bug in this test (when executed form directory)
+        
         // test all non drives
         $this->testQuery($search, [
-            'modell:f',
-        ], $equipment, 'getBarcode');
+            'model:f',
+        ], $records, 'getBarcode');
 
         // test for specific
         $this->testQuery($search, [
-            'modell:"A"', '!modell:[B|C]',
+            'model:"A"', '!model:[B|C]',
         ], [$samples[0], $samples[1]], 'getBarcode');
     }
 
     public function testDriveProductNumberQuery() {
         $search = $this->getInstance();
-        $factory = ObjektFactory::new();
-        $driveFactory = DatentraegerFactory::new();
+        $factory = AssetFactory::new();
+        $driveFactory = DriveFactory::new();
 
         $equipment = [
             $factory->equipment()->create(['barcode' => 'DTHW00001']),
@@ -869,10 +867,10 @@ class ExtendedAssetSearchTest extends KernelTestCase
         ];
 
         $drives = [
-            $driveFactory->create(['barcode' => 'DTHD00001', 'pn' => '10']),
-            $driveFactory->create(['barcode' => 'DTHD00002', 'pn' => '20']),
-            $driveFactory->create(['barcode' => 'DTAS00003', 'pn' => '33']),
-            $driveFactory->create(['barcode' => 'DTAS00004', 'pn' => '44']),
+            $driveFactory->create(['asset' => $samples[0]->_real(), 'productNumber' => '10']),
+            $driveFactory->create(['asset' => $samples[1]->_real(), 'productNumber' => '20']),
+            $driveFactory->create(['asset' => $samples[2]->_real(), 'productNumber' => '33']),
+            $driveFactory->create(['asset' => $samples[3]->_real(), 'productNumber' => '44']),
         ];
 
         $factory->enableAutomaticDriveGeneration();
@@ -895,8 +893,8 @@ class ExtendedAssetSearchTest extends KernelTestCase
 
     public function testDriveSerialNumberQuery() {
         $search = $this->getInstance();
-        $factory = ObjektFactory::new();
-        $driveFactory = DatentraegerFactory::new();
+        $factory = AssetFactory::new();
+        $driveFactory = DriveFactory::new();
 
         $equipment = [
             $factory->equipment()->create(['barcode' => 'DTHW00001']),
@@ -913,10 +911,10 @@ class ExtendedAssetSearchTest extends KernelTestCase
         ];
 
         $drives = [
-            $driveFactory->create(['barcode' => 'DTHD00001', 'sn' => '10']),
-            $driveFactory->create(['barcode' => 'DTHD00002', 'sn' => '20']),
-            $driveFactory->create(['barcode' => 'DTAS00003', 'sn' => '33']),
-            $driveFactory->create(['barcode' => 'DTAS00004', 'sn' => '44']),
+            $driveFactory->create(['asset' => $samples[0]->_real(), 'serialNumber' => '10']),
+            $driveFactory->create(['asset' => $samples[1]->_real(), 'serialNumber' => '20']),
+            $driveFactory->create(['asset' => $samples[2]->_real(), 'serialNumber' => '33']),
+            $driveFactory->create(['asset' => $samples[3]->_real(), 'serialNumber' => '44']),
         ];
 
         $factory->enableAutomaticDriveGeneration();
@@ -939,8 +937,8 @@ class ExtendedAssetSearchTest extends KernelTestCase
 
     public function testDriveConnectorQuery() {
         $search = $this->getInstance();
-        $factory = ObjektFactory::new();
-        $driveFactory = DatentraegerFactory::new();
+        $factory = AssetFactory::new();
+        $driveFactory = DriveFactory::new();
 
         $equipment = [
             $factory->equipment()->create(['barcode' => 'DTHW00001']),
@@ -957,10 +955,10 @@ class ExtendedAssetSearchTest extends KernelTestCase
         ];
 
         $drives = [
-            $driveFactory->create(['barcode' => 'DTHD00001', 'anschluss' => 'A']),
-            $driveFactory->create(['barcode' => 'DTHD00002', 'anschluss' => 'A']),
-            $driveFactory->create(['barcode' => 'DTAS00003', 'anschluss' => 'B']),
-            $driveFactory->create(['barcode' => 'DTAS00004', 'anschluss' => 'C']),
+            $driveFactory->create(['asset' => $samples[0]->_real(), 'connector' => 'A']),
+            $driveFactory->create(['asset' => $samples[1]->_real(), 'connector' => 'A']),
+            $driveFactory->create(['asset' => $samples[2]->_real(), 'connector' => 'B']),
+            $driveFactory->create(['asset' => $samples[3]->_real(), 'connector' => 'C']),
         ];
 
         $factory->enableAutomaticDriveGeneration();

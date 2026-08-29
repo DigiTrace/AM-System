@@ -1,0 +1,202 @@
+{# templates/form/asset_list_type.html.twig #}
+{% block asset_list_row %}
+    {# Render search form #}
+    <div class="form-group">
+    {{ form_label(form.selector) }}
+    {{ form_errors(form.item) }}
+    {{ form_errors(form) }}
+    <div class="form-inline">
+        {{ form_widget(form.selector) }}
+        {{ form_widget(form.limit) }}
+    </div>
+    {{ form_help(form.selector) }}
+    </div>
+
+    <div class="card">
+        <div class="card-body p-2">
+            <div class="scrollable-tbody" 
+            {% if form.vars.max_height is not null %}
+            style="max-height: {{ form.vars.max_height }}px;"
+            {% endif %}
+            >
+                <table class="table table-sm table-hover mb-0 list-table" id="{{ form.vars.identifier }}-table">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="col-md-2 col-sm-2 {{ form.vars.label_size }}">{{ 'asset.attr.barcode' | trans }}</th>
+                            <th class="col-md-2 col-sm-2 {{ form.vars.label_size }}">{{ 'asset.attr.category' | trans }}</th>
+                            <th class="col-md-4 col-sm-4 {{ form.vars.label_size }}">{{ 'asset.attr.name' | trans }}</th>
+                        </tr>
+                    </thead>
+                    <tbody id="{{ form.vars.identifier }}-table-body" >
+                        {% if form.vars.default %}
+                        {% set asset = form.vars.default %}
+                        <tr class="item-row content-row">
+                            <td class="">
+                                <div class="form-group">
+                                    <div class="radio">
+                                        <label for="{{ form.item.vars.id }}_{{ asset.barcode  }}">
+                                            <input type="radio" name="{{ form.item.vars.full_name }}" value="{{ asset.barcode }}" id="{{ form.item.vars.id }}_{{ asset.barcode  }}" checked="checked">
+                                            {{ asset.barcode }}
+                                        </label>
+                                    </div>
+                                </div>
+                            </td>
+                            
+                            <td>
+                                <span class="label label-{{ asset.getCategory.bootstrapColor }}">
+                                {{ asset.getCategory | trans}}
+                                </span>
+                            </td>
+
+                            <td class=" text-truncate">
+                                <a href="{{ path('details_asset', {'id': asset.barcode}) }}" target="_blank">{{ asset.name }}</a>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr class="item-row muted empty-row">
+                            <td colspan="32" class="text-muted {{ form.vars.label_size }}">
+                                {{ 'form.list.empty' | trans }}
+                            </td>
+                        </tr>
+                        {% endif %}
+                        {% if form.vars.nullable %}
+                        <tr class="item-row muted" id="{{ form.vars.identifier }}-empty">
+                            <td colspan="32" class="text-muted text-center {{ form.vars.label_size }}">
+                                <input type="radio" id="{{ form.item.vars.id }}_0" name="{{ form.item.vars.full_name }}" value="0" checked="checked">
+                                {{ form.vars.nullable_label ?? 'form.list.null_element' | trans }}
+                            </td>
+                        </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+            <div class="d-flex justify-content-between align-items-center mt-2 px-1">
+                <small class="text-muted" id="{{ form.vars.identifier }}-table-summary">
+                    {{ 'form.list.summary' | trans({'%current%' : '0', '%total%': 'all'}) }}
+                </small>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const AssignLocation = (function(){
+            const searchSelector = "#{{ form.selector.vars.id }}";
+            const limitSelector = "#{{ form.limit.vars.id }}";
+            const tableSelector = "#{{ form.vars.identifier }}-table";
+            const tbodySelector = "#{{ form.vars.identifier }}-table-body";
+            const emptySelector = "#{{ form.vars.identifier }}-empty";
+            const summarySelector = "#{{ form.vars.identifier }}-table-summary";
+
+            const summary = '{{ 'form.list.summary' | trans({'%current%' : '__current__', '%total%': '__total__'}) }}';
+            const route = '{{ path('details_asset', {'id': 'XXX'}) }}';
+            const api_url = '{{ path(form.vars.api) }}';
+
+            const size = '{{ form.vars.label_size }}';
+
+            let prevRequest = null;
+
+            const selectItem = function(e){
+                const tag = e.target.tagName.toLowerCase();
+                if (tag == "input" || tag == "label" || tag == "a" || tag == "s") {
+                    return;
+                }                
+
+                $(this).find('input').prop('checked', true);
+                $(`${tableSelector} .item-row`).removeClass('item-active');
+                $(this).addClass('item-active');
+            }
+
+            const createRow = function(item){
+                const row = $($.parseHTML(
+                    `<tr class="item-row content-row">
+                        <td class="${size}">
+                            <div class="form-group">
+                                <div class="radio">
+                                    <label>
+                                        <input type="radio" name="{{ form.item.vars.full_name }}">
+                                    </label>
+                                </div>
+                            </div>
+                        </td>
+                        
+                        <td>
+                            <span class="label">
+                            </span>
+                        </td>
+
+                        <td class="${size} text-truncate">
+                            <a href="" target="_blank">
+                            </a>
+                        </td>
+                    </tr>`
+                ));
+                const tds = row.children();
+
+                $(tds[0]).find('input').attr('value', item.barcode).attr('id', `{{ form.item.vars.id }}_${item.barcode}`);
+                $(tds[0]).find('label').attr('for', `{{ form.item.vars.id }}_${item.barcode}`).append(item.barcode);
+
+                $(tds[1]).find('span').addClass('label-' + item.color).text(item.category);
+                
+                $(tds[2]).find('a').attr('href', route.replace('XXX', item.barcode)).text(item.name);
+
+                $(tbodySelector).append(row);
+
+                // add handler
+                $(row).on('click', selectItem);
+            }
+
+            const updateTable = function(data) {
+                $(tbodySelector).find('.content-row').remove();
+                data.data.forEach(createRow);
+
+                $(summarySelector).text(summary
+                    .replace('__current__', data.data.length)
+                    .replace('__total__', data.total)
+                );
+            }
+
+            const runQuery = function() {
+                const data = $(searchSelector).val();
+                const limit = $(limitSelector).val();
+                    
+                // improve performance by canceling old requests
+                if (prevRequest != null) {
+                    prevRequest.abort();
+                }
+                    
+                prevRequest = $.ajax({
+                    url : api_url,
+                    data: {
+                        query: data,
+                        limit: limit
+                    },
+                    success: function(response) {
+                        if(!response.update) {
+                            return;
+                        }
+
+                        updateTable(response);
+                    }
+                });
+            };
+
+            return {
+                init: function(){
+                    $(emptySelector).on("click", selectItem);
+                    // change to "change" for rate limitting
+                    $(searchSelector).on("input", runQuery);
+                    $(limitSelector).on("change", runQuery);
+
+                    if($(searchSelector).val()) {
+                        runQuery();
+                    }
+                }
+            }
+        })();
+
+        $(function() {
+            AssignLocation.init();
+        });
+    </script>
+
+{% endblock %}

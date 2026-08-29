@@ -2,6 +2,7 @@
 namespace App\Security;
 
 use App\Entity\Nutzer as Nutzer;
+use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 use Symfony\Component\Security\Core\Exception\AccountExpiredException;
 use Symfony\Component\Security\Core\Exception\CustomUserMessageAccountStatusException;
 use Symfony\Component\Security\Core\User\UserCheckerInterface;
@@ -19,7 +20,7 @@ class UserChecker implements UserCheckerInterface
     }
 
 
-    public function checkPostAuth(UserInterface $user): void
+    public function checkPostAuth(UserInterface $user):void //, ?TokenInterface $token): void 
     {
                 
         if (!$user instanceof Nutzer) {

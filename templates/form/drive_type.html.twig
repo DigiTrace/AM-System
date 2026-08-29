@@ -1,0 +1,32 @@
+{# templates/form/drive_type.html.twig #}
+{% block drive_row %}
+    {# drive form #}
+    <div class="row">
+        <div class="col-lg-3 col-md-6 col-xs-6">
+            {{ form_row(form.type) }}
+            {{ form_row(form.manufacturer) }}
+        </div>
+
+        <div class="col-lg-3 col-md-6 col-xs-6">
+            {{ form_row(form.formFactor) }}
+            {{ form_row(form.model) }}
+        </div>
+
+        <div class="col-lg-3 col-md-6 col-xs-6">
+            <div class="row">
+                <div class="col-xs-4">
+                    {{ form_row(form.size_choice) }}
+                </div>
+                <div class="col-xs-8">
+                    {{ form_row(form.size) }}
+                </div>
+            </div>
+            {{ form_row(form.serialNumber) }}
+        </div>
+
+        <div class="col-lg-3 col-md-6 col-xs-6">
+            {{ form_row(form.connector) }}
+            {{ form_row(form.productNumber) }}
+        </div>
+    </div>
+{% endblock %}

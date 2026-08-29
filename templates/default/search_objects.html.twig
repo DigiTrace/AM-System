@@ -46,7 +46,7 @@
 
     {# Include extended search form#}
     <div id="eas_form_container" style="display: none;">
-        {{ include('default/assets/extended_asset_search_form.html.twig', {search_form: 'search_form', regex_single_match: regex_single_match, regex_multiple_match: regex_multiple_match}) }}
+        {{ include('assets/extended_asset_search_form.html.twig', {search_form: 'search_form', regex_single_match: regex_single_match, regex_multiple_match: regex_multiple_match}) }}
     </div>
 
    
@@ -88,9 +88,9 @@
             <td  style='font-family: courier;font-size: large'>{{ objekt.getBarcode }}</td>
         {% endif %}
             
-            <td  >{{ categorytemp[objekt.getKategorie]|trans }}</td>
+            <td  >{{ objekt.getCategory.toTranslatableString|trans }}</td>
         
-            <td><a href="{{ path('detail_object', {'id': objekt.getBarcode}) }}">{{ objekt.getName }} <a/></td>
+            <td><a href="{{ path('details_asset', {'id': objekt.getBarcode}) }}">{{ objekt.getName }} <a/></td>
               
         
         {% if objekt.getreserviertVon != null %}
@@ -123,8 +123,8 @@
 
 
 {% block context %}
-    <a href="{{ path("add_object") }}"><span class="glyphicon glyphicon-pencil"></span> {% trans %}action.add.object{% endtrans %}</a><br>
-    <a href="{{ path("search_objects_faq") }}"><span class="glyphicon glyphicon-question-sign"></span> {% trans %}action.object.faq.search{% endtrans %}</a> <br>
+    <a href="{{ path("add_asset") }}"><span class="glyphicon glyphicon-pencil"></span> {% trans %}action.add.object{% endtrans %}</a><br>
+    <a href="{{ path("eas_faq") }}"><span class="glyphicon glyphicon-question-sign"></span> {% trans %}action.object.faq.search{% endtrans %}</a> <br>
     <a href='{{ path("select_new_status_for_multiple_objects")}}'> <span class="glyphicon glyphicon-pencil"></span> {% trans %}action.chosen.object.change{% endtrans %}</a><br>
       
 {% endblock %}
